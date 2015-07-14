@@ -33,7 +33,13 @@
     <ClCompile Include="QBInfo.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="MapObject.cpp">
+    <ClCompile Include="Utility.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Constants.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ResponseDispatcher.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -77,10 +83,13 @@
     <ClInclude Include="QBInfo.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="MapObject.h">
+    <ClInclude Include="LevionMisc.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="LevionMisc.h">
+    <ClInclude Include="Utility.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ResponseDispatcher.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

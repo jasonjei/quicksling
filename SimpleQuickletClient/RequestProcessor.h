@@ -6,6 +6,7 @@
 #include <string>
 #include <map>
 #include "qbXMLRPWrapper.h"
+#include "Constants.h"
 
 class CMainDlg;
 class Orchestrator;

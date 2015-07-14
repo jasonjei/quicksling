@@ -2,6 +2,7 @@
 
 #include "stdafx.h"
 #include "RequestProcessor.h"
+#include "Orchestrator.h"
 #include "ResponseEnvelope.h"
 #include "MainDlg.h"
 #include <regex>
@@ -51,7 +52,7 @@ public:
 			const std::string str(CT2A(envelope->message, CP_UTF8));
 
 			actions.Call(str, request, envelope);
-
+			
 			WaitForSingleObject(request->orchestrator->response.signal, INFINITE);
 			PostThreadMessage(request->orchestrator->response.threadID, LEVION_RESPONSE, (WPARAM)envelope, NULL);
 
@@ -224,6 +225,7 @@ int RequestProcessor::cmd_debug_timeout(ResponseEnvelope *res) {
 }
 
 int RequestProcessor::cmd_get_events(ResponseEnvelope *res) {
+	/*
 	CString data_events;
 	for (std::vector<CString>::iterator it = defaultOrchestrator->eventHandler.dataEvents.begin(); it != defaultOrchestrator->eventHandler.dataEvents.end(); ++it) {
 		if (it != defaultOrchestrator->eventHandler.dataEvents.begin())
@@ -231,26 +233,30 @@ int RequestProcessor::cmd_get_events(ResponseEnvelope *res) {
 		data_events += *it;
 	}
 	defaultOrchestrator->eventHandler.ClearDataEvents();
-	res->reply = data_events;
+	*/
+	res->reply = ""; // data_events;
+	
 	return 1;
 }
 
 int RequestProcessor::cmd_browser(ResponseEnvelope *res) {
 	std::string url(CW2A(res->body, CP_UTF8));
 
+	/* 
+	
 	if (defaultOrchestrator->browser.browser == NULL)
 		defaultOrchestrator->browser.StartThread();
 	WaitForSingleObject(defaultOrchestrator->browser.browserOpenSignal, INFINITE);
 
 	defaultOrchestrator->browser.browser->GetMainFrame()->LoadURL(url);
-
+	*/ 
 	res->reply = "OK";
 	return 1;
 }
 
 int RequestProcessor::cmd_quit(ResponseEnvelope *res) {
-	CString *newString = new CString("shutdown");
-	::PostThreadMessage(defaultOrchestrator->pipeWrite.threadID, PIPE_REQUEST, (WPARAM)newString, NULL);
+	// CString *newString = new CString("shutdown");
+	// ::PostThreadMessage(defaultOrchestrator->pipeWrite.threadID, PIPE_REQUEST, (WPARAM)newString, NULL);
 
 	res->reply = "OK";
 	// Figure out a better way to quit so that a response is sent first
@@ -264,8 +270,8 @@ int RequestProcessor::cmd_update(ResponseEnvelope *res) {
 	res->reply = "OK";
 
 	// Send update command to shell
-	CString *newString = new CString("update");
-	::PostThreadMessage(defaultOrchestrator->pipeWrite.threadID, PIPE_REQUEST, (WPARAM)newString, NULL);
+	// CString *newString = new CString("update");
+	// ::PostThreadMessage(defaultOrchestrator->pipeWrite.threadID, PIPE_REQUEST, (WPARAM)newString, NULL);
 
 	// Shell checks for updates. If there are updates, shell will shutdown brain then download updates.
 
@@ -284,8 +290,8 @@ int RequestProcessor::cmd_start_test_sync(ResponseEnvelope *res) {
 }
 
 int RequestProcessor::cmd_clear_events(ResponseEnvelope *res) {
-	EventHandler eh;
-	eh.ClearDataEvents();
+	// EventHandler eh;
+	// eh.ClearDataEvents();
 	res->reply = "OK";
 	return 1;
 }

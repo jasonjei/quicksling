@@ -11,8 +11,15 @@
 
 #include "aboutdlg.h"
 #include "MainDlg.h"
+#include "Orchestrator.h"
+#include "Constants.h"
+#include "Conductor.h"
 
 CAppModule _Module;
+
+Conductor defaultConductor;
+Orchestrator *defaultOrchestrator = &defaultConductor.orchestrator;
+LongPoll* defaultPoll;
 
 int Run(LPTSTR /*lpstrCmdLine*/ = NULL, int nCmdShow = SW_SHOWDEFAULT)
 {

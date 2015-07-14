@@ -3,6 +3,7 @@
 #include <atlmisc.h>
 #include "Constants.h"
 #include "INet.h"
+#include "Constants.h"
 
 class Orchestrator;
 class CMainDlg;

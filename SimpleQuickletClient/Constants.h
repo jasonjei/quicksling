@@ -149,7 +149,7 @@ static const CString GET_COMPANY_TAG = "<?xml version=\"1.0\"?>" \
 "</QBXMLMsgsRq>" \
 "</QBXML>";
 
-class URLS {
+static class URLS {
 public:
 	static CString APP_SERVER;
 	static CString GOLIATH_SERVER;

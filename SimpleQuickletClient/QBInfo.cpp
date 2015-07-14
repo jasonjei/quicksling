@@ -72,11 +72,13 @@ int QBInfo::RegisterConnector() {
 			SaveConfigYaml();
 
 			if (GetValueFromNodeString(_T("need-login"), outputXMLDoc) == "true") {
+				/*
 				if (this->orchestrator->browser.browser == NULL)
 					this->orchestrator->browser.StartThread();
 				WaitForSingleObject(this->orchestrator->browser.browserOpenSignal, INFINITE);
 
 				this->orchestrator->browser.browser->GetMainFrame()->LoadURL(std::string(CW2A(URLS::APP_SERVER + "get_started/welcome?guid=" + this->clientGuid, CP_UTF8)));
+				*/
 			}
 			outputXMLDoc->Release();
 			SetEvent(this->readyForLongPollSignal);

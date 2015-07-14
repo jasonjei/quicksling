@@ -4,7 +4,6 @@
 #include "qbXMLRPWrapper.h"
 #import <msxml3.dll> named_guids raw_interfaces_only
 #include <ShlObj.h>
-#include "MapObject.h"
 #include "Constants.h"
 #include "LevionMisc.h"
 #include "INet.h"
@@ -32,7 +31,6 @@ public:
 	CString version;
 	CString clientGuid;
 	CString state;
-	MapObject map;
 	Orchestrator *orchestrator;
 	HANDLE readyForLongPollSignal;
 	qbXMLRPWrapper *persistentQBXMLWrapper;
@@ -122,8 +120,8 @@ public:
 	void EnsureYamlKeysExist() {
 		// Ensures that these map keys exist - in the case where we don't have a YML file to read - OR -
 		// user is playing fire with YML
-		CreateMapNode(map.mapPtr, "client_guid");
-		CreateMapNode(map.mapPtr, "companies");
+		// CreateMapNode(map.mapPtr, "client_guid");
+		// CreateMapNode(map.mapPtr, "companies");
 	}
 
 	// TODO - Refactor to not keep yaml map loaded in memory. Load the file, get settings from file, and save settings to file.
@@ -132,8 +130,8 @@ public:
 
 		FILE *fh;
 
-		_wfopen_s(&fh, (LPCTSTR) GetLevionUserAppDir("config.yml"), _T("r"));
-
+		// _wfopen_s(&fh, (LPCTSTR) GetLevionUserAppDir("config.yml"), _T("r"));
+		/*
 		map = MapObject::processYaml(fh);
 		EnsureYamlKeysExist();
 
@@ -164,11 +162,12 @@ public:
 		if (!map.mapPtr->map["help_server"].value.empty()) {
 			URLS::HELP_SERVER = CString(map.mapPtr->map["help_server"].value.c_str());
 		}
-
+		*/
 		return 1;
 	}
 
 	int SaveConfigYaml() {
+		/* 
 		if (!this->companyTag.IsEmpty()) {
 			CreateMapNode(map.mapPtr->map["companies"].mapPtr, std::string(CW2A(this->companyTag, CP_UTF8)));
 			map.mapPtr->map["companies"].mapPtr->map[std::string(CW2A(this->companyTag, CP_UTF8))].value = CW2A(this->authToken, CP_UTF8);
@@ -177,7 +176,7 @@ public:
 		map.mapPtr->map["client_guid"].value = std::string(CW2A(this->clientGuid, CP_UTF8));
 
 		map.exportYaml((LPCTSTR) GetLevionUserAppDir("config.yml"));
-
+		*/
 		return 1;
 	}
 
@@ -262,7 +261,7 @@ public:
 	}
 
 	void RemoveTagFromYaml() {
-		map.mapPtr->map["companies"].mapPtr->map.erase(std::string(CW2A(this->companyTag, CP_UTF8)));
+		// map.mapPtr->map["companies"].mapPtr->map.erase(std::string(CW2A(this->companyTag, CP_UTF8)));
 		SaveConfigYaml();
 	}
 
@@ -270,7 +269,7 @@ public:
 		if (this->companyTag == "") {
 			return RegisterConnector();
 		} else {
-			this->authToken = map.mapPtr->map["companies"].mapPtr->map[std::string(CW2A(this->companyTag, CP_UTF8))].value.c_str();
+			// this->authToken = map.mapPtr->map["companies"].mapPtr->map[std::string(CW2A(this->companyTag, CP_UTF8))].value.c_str();
 			if (this->authToken == "")
 				return RegisterConnector();
 		}

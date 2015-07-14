@@ -121,7 +121,7 @@ int LongPoll::DoLongPoll() {
 	CString sURL = URLS::GOLIATH_SERVER + "client/wait_cmd?auth_token=" + this->orchestrator->qbInfo.authToken +
 		"&company_tag=" + this->orchestrator->qbInfo.companyTag + "&client_guid=" + this->orchestrator->qbInfo.clientGuid;
 
-	int numDataEvents = defaultConductor.orchestrator.eventHandler.dataEvents.size();
+	int numDataEvents = 0; // defaultConductor.orchestrator.eventHandler.dataEvents.size();
 	if (numDataEvents > 0) {
 		CString numDataEventsStr;
 		numDataEventsStr.Format(_T("%i"), numDataEvents);

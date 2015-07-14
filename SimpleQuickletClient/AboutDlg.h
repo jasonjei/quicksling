@@ -3,6 +3,8 @@
 /////////////////////////////////////////////////////////////////////////////
 
 #pragma once
+#include "resource.h"
+#include <atlframe.h>
 
 class CAboutDlg : public CDialogImpl<CAboutDlg>
 {
