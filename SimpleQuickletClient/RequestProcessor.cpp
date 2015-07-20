@@ -112,7 +112,6 @@ DWORD WINAPI RequestProcessor::RunThread(LPVOID lpData) {
 }
 
 void RequestProcessor::ProcessText(MSG *pMsg, ResponseEnvelope *res) {
-	this->orchestrator->qbInfo.processedQBRequest = false;
 	/* Prepare RegEx */
 	const wchar_t *reg = _T("^(\\d+):(\\S{0,})");
 	std::wregex rgx(reg);

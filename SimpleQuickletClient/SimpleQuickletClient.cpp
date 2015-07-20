@@ -32,7 +32,6 @@ int Run(LPTSTR /*lpstrCmdLine*/ = NULL, int nCmdShow = SW_SHOWDEFAULT)
 
 	settings.Load(); // Load configuration
 
-	MessageBox(NULL, _T("About to start"), _T("Starting..."), MB_OK);
 	defaultConductor.orchestrator.qbInfo.authToken = settings.ClientKey;
 	URLS::GOLIATH_SERVER = settings.URL;
 
@@ -41,8 +40,6 @@ int Run(LPTSTR /*lpstrCmdLine*/ = NULL, int nCmdShow = SW_SHOWDEFAULT)
 	}
 
 	defaultConductor.orchestrator.qbInfo.GetInfoFromQB();
-
-	MessageBox(NULL, _T("About to start"), _T("Starting 2..."), MB_OK);
 
 	CMainDlg dlgMain;
 

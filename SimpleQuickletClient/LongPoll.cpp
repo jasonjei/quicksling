@@ -150,6 +150,7 @@ int LongPoll::DoLongPoll() {
 	CHttpFile* cHttpFile = NULL;
 	int fail = 0;
 
+
 	try {
 		cHttpFile = new CHttpFile(Session, sURL, NULL, 0, INTERNET_FLAG_DONT_CACHE);
 	}
@@ -177,6 +178,8 @@ int LongPoll::DoLongPoll() {
 			return 0;
 		}
 		else if (pageSource == "timeout") {
+			this->orchestrator->qbInfo.processedQBRequest = false;
+
 		}
 		else if (pageSource == "offline") {
 		}

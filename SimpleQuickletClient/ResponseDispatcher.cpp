@@ -138,7 +138,7 @@ int ResponseDispatcher::SendBack(CString respKey, CString reply) {
 	if (urlcomp.nScheme == INTERNET_SCHEME_HTTPS)
 		flags = flags | INTERNET_FLAG_SECURE;
 
-	CHttpFile *file = new CHttpFile(connection, _T("GET"), _T("client/reply"), NULL, NULL, NULL, flags);
+	CHttpFile *file = new CHttpFile(connection, _T("POST"), _T("client/reply"), NULL, NULL, NULL, flags);
 
 	try {
 		file->SendRequest(strHeaders, strHeaders.GetLength(), (LPVOID) ansiData.c_str(), ansiData.size());
