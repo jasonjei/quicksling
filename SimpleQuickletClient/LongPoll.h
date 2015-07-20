@@ -17,6 +17,7 @@ public:
 	int DoLongPoll();
 	int GoOffline();
 	DWORD StartThread();
+	int connected;
 
 	static DWORD WINAPI RunThread(LPVOID lpData);
 
@@ -28,6 +29,7 @@ public:
 	bool firstError;
 	HANDLE signal;
 	HANDLE goOfflineSignal;
+	HANDLE tryAgainSignal;
 	HANDLE threadHandle;
 	HANDLE connectedSignal;
 	HINTERNET currentHandle;

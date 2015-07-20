@@ -99,6 +99,8 @@ public:
 		qbXMLRPWrapper* session;
 		bool isPersistent = false;
 
+		CString errorMsg;
+
 		if (this->persistentQBXMLWrapper != NULL) {
 			session = this->persistentQBXMLWrapper;
 			isPersistent = true;
@@ -106,13 +108,26 @@ public:
 		else {
 			session = new qbXMLRPWrapper;
 			session->OpenCompanyFile(_T(""));
+
+			if (session->GetHasError()) {
+				errorMsg.Format(_T("<QBError>%ls</QBError>"), session->GetErrorMsg().c_str());
+				return errorMsg;
+			}
 		}
 
 		CString result = session->ProcessRequest((LPCTSTR) QBXML).c_str();
 
+
+		if (session->GetHasError()) {
+			errorMsg.Format(_T("<QBError>%ls</QBError>"), session->GetErrorMsg().c_str());
+			result = errorMsg;
+		}
+
 		if (! isPersistent) {
 			delete session;
 		}
+
+
 
 		return result;
 	}
@@ -211,8 +226,19 @@ public:
 		return isUIEvent;
 	}
 
+	int TestQBWorks() {
+		qbXMLRPWrapper qb;
+		qb.OpenCompanyFile(_T(""));
+		if (qb.GetHasError()) {
+			MessageBox(NULL, qb.GetErrorMsg().c_str(), _T("Error Starting SimpleQuickletClient"), MB_OK);
+			return 0;
+		}
+		return 1;
+	}
+
 	int GetInfoFromQB() {
 		qbXMLRPWrapper qb;
+
 		qb.OpenCompanyFile(_T(""));
 		CString result = qb.ProcessRequest(std::wstring(GET_COMPANY_TAG)).c_str();
 

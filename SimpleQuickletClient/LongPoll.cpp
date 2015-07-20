@@ -23,6 +23,7 @@ LongPoll::LongPoll(void) : firstTime(true), firstError(true) {
 	this->signal = CreateEvent(NULL, TRUE, FALSE, NULL);
 	this->connectedSignal = CreateEvent(NULL, TRUE, FALSE, NULL);
 	this->goOfflineSignal = CreateEvent(NULL, TRUE, FALSE, NULL);
+	this->tryAgainSignal = CreateEvent(NULL, TRUE, FALSE, NULL);
 }
 
 LongPoll::~LongPoll(void) {
@@ -118,7 +119,7 @@ int LongPoll::DoLongPoll() {
 		return 0;
 
 
-	CString sURL = URLS::GOLIATH_SERVER + "client/wait_cmd?auth_token=" + this->orchestrator->qbInfo.authToken +
+	CString sURL = URLS::GOLIATH_SERVER + "client/wait?auth_key=" + this->orchestrator->qbInfo.authToken +
 		"&company_tag=" + this->orchestrator->qbInfo.companyTag + "&client_guid=" + this->orchestrator->qbInfo.clientGuid;
 
 	int numDataEvents = 0; // defaultConductor.orchestrator.eventHandler.dataEvents.size();
@@ -134,6 +135,9 @@ int LongPoll::DoLongPoll() {
 	}
 
 	CInternetSession Session(APP_NAME);
+	
+	this->currentHandle = (HINTERNET) Session;
+
 	INTERNET_STATUS_CALLBACK iscCallback;
 
 	iscCallback = InternetSetStatusCallback((HINTERNET)Session, (INTERNET_STATUS_CALLBACK)CallMaster);
@@ -177,32 +181,72 @@ int LongPoll::DoLongPoll() {
 		else if (pageSource == "offline") {
 		}
 		else if (pageSource == "live") {
+			this->orchestrator->longPoll.connected = true;
 			firstTime = false;
 			firstError = true;
 			TrayMessage *trayMessage = BuildTrayMessage(_T("Connected!"), _T("Your company is connected to Levion!"));
 			SendMessage(this->orchestrator->cMainDlg->m_hWnd, LEVION_TRAYICON_MSG, (WPARAM)trayMessage, NULL);
+			SendMessage(this->orchestrator->cMainDlg->m_hWnd, QUICKLET_CONNECT_UPD, NULL, NULL);
+
 		}
 		else if (pageSource.Find(_T(":/")) != -1) {
 			this->ReceivedMessage(&pageSource);
 		}
 		else {
 			if (firstError == true) {
+				this->orchestrator->longPoll.connected = false;
+
 				TrayMessage *trayMessage = BuildTrayMessage(_T("Network Error"), _T("Could not connect to Levion. Retrying...\nPlease check your internet connection."));
 				SendMessage(this->orchestrator->cMainDlg->m_hWnd, LEVION_TRAYICON_MSG, (WPARAM)trayMessage, NULL);
+				SendMessage(this->orchestrator->cMainDlg->m_hWnd, QUICKLET_CONNECT_UPD, NULL, NULL);
+
 				firstError = false;
 			}
+			firstTime = true;
 
-			WaitForSingleObject(this->goOfflineSignal, 15000);
+			SendMessage(this->orchestrator->cMainDlg->m_hWnd, QUICKLET_CONNECT_UPD, NULL, NULL);
+
+			// WaitForSingleObject(this->goOfflineSignal, 15000);
+			HANDLE hEvent[2];
+			hEvent[0] = this->goOfflineSignal;
+			hEvent[1] = this->tryAgainSignal;
+
+			DWORD result = WaitForMultipleObjects(2, hEvent, FALSE, 15000);
+
+			if (result != WAIT_TIMEOUT) {
+				if (result == WAIT_OBJECT_0 + 1) {
+					ResetEvent(this->tryAgainSignal);
+				}
+			}
 		}
 	}
 	else {
 		if (firstError == true) {
+			this->orchestrator->longPoll.connected = false;
+
 			TrayMessage *trayMessage = BuildTrayMessage(_T("Network Error"), _T("Could not connect to Levion. Retrying...\nPlease check your internet connection."));
 			SendMessage(this->orchestrator->cMainDlg->m_hWnd, LEVION_TRAYICON_MSG, (WPARAM)trayMessage, NULL);
+
 			firstError = false;
 		}
 
-		WaitForSingleObject(this->goOfflineSignal, 15000);
+		firstTime = true;
+
+		SendMessage(this->orchestrator->cMainDlg->m_hWnd, QUICKLET_CONNECT_UPD, NULL, NULL);
+
+		// WaitForSingleObject(this->goOfflineSignal, 15000);
+		HANDLE hEvent[2];
+		hEvent[0] = this->goOfflineSignal;
+		hEvent[1] = this->tryAgainSignal;
+
+		DWORD result = WaitForMultipleObjects(2, hEvent, FALSE, 15000);
+
+		if (result != WAIT_TIMEOUT) {
+			if (result == WAIT_OBJECT_0 + 1) {
+				ResetEvent(this->tryAgainSignal);
+			}
+		}
+
 	}
 	delete cHttpFile;
 	ResetEvent(this->connectedSignal);

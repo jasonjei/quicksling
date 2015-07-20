@@ -15,8 +15,10 @@ public:
 	ResponseDispatcher response;
 	QBInfo qbInfo;
 	CMainDlg* cMainDlg;
+
 	int started;
 	CString shellPID;
+	DWORD mainThreadID;
 
 	Orchestrator() : started(0) {
 		// Give everybody access to the Orchestrator pointer

@@ -10,6 +10,7 @@ static UINT LEVION_EVENT = ::RegisterWindowMessage(_T("LEVION_EVENT"));
 static UINT LEVION_TRAYICON_MSG = ::RegisterWindowMessage(_T("LEVION_TRAYICON_MSG"));
 static UINT LEVION_SHUTDOWN = ::RegisterWindowMessage(_T("LEVION_SHUTDOWN"));
 static UINT PIPE_REQUEST = ::RegisterWindowMessage(_T("PIPE_REQUEST"));
+static UINT QUICKLET_CONNECT_UPD = ::RegisterWindowMessage(_T("QUICKLET_CONNECT_UPD"));
 
 // static const CString CLIENT_GUID = "{E6F0542E-CE62-41B0-A89C-11E5EDEABF81}";
 static const CString CLIENT_GUID = "{575D3E6F-170D-48D3-B746-A5A20A869949}";

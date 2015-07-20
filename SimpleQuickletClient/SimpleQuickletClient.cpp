@@ -14,6 +14,7 @@
 #include "Orchestrator.h"
 #include "Constants.h"
 #include "Conductor.h"
+#include "Settings.h"
 
 CAppModule _Module;
 
@@ -26,6 +27,23 @@ int Run(LPTSTR /*lpstrCmdLine*/ = NULL, int nCmdShow = SW_SHOWDEFAULT)
 	CMessageLoop theLoop;
 	_Module.AddMessageLoop(&theLoop);
 
+	Settings settings(HKEY_CURRENT_USER,
+		_T("Software\\Quicklet\\DevClient\\1.0"));
+
+	settings.Load(); // Load configuration
+
+	MessageBox(NULL, _T("About to start"), _T("Starting..."), MB_OK);
+	defaultConductor.orchestrator.qbInfo.authToken = settings.ClientKey;
+	URLS::GOLIATH_SERVER = settings.URL;
+
+	if (!defaultConductor.orchestrator.qbInfo.TestQBWorks()) {
+		return 0;
+	}
+
+	defaultConductor.orchestrator.qbInfo.GetInfoFromQB();
+
+	MessageBox(NULL, _T("About to start"), _T("Starting 2..."), MB_OK);
+
 	CMainDlg dlgMain;
 
 	if(dlgMain.Create(NULL) == NULL)
@@ -35,6 +53,14 @@ int Run(LPTSTR /*lpstrCmdLine*/ = NULL, int nCmdShow = SW_SHOWDEFAULT)
 	}
 
 	dlgMain.ShowWindow(nCmdShow);
+
+
+
+	SetEvent(defaultConductor.orchestrator.qbInfo.readyForLongPollSignal);
+	
+	defaultConductor.orchestrator.mainThreadID = GetCurrentThreadId();
+	defaultConductor.orchestrator.cMainDlg = &dlgMain;
+	defaultConductor.orchestrator.StartConcert();
 
 	int nRet = theLoop.Run();
 

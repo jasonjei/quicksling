@@ -100,18 +100,45 @@ DWORD WINAPI ResponseDispatcher::RunThread(LPVOID lpData) {
 
 int ResponseDispatcher::SendBack(CString respKey, CString reply) {
 	CInternetSession session(APP_NAME.AllocSysString());
+	
 	std::string sessionUrl = std::string(CW2A(URLS::GOLIATH_SERVER, CP_UTF8));
 	sessionUrl = sessionUrl.substr(8, sessionUrl.length() - 9);
-	CHttpConnection connection(session, CString(sessionUrl.c_str()), 443);
+
+	URL_COMPONENTS urlcomp;
+
+	urlcomp.dwStructSize = sizeof(urlcomp);
+	urlcomp.dwSchemeLength = 1;
+	urlcomp.dwHostNameLength = 1;
+	urlcomp.dwUserNameLength = 1;
+	urlcomp.dwPasswordLength = 1;
+	urlcomp.dwUrlPathLength = 1;
+	urlcomp.dwExtraInfoLength = 1;
+
+	urlcomp.lpszScheme = NULL;
+	urlcomp.lpszHostName = NULL;
+	urlcomp.lpszUserName = NULL;
+	urlcomp.lpszPassword = NULL;
+	urlcomp.lpszUrlPath = NULL;
+	urlcomp.lpszExtraInfo = NULL;
+
+	bool resultOfCracking = InternetCrackUrl(URLS::GOLIATH_SERVER, URLS::GOLIATH_SERVER.GetLength(), 0, &urlcomp);
+	std::string host = CW2A(CString(urlcomp.lpszHostName).Left(urlcomp.dwHostNameLength), CP_UTF8);
+
+	CHttpConnection connection(session, CString(host.c_str()), urlcomp.nPort);
 
 	CString strHeaders =_T("Content-Type: application/x-www-form-urlencoded");
 
-	CString data = _T("respkey=") + respKey +
-				   _T("&resp=") + UrlEncode(reply);
+	CString data = _T("response_key=") + respKey +
+				   _T("&message=") + UrlEncode(reply);
 
 	std::string ansiData = CW2A(data, CP_UTF8);
 
-	CHttpsFile *file = new CHttpsFile(connection, _T("POST"), _T("/client/send_resp"), NULL, NULL, NULL, INTERNET_FLAG_RELOAD);
+	DWORD flags = INTERNET_FLAG_RELOAD;
+	
+	if (urlcomp.nScheme == INTERNET_SCHEME_HTTPS)
+		flags = flags | INTERNET_FLAG_SECURE;
+
+	CHttpFile *file = new CHttpFile(connection, _T("GET"), _T("client/reply"), NULL, NULL, NULL, flags);
 
 	try {
 		file->SendRequest(strHeaders, strHeaders.GetLength(), (LPVOID) ansiData.c_str(), ansiData.size());

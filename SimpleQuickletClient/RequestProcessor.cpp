@@ -134,9 +134,11 @@ void RequestProcessor::ProcessText(MSG *pMsg, ResponseEnvelope *res) {
 }
 
 int RequestProcessor::cmd_show_message(ResponseEnvelope* res) {
-	TrayMessage *trayMessage = BuildTrayMessage(_T("Levion"), res->body);
-	SendMessage(this->orchestrator->cMainDlg->m_hWnd, LEVION_TRAYICON_MSG, (WPARAM)trayMessage, NULL);
-
+	// TrayMessage *trayMessage = BuildTrayMessage(_T("Levion"), res->body);
+	//SendMessage(this->orchestrator->cMainDlg->m_hWnd, LEVION_MESSAGE_BOX, (WPARAM)trayMessage, NULL);
+	CString *toDelete = new CString(res->body);
+	PostMessage(this->orchestrator->cMainDlg->m_hWnd, LEVION_MESSAGE_BOX, (WPARAM)toDelete, NULL);
+	res->reply = _T("OK");
 	return 1;
 }
 

@@ -7,6 +7,11 @@
 #include <atlframe.h>
 #include "AboutDlg.h"
 #include "resource.h"
+#include "Constants.h"
+#include "Orchestrator.h"
+#include "Settings.h"
+
+extern Orchestrator *defaultOrchestrator;
 
 class CMainDlg : public CDialogImpl<CMainDlg>, public CUpdateUI<CMainDlg>,
 		public CMessageFilter, public CIdleHandler
@@ -31,6 +36,8 @@ public:
 	BEGIN_MSG_MAP(CMainDlg)
 		MESSAGE_HANDLER(WM_INITDIALOG, OnInitDialog)
 		MESSAGE_HANDLER(WM_DESTROY, OnDestroy)
+		MESSAGE_HANDLER(QUICKLET_CONNECT_UPD, OnConnUpdate)
+		MESSAGE_HANDLER(LEVION_MESSAGE_BOX, DisplayMessage)
 		COMMAND_ID_HANDLER(ID_APP_ABOUT, OnAppAbout)
 		COMMAND_ID_HANDLER(IDOK, OnOK)
 		COMMAND_ID_HANDLER(IDCANCEL, OnCancel)
@@ -41,6 +48,18 @@ public:
 //	LRESULT CommandHandler(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 //	LRESULT NotifyHandler(int /*idCtrl*/, LPNMHDR /*pnmh*/, BOOL& /*bHandled*/)
 
+	LRESULT OnConnUpdate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/) {
+		if (defaultOrchestrator->longPoll.connected == true) {
+			
+			SetDlgItemText(IDC_CONN_STATIC, _T("CONNECTED!"));
+		} 
+		else {
+			// SetDlgItemText(IDC_)
+			SetDlgItemText(IDC_CONN_STATIC, _T("NOT CONNECTED"));
+
+		}
+		return 1;
+	}
 	LRESULT OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
 	{
 		// center the dialog on the screen
@@ -59,6 +78,8 @@ public:
 		pLoop->AddIdleHandler(this);
 
 		UIAddChildWindowContainer(m_hWnd);
+		SetDlgItemText(IDC_EDIT1, URLS::GOLIATH_SERVER);
+		SetDlgItemText(IDC_EDIT2, defaultOrchestrator->qbInfo.authToken);
 
 		return TRUE;
 	}
@@ -81,11 +102,50 @@ public:
 		return 0;
 	}
 
-	LRESULT OnOK(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
+	LRESULT OnOK(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled)
 	{
 		// TODO: Add validation code 
-		CloseDialog(wID);
+		// CloseDialog(wID);
+
+		BSTR urlCtrlTextBStr = SysAllocString(NULL);
+
+		GetDlgItemText(IDC_EDIT1, urlCtrlTextBStr);
+
+		URLS::GOLIATH_SERVER = urlCtrlTextBStr;
+
+		SysFreeString(urlCtrlTextBStr);
+		urlCtrlTextBStr = SysAllocString(NULL);
+
+		GetDlgItemText(IDC_EDIT2, urlCtrlTextBStr);
+
+		defaultOrchestrator->qbInfo.authToken = urlCtrlTextBStr;
+
+
+		SysFreeString(urlCtrlTextBStr);
+
+		Settings settings(HKEY_CURRENT_USER,
+			_T("Software\\Quicklet\\DevClient\\1.0"));
+
+		settings.Load(); // Load configuration
+
+		settings.ClientKey = defaultOrchestrator->qbInfo.authToken;
+		settings.URL = URLS::GOLIATH_SERVER;
+		settings.Save();
+
+		InternetCloseHandle(defaultOrchestrator->longPoll.currentHandle);
+		SetEvent(defaultOrchestrator->longPoll.tryAgainSignal);
+
+
 		return 0;
+	}
+
+	LRESULT DisplayMessage(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/, BOOL& /*bHandled*/) {
+		CString textToDisplay = *((CString*)wParam);
+		delete (CString*)wParam;
+
+		MessageBox(textToDisplay, _T("An important message from the Quicklet server"), MB_OK);
+
+		return TRUE;
 	}
 
 	LRESULT OnCancel(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
@@ -97,6 +157,7 @@ public:
 	void CloseDialog(int nVal)
 	{
 		DestroyWindow();
+		defaultOrchestrator->StopConcert();
 		::PostQuitMessage(nVal);
 	}
 };
