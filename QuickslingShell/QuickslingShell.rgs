@@ -1,0 +1,11 @@
+HKCR
+{
+	NoRemove AppID
+	{
+		{F03D3448-EF4F-4C4A-B60F-72675483ED3C} = s 'QuickslingShell'
+		'QuickslingShell.EXE'
+		{
+			val AppID = s {F03D3448-EF4F-4C4A-B60F-72675483ED3C}
+		}
+	}
+}

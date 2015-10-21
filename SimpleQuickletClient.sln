@@ -5,6 +5,8 @@ VisualStudioVersion = 12.0.31101.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SimpleQuickletClient", "SimpleQuickletClient\SimpleQuickletClient.vcxproj", "{4A824770-A218-4A87-904C-1BB56D234BE9}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "QuickslingShell", "QuickslingShell\QuickslingShell.vcxproj", "{996A3D91-ACCA-452A-8479-D1A4A36D9E70}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -15,6 +17,10 @@ Global
 		{4A824770-A218-4A87-904C-1BB56D234BE9}.Debug|Win32.Build.0 = Debug|Win32
 		{4A824770-A218-4A87-904C-1BB56D234BE9}.Release|Win32.ActiveCfg = Release|Win32
 		{4A824770-A218-4A87-904C-1BB56D234BE9}.Release|Win32.Build.0 = Release|Win32
+		{996A3D91-ACCA-452A-8479-D1A4A36D9E70}.Debug|Win32.ActiveCfg = Debug|Win32
+		{996A3D91-ACCA-452A-8479-D1A4A36D9E70}.Debug|Win32.Build.0 = Debug|Win32
+		{996A3D91-ACCA-452A-8479-D1A4A36D9E70}.Release|Win32.ActiveCfg = Release|Win32
+		{996A3D91-ACCA-452A-8479-D1A4A36D9E70}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

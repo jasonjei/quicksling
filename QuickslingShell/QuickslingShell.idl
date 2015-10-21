@@ -1,0 +1,20 @@
+// QuickslingShell.idl : IDL source for QuickslingShell.exe
+//
+
+// This file will be processed by the MIDL tool to
+// produce the type library (QuickslingShell.tlb) and marshalling code.
+
+import "oaidl.idl";
+import "ocidl.idl";
+
+[
+	uuid(E914AE13-9D45-4527-BFCA-FEDCC31DC3B0),
+	version(1.0),
+	helpstring("QuickslingShell 1.0 Type Library")
+]
+library QuickslingShellLib
+{
+	importlib("stdole32.tlb");
+	importlib("stdole2.tlb");
+
+};
