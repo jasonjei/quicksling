@@ -14,15 +14,15 @@ HKCR
 {
 	ForceRemove QuickslingShell.QBSDKCallback.1 = s 'QBSDKCallback Class'
 	{
-		CLSID = s '{575D3E6F-170D-48D3-B746-A5A20A869949}'
+		CLSID = s '{675D3E6F-170D-48D3-B746-A5A20A869949}'
 	}
 	ForceRemove QuickslingShell.QBSDKCallback = s 'QBSDKCallback Class'
 	{
-		CLSID = s '{575D3E6F-170D-48D3-B746-A5A20A869949}'
+		CLSID = s '{675D3E6F-170D-48D3-B746-A5A20A869949}'
 	}
 	NoRemove CLSID
 	{
-		ForceRemove {575D3E6F-170D-48D3-B746-A5A20A869949} = s 'QBSDKCallback Class'
+		ForceRemove {675D3E6F-170D-48D3-B746-A5A20A869949} = s 'QBSDKCallback Class'
 		{
 			ProgID = s 'QuickslingShell.QBSDKCallback.1'
 			VersionIndependentProgID = s 'QuickslingShell.QBSDKCallback'

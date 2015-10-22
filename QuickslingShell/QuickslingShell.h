@@ -4,7 +4,7 @@
 
 
  /* File created by MIDL compiler version 8.00.0603 */
-/* at Wed Oct 21 16:50:23 2015
+/* at Wed Oct 21 17:09:50 2015
  */
 /* Compiler settings for QuickslingShell.idl:
     Oicf, W1, Zp8, env=Win32 (32b run), target_arch=X86 8.00.0603 
@@ -76,7 +76,7 @@ EXTERN_C const CLSID CLSID_QBSDKCallback;
 
 #ifdef __cplusplus
 
-class DECLSPEC_UUID("575D3E6F-170D-48D3-B746-A5A20A869949")
+class DECLSPEC_UUID("675D3E6F-170D-48D3-B746-A5A20A869949")
 QBSDKCallback;
 #endif
 #endif /* __QuickslingShellLib_LIBRARY_DEFINED__ */

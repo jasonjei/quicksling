@@ -18,7 +18,7 @@ library QuickslingShellLib
 	importlib("stdole2.tlb");
 	importlib("sdkevent.dll");
 	[
-		uuid(575D3E6F-170D-48D3-B746-A5A20A869949),
+		uuid(675D3E6F-170D-48D3-B746-A5A20A869949),
 		helpstring("QBSDKCallback Class")
 	]
 	coclass QBSDKCallback
