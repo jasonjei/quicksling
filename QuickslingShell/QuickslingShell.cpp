@@ -8,6 +8,7 @@
 #include <atldlgs.h>
 
 #include "resource.h"
+#include "CQBSDKCallback.h"
 
 // Note: Proxy/Stub Information
 //		To build a separate proxy/stub DLL, 
@@ -19,9 +20,12 @@
 #include "aboutdlg.h"
 #include "MainDlg.h"
 
+#import "sdkevent.dll" no_namespace named_guids raw_interfaces_only
+
 CServerAppModule _Module;
 
 BEGIN_OBJECT_MAP(ObjectMap)
+	OBJECT_ENTRY(CLSID_QBSDKCallback, CQBSDKCallback)
 END_OBJECT_MAP()
 
 int Run(LPTSTR /*lpstrCmdLine*/ = NULL, int nCmdShow = SW_SHOWDEFAULT)

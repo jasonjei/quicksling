@@ -2,10 +2,32 @@ HKCR
 {
 	NoRemove AppID
 	{
-		{F03D3448-EF4F-4C4A-B60F-72675483ED3C} = s 'QuickslingShell'
+		ForceRemove {F03D3448-EF4F-4C4A-B60F-72675483ED3C} = s 'QuickslingShell'
 		'QuickslingShell.EXE'
 		{
 			val AppID = s {F03D3448-EF4F-4C4A-B60F-72675483ED3C}
+		}
+	}
+}
+
+HKCR
+{
+	ForceRemove QuickslingShell.QBSDKCallback.1 = s 'QBSDKCallback Class'
+	{
+		CLSID = s '{575D3E6F-170D-48D3-B746-A5A20A869949}'
+	}
+	ForceRemove QuickslingShell.QBSDKCallback = s 'QBSDKCallback Class'
+	{
+		CLSID = s '{575D3E6F-170D-48D3-B746-A5A20A869949}'
+	}
+	NoRemove CLSID
+	{
+		ForceRemove {575D3E6F-170D-48D3-B746-A5A20A869949} = s 'QBSDKCallback Class'
+		{
+			ProgID = s 'QuickslingShell.QBSDKCallback.1'
+			VersionIndependentProgID = s 'QuickslingShell.QBSDKCallback'
+			val AppID = s '{F03D3448-EF4F-4C4A-B60F-72675483ED3C}'
+			LocalServer32 = s '%Module%'
 		}
 	}
 }

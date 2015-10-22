@@ -4,7 +4,7 @@
 
 
  /* File created by MIDL compiler version 8.00.0603 */
-/* at Tue Oct 20 19:24:02 2015
+/* at Wed Oct 21 16:50:23 2015
  */
 /* Compiler settings for QuickslingShell.idl:
     Oicf, W1, Zp8, env=Win32 (32b run), target_arch=X86 8.00.0603 
@@ -41,6 +41,18 @@
 
 /* Forward Declarations */ 
 
+#ifndef __QBSDKCallback_FWD_DEFINED__
+#define __QBSDKCallback_FWD_DEFINED__
+
+#ifdef __cplusplus
+typedef class QBSDKCallback QBSDKCallback;
+#else
+typedef struct QBSDKCallback QBSDKCallback;
+#endif /* __cplusplus */
+
+#endif 	/* __QBSDKCallback_FWD_DEFINED__ */
+
+
 /* header files for imported files */
 #include "oaidl.h"
 #include "ocidl.h"
@@ -59,6 +71,14 @@ extern "C"{
 
 
 EXTERN_C const IID LIBID_QuickslingShellLib;
+
+EXTERN_C const CLSID CLSID_QBSDKCallback;
+
+#ifdef __cplusplus
+
+class DECLSPEC_UUID("575D3E6F-170D-48D3-B746-A5A20A869949")
+QBSDKCallback;
+#endif
 #endif /* __QuickslingShellLib_LIBRARY_DEFINED__ */
 
 /* Additional Prototypes for ALL interfaces */
