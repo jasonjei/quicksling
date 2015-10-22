@@ -19,6 +19,7 @@
 
 #include "aboutdlg.h"
 #include "MainDlg.h"
+#include "ShellUtilities.h"
 
 #import "sdkevent.dll" no_namespace named_guids raw_interfaces_only
 
@@ -89,10 +90,23 @@ int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPTSTR lp
 			bRun = false;
 			break;
 		}
+		else if (lstrcmpi(lpszToken, _T("RegUIEvents")) == 0)
+		{
+			int success = ShellUtilities::RegisterUICallbacks();
+			bRun = false;
+			break;
+		}
+		else if (lstrcmpi(lpszToken, _T("UnregUIEvents")) == 0)
+		{
+			int success = ShellUtilities::UnregisterUICallbacks();
+			bRun = false;
+			break;
+		}
 		else if((lstrcmpi(lpszToken, _T("Automation")) == 0) ||
 			(lstrcmpi(lpszToken, _T("Embedding")) == 0))
 		{
-			bAutomation = true;
+			bRun = true;
+			// bAutomation = true;
 			break;
 		}
 		lpszToken = _Module.FindOneOf(lpszToken, szTokens);

@@ -31,6 +31,7 @@ DECLARE_REGISTRY_RESOURCEID(IDR_QUICKSLINGSHELL)
 
 		CString toSendMsg(eventXML);
 		// defaultConductor.orchestrator.eventHandler.Inform(toSendMsg);
+		ATLTRACE2(atlTraceUI, 0, TEXT("Received event from QB, %s\n"), toSendMsg);
 		return 1;
 	};
 
