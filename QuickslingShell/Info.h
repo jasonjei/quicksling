@@ -13,9 +13,8 @@ public:
 	BOOL shouldUpdate;
 
 	Info(void) {
-		this->version = LEVION_CLIENT_VER;
+		// this->version = LEVION_CLIENT_VER;
 		shouldUpdate = true;
-		LoadConfigYaml();
 	}
 
 	~Info(void) {
@@ -37,11 +36,11 @@ public:
 	}
 
 	int CreateQuickslingAppDir() {
-		int success = CreateDirectory(GetLevionUserAppDir(), NULL);
+		int success = CreateDirectory(GetQuickslingUserAppDir(), NULL);
 		if (success)
 			return 1;
 		else {
-			return PathIsDirectory(GetLevionUserAppDir());
+			return PathIsDirectory(GetQuickslingUserAppDir());
 		}
 	}
 

@@ -2,6 +2,10 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
+#include "stdafx.h"
+#include "atlframe.h"
+#include "resource.h"
+#include "AboutDlg.h"
 #pragma once
 
 class CMainDlg : public CDialogImpl<CMainDlg>, public CUpdateUI<CMainDlg>,

@@ -8,7 +8,6 @@
 #include "resource.h"
 #include <vector>
 #import <msxml3.dll> named_guids raw_interfaces_only
-#include "QBInfo.h"
 
 class Orchestrator;
 class CMainDlg;
@@ -27,14 +26,7 @@ public:
 	HANDLE threadHandle;
 	CMainDlg* mainDlg;
 
-	int Inform(CString strMsg);
-	int CallbackRegistered();
-	int RegisterCallback();
-	int UnregisterCallback();
-	int RegisterUICallback();
-	int UnregisterUICallback();
-	int ReadCompanyInfoAndTag();
-	int SubscribeDataEvents();
+	int ProcessEvent(CString strMsg);
 	int ClearDataEvents();
 
 	std::vector<CString> dataEvents;

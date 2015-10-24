@@ -24,8 +24,7 @@ DWORD SpawnCanary::StartThread() {
 DWORD WINAPI SpawnCanary::RunThread(LPVOID lpData) {
 	if (defaultConductor.orchestrator.spawnCanary.StartBrainProcess() == false) {
 		MessageBox(NULL, _T("Levion Connector failed to start! Please check for updates or reinstall Levion."), _T("Error!"), MB_OK);
-		defaultConductor.orchestrator.spawnCanary.SpoofPipeShutdown();
-
+		defaultConductor.orchestrator.StopConcert();
 		return 0;
 	}
 
@@ -33,35 +32,19 @@ DWORD WINAPI SpawnCanary::RunThread(LPVOID lpData) {
 
 	if (WaitForSingleObject(defaultConductor.orchestrator.goOfflineSignal, 0) != 0) {
 		int res = MessageBox(NULL, _T("Levion Connector seems to have shut down incorrectly. Would you like it to restart?"), _T("Error."), MB_YESNO);
-		if (res == IDYES)
-		{
-			SetEvent(defaultConductor.orchestrator.pipeWrite.turnoff);
-			::PostThreadMessage(defaultConductor.orchestrator.pipeWrite.threadID, WM_QUIT, NULL, NULL);
-			WaitForSingleObject(defaultConductor.orchestrator.pipeWrite.threadHandle, INFINITE);
-			SetEvent(defaultConductor.orchestrator.pipeRead.signal);
-			WaitForSingleObject(defaultConductor.orchestrator.pipeRead.threadHandle, INFINITE);
-
-			defaultConductor.orchestrator.pipeRead.StartThread();
-			defaultConductor.orchestrator.pipeWrite.StartThread();
-
-			WaitForSingleObject(defaultConductor.orchestrator.pipeWrite.signal, INFINITE);
-
+		if (res == IDYES) {
 			defaultConductor.orchestrator.spawnCanary.RunThread(NULL);
-
-			// TODO - Ensure brain started or die
 		} else {
-			// FIXME - Shut down the shell.
 			defaultConductor.orchestrator.StopConcert();
 		}
 	}
 
 	defaultConductor.orchestrator.spawnCanary.threadID = NULL;
-
 	return 0;
 }
 
 BOOL SpawnCanary::StartBrainProcess() {
-	CString app_path = _T("\"") + defaultConductor.orchestrator.qbInfo.GetLevionUserAppDir() + _T("\\LevionClient.exe\"");
+	CString app_path = _T("\"") + defaultConductor.orchestrator.info.GetQuickslingUserAppDir() + _T("\\LevionClient.exe\"");
 
 	STARTUPINFO si;
 	ZeroMemory( &si, sizeof(si) );
@@ -79,8 +62,8 @@ BOOL SpawnCanary::StartBrainProcess() {
 	BOOL successful = CreateProcess(NULL, app_path.GetBuffer(0), NULL, NULL, TRUE, NULL, NULL, NULL, &si, &brainProcessInfo);
 
 	if (successful == 1) {
-		CString *openString = new CString(defaultConductor.orchestrator.eventHandler.qbOpenEvent);
-		::PostThreadMessage(defaultConductor.orchestrator.pipeWrite.threadID, PIPE_REQUEST, (WPARAM)openString, NULL);
+		// CString *openString = new CString(defaultConductor.orchestrator.eventHandler.qbOpenEvent);
+		// ::PostThreadMessage(defaultConductor.orchestrator.pipeWrite.threadID, PIPE_REQUEST, (WPARAM)openString, NULL);
 	}
 	return successful;
 }
@@ -90,8 +73,8 @@ void SpawnCanary::StopBrainProcess() {
 		// Allow brain to shutdown cleanly
 		SetEvent(defaultConductor.orchestrator.goOfflineSignal);
 
-		CString *newString = new CString("shutdown");
-		::PostThreadMessage(defaultConductor.orchestrator.pipeWrite.threadID, PIPE_REQUEST, (WPARAM)newString, NULL);
+		// CString *newString = new CString("shutdown");
+		// ::PostThreadMessage(defaultConductor.orchestrator.pipeWrite.threadID, PIPE_REQUEST, (WPARAM)newString, NULL);
 
 		WaitForSingleObject(defaultConductor.orchestrator.spawnCanary.brainProcessInfo.hProcess, INFINITE);
 
@@ -100,55 +83,7 @@ void SpawnCanary::StopBrainProcess() {
 	}
 }
 
-void SpawnCanary::SpoofPipeShutdown() {
-	// Hacky way of getting pipes to shutdown. The Shell's pipes are waiting for the Brain to connect.
-	// The Brain has failed to start, so we spoof them connecting and shutting down.
-		 
-	CString pipeName = _T("\\\\.\\pipe\\levion_shell_") + defaultConductor.orchestrator.shellPID;
-
-	HANDLE pipeHandle = CreateFile(pipeName, 
-		GENERIC_WRITE, 
-		0,
-		NULL, 
-		OPEN_EXISTING,
-		FILE_ATTRIBUTE_NORMAL,
-		NULL);
-
-	CString msg = "shutdown";
-	UINT position = 0;
-	UINT strLength = msg.GetLength() * 2;
-	DWORD bytesWritten = 0;
-
-	// Convert strLength to use CString, and put it at beginning of msg. ReadPipe will then read strLength to know when the end of msg is.
-	CString msgLength;
-	msgLength.Format(_T("%i"), strLength);
-
-	msg = msgLength + _T(":") + msg;
-	strLength = msg.GetLength();
-
-	while (position < strLength) {
-		TCHAR temp[128] = _T("");
-
-		wcscpy_s(temp, msg.Mid(position, 127));
-
-		WriteFile(pipeHandle, (LPCTSTR) temp, 256, &bytesWritten, NULL);
-		position += 127;
-	}
-
-	pipeName = _T("\\\\.\\pipe\\levion_brain_") + defaultConductor.orchestrator.shellPID;
-	pipeHandle = CreateFile(pipeName, 
-		GENERIC_READ, 
-		0,
-		NULL, 
-		OPEN_EXISTING,
-		FILE_ATTRIBUTE_NORMAL,
-		NULL);
-
-	DisconnectNamedPipe(pipeHandle);
-
-	defaultConductor.orchestrator.StopConcert();
-}
-
+/*
 void DownloadFilesWithProgress(HWND dialogWindow, UpdatesInfo* updatesInfo)
 {
 	// Tell the download callback how many bytes we need to download, pointing it to progress dialog
@@ -284,3 +219,5 @@ int SpawnCanary::DownloadFile(MapObject serverCRCMap, std::string fileName) {
 
 	return 1;
 }
+
+*/

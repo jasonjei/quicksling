@@ -20,10 +20,15 @@
 #include "aboutdlg.h"
 #include "MainDlg.h"
 #include "ShellUtilities.h"
+#include "Conductor.h"
+#include "Orchestrator.h"
 
 #import "sdkevent.dll" no_namespace named_guids raw_interfaces_only
 
 CServerAppModule _Module;
+
+Conductor defaultConductor;
+Orchestrator *defaultOrchestrator = &defaultConductor.orchestrator;
 
 BEGIN_OBJECT_MAP(ObjectMap)
 	OBJECT_ENTRY(CLSID_QBSDKCallback, CQBSDKCallback)
@@ -31,10 +36,13 @@ END_OBJECT_MAP()
 
 int Run(LPTSTR /*lpstrCmdLine*/ = NULL, int nCmdShow = SW_SHOWDEFAULT)
 {
+	defaultConductor.orchestrator.mainThreadID = GetCurrentThreadId();
+
 	CMessageLoop theLoop;
 	_Module.AddMessageLoop(&theLoop);
 
 	CMainDlg dlgMain;
+	defaultConductor.orchestrator.cMainDlg = &dlgMain;
 
 	if(dlgMain.Create(NULL) == NULL)
 	{
@@ -67,10 +75,12 @@ int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPTSTR lp
 	hRes = _Module.Init(ObjectMap, hInstance);
 	ATLASSERT(SUCCEEDED(hRes));
 
+	MessageBox(NULL, _T("DEBUG HOOK"), _T("DEBUG HOOK"), MB_OK);
+
 	// Parse command line, register or unregister or run the server
 	int nRet = 0;
 	TCHAR szTokens[] = _T("-/");
-	bool bRun = true;
+	bool bRun = false;
 	bool bAutomation = false;
 
 	LPCTSTR lpszToken = _Module.FindOneOf(::GetCommandLine(), szTokens);
@@ -120,6 +130,8 @@ int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPTSTR lp
 		hRes = ::CoResumeClassObjects();
 		ATLASSERT(SUCCEEDED(hRes));
 
+		defaultConductor.orchestrator.StartConcert();
+		
 		if(bAutomation)
 		{
 			CMessageLoop theLoop;

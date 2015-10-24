@@ -3,11 +3,13 @@
 
 #import  "sdkevent.dll" no_namespace named_guids
 #include "QuickslingShell.h"
+#include "stdafx.h"
 #include "atlmisc.h"
 #include "atlcom.h"
-// #include "Orchestrator.h"
+#include "Orchestrator.h"
+#include "Conductor.h"
 
-// extern Conductor defaultConductor;
+extern Conductor defaultConductor;
 CString firstMsg;
 
 class ATL_NO_VTABLE CQBSDKCallback : 
@@ -30,7 +32,7 @@ DECLARE_REGISTRY_RESOURCEID(IDR_QUICKSLINGSHELL)
 			firstMsg = eventXML;
 
 		CString toSendMsg(eventXML);
-		// defaultConductor.orchestrator.eventHandler.Inform(toSendMsg);
+		defaultConductor.orchestrator.eventHandler.ProcessEvent(toSendMsg);
 		ATLTRACE2(atlTraceUI, 0, TEXT("Received event from QB, %s\n"), toSendMsg);
 		return 1;
 	};

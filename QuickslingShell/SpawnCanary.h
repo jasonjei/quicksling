@@ -18,10 +18,8 @@ public:
 	DWORD StartThread();
 	BOOL StartBrainProcess();
 	void StopBrainProcess();
-	void SpoofPipeShutdown();
-	int CheckForUpdates();
-	int DownloadFile(MapObject serverCRCMap, std::string fileName);
-	CString DownloadCRCMap();
+	// int CheckForUpdates();
+	// CString DownloadCRCMap();
 
 	static DWORD WINAPI RunThread(LPVOID lpData);
 
