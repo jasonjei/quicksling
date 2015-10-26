@@ -17,10 +17,11 @@ public:
 	CMainDlg* cMainDlg;
 
 	int started;
+	bool brainRequestShutdown;
 	CString shellPID;
 	DWORD mainThreadID;
 
-	Orchestrator() : started(0) {
+	Orchestrator() : started(0), brainRequestShutdown(false) {
 		// Give everybody access to the Orchestrator pointer
 		qbInfo.orchestrator = this;
 		longPoll.orchestrator = this;

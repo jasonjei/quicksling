@@ -83,8 +83,7 @@ void SpawnCanary::StopBrainProcess() {
 
 		CWindow pOtherWnd = (HWND)FindWindow(NULL, strWindowTitle);
 
-		if (pOtherWnd)
-		{
+		if (pOtherWnd) {
 			COPYDATASTRUCT cpd;
 			cpd.dwData = NULL;
 			cpd.cbData = strDataToSend.GetLength() * sizeof(wchar_t) + 1;
@@ -94,7 +93,6 @@ void SpawnCanary::StopBrainProcess() {
 				(LPARAM)&cpd);
 			strDataToSend.ReleaseBuffer();
 			// copyDataResult has value returned by other app
-
 		}
 		else
 		{
@@ -102,10 +100,10 @@ void SpawnCanary::StopBrainProcess() {
 			// AfxMessageBox("Unable to find other app.");
 		}
 
-		WaitForSingleObject(defaultConductor.orchestrator.spawnCanary.brainProcessInfo.hProcess, INFINITE);
+		// WaitForSingleObject(defaultConductor.orchestrator.spawnCanary.threadHandle, INFINITE);
 
-		CloseHandle(brainProcessInfo.hProcess);
-		CloseHandle(brainProcessInfo.hThread);
+		// CloseHandle(brainProcessInfo.hProcess);
+		// CloseHandle(brainProcessInfo.hThread);
 	}
 }
 

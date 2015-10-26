@@ -163,28 +163,30 @@ public:
 	{
 		cep.DestroyWindow();
 
-		CString strWindowTitle = _T("QuickletShellEventsProcessor");
-		CString strDataToSend = _T("shutdown");
+		if (! defaultOrchestrator->brainRequestShutdown) {
+			CString strWindowTitle = _T("QuickletShellEventsProcessor");
+			CString strDataToSend = _T("shutdown");
 
-		LRESULT copyDataResult;
+			LRESULT copyDataResult;
 
-		CWindow pOtherWnd = (HWND)FindWindow(NULL, strWindowTitle);
+			CWindow pOtherWnd = (HWND)FindWindow(NULL, strWindowTitle);
 
-		if (pOtherWnd) {
-			COPYDATASTRUCT cpd;
-			cpd.dwData = NULL;
-			cpd.cbData = strDataToSend.GetLength() * sizeof(wchar_t) + 1;
-			cpd.lpData = strDataToSend.GetBuffer(cpd.cbData);
-			copyDataResult = pOtherWnd.SendMessage(WM_COPYDATA,
-				(WPARAM) this->m_hWnd,
-				(LPARAM)&cpd);
-			strDataToSend.ReleaseBuffer();
-			// copyDataResult has value returned by other app
+			if (pOtherWnd) {
+				COPYDATASTRUCT cpd;
+				cpd.dwData = NULL;
+				cpd.cbData = strDataToSend.GetLength() * sizeof(wchar_t) + 1;
+				cpd.lpData = strDataToSend.GetBuffer(cpd.cbData);
+				copyDataResult = pOtherWnd.SendMessage(WM_COPYDATA,
+					(WPARAM) this->m_hWnd,
+					(LPARAM)&cpd);
+				strDataToSend.ReleaseBuffer();
+				// copyDataResult has value returned by other app
 
-		}
-		else {
-			// MessageBox(_T("Can't find other app!"), _T("UH OH"), MB_OK);
-			// AfxMessageBox("Unable to find other app.");
+			}
+			else {
+				// MessageBox(_T("Can't find other app!"), _T("UH OH"), MB_OK);
+				// AfxMessageBox("Unable to find other app.");
+			}
 		}
 
 		DestroyWindow();

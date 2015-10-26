@@ -12,7 +12,10 @@ LRESULT CoreEventsProcessor::OnCopyData(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM
 	// MessageBox(strRecievedText, _T("Received stuff from kkk!"), MB_OK);
 	ATLTRACE2(atlTraceUI, 0, TEXT("Received stuff from QBCEP, %s\n"), strRecievedText);
 	if (strRecievedText.CompareNoCase(_T("shutdown")) == 0) {
-		defaultConductor.orchestrator.StopConcert();
+		// PostMessage(defaultConductor.orchestrator.cMainDlg->m_hWnd, WM_CLOSE, NULL, NULL);
+		defaultConductor.orchestrator.brainRequestShutdown = true;
+		SendMessage(defaultConductor.orchestrator.cMainDlg->m_hWnd, WM_CLOSE, NULL, NULL);
+		// defaultConductor.orchestrator.StopConcert();
 	}
 	return true;
 }
