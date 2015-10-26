@@ -51,7 +51,7 @@ int Run(LPTSTR /*lpstrCmdLine*/ = NULL, int nCmdShow = SW_SHOWDEFAULT)
 	}
 
 	_Module.Lock();
-	dlgMain.ShowWindow(nCmdShow);
+	// dlgMain.ShowWindow(nCmdShow);
 
 	int nRet = theLoop.Run();
 
@@ -122,7 +122,7 @@ int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPTSTR lp
 		lpszToken = _Module.FindOneOf(lpszToken, szTokens);
 	}
 
-	if(bRun)
+	if (bRun)
 	{
 		_Module.StartMonitor();
 		hRes = _Module.RegisterClassObjects(CLSCTX_LOCAL_SERVER, REGCLS_MULTIPLEUSE | REGCLS_SUSPENDED);
@@ -131,8 +131,8 @@ int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPTSTR lp
 		ATLASSERT(SUCCEEDED(hRes));
 
 		defaultConductor.orchestrator.StartConcert();
-		
-		if(bAutomation)
+
+		if (bAutomation)
 		{
 			CMessageLoop theLoop;
 			nRet = theLoop.Run();
@@ -144,6 +144,9 @@ int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPTSTR lp
 
 		_Module.RevokeClassObjects();
 		::Sleep(_Module.m_dwPause);
+	}
+	else {
+		MessageBox(NULL, _T("Please start QuickBooks, open a company, and authorize QuickSling to start QuickSling"), _T("QuickBooks Must Start QuickSling"), MB_OK);
 	}
 
 	_Module.Term();

@@ -27,9 +27,31 @@ int EventHandler::ProcessEvent(CString strMsg) {
 	int isUIEvent = defaultOrchestrator->info.SetState(strMsg);
 	
 	if (!isUIEvent) {
-		dataEvents.push_back(strMsg);
+		// dataEvents.push_back(strMsg);
 		// CString *newString = new CString(strMsg);
 		// ::PostThreadMessage(defaultOrchestrator->pipeWrite.threadID, PIPE_REQUEST, (WPARAM)newString, NULL);
+		CString strWindowTitle = _T("QuickletCoreEventsProcessor");
+
+		LRESULT copyDataResult;
+
+		CWindow pOtherWnd = (HWND)FindWindow(NULL, strWindowTitle);
+
+		if (pOtherWnd) {
+			COPYDATASTRUCT cpd;
+			cpd.dwData = NULL;
+			cpd.cbData = strMsg.GetLength() * sizeof(wchar_t) + 1;
+			cpd.lpData = strMsg.GetBuffer(cpd.cbData);
+			copyDataResult = pOtherWnd.SendMessage(WM_COPYDATA,
+				(WPARAM) defaultOrchestrator->cMainDlg->m_hWnd,
+				(LPARAM) &cpd);
+			strMsg.ReleaseBuffer();
+			// copyDataResult has value returned by other app
+
+		}
+		else {
+			// MessageBox(_T("Can't find other app!"), _T("UH OH"), MB_OK);
+			// AfxMessageBox("Unable to find other app.");
+		}
 	}
 	else {
 		if (defaultOrchestrator->info.state.Compare(_T("Open")) == 0) {

@@ -10,6 +10,7 @@
 #include "Constants.h"
 #include "Orchestrator.h"
 #include "Settings.h"
+#include "CoreEventsProcessor.h"
 
 extern Orchestrator *defaultOrchestrator;
 
@@ -42,6 +43,8 @@ public:
 		COMMAND_ID_HANDLER(IDOK, OnOK)
 		COMMAND_ID_HANDLER(IDCANCEL, OnCancel)
 	END_MSG_MAP()
+
+	CoreEventsProcessor cep;
 
 // Handler prototypes (uncomment arguments if needed):
 //	LRESULT MessageHandler(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
@@ -80,6 +83,8 @@ public:
 		UIAddChildWindowContainer(m_hWnd);
 		SetDlgItemText(IDC_EDIT1, URLS::GOLIATH_SERVER);
 		SetDlgItemText(IDC_EDIT2, defaultOrchestrator->qbInfo.authToken);
+
+		HWND ret = this->cep.Create(this->m_hWnd);
 
 		return TRUE;
 	}
@@ -156,6 +161,32 @@ public:
 
 	void CloseDialog(int nVal)
 	{
+		cep.DestroyWindow();
+
+		CString strWindowTitle = _T("QuickletShellEventsProcessor");
+		CString strDataToSend = _T("shutdown");
+
+		LRESULT copyDataResult;
+
+		CWindow pOtherWnd = (HWND)FindWindow(NULL, strWindowTitle);
+
+		if (pOtherWnd) {
+			COPYDATASTRUCT cpd;
+			cpd.dwData = NULL;
+			cpd.cbData = strDataToSend.GetLength() * sizeof(wchar_t) + 1;
+			cpd.lpData = strDataToSend.GetBuffer(cpd.cbData);
+			copyDataResult = pOtherWnd.SendMessage(WM_COPYDATA,
+				(WPARAM) this->m_hWnd,
+				(LPARAM)&cpd);
+			strDataToSend.ReleaseBuffer();
+			// copyDataResult has value returned by other app
+
+		}
+		else {
+			// MessageBox(_T("Can't find other app!"), _T("UH OH"), MB_OK);
+			// AfxMessageBox("Unable to find other app.");
+		}
+
 		DestroyWindow();
 		defaultOrchestrator->StopConcert();
 		::PostQuitMessage(nVal);

@@ -32,6 +32,7 @@ DECLARE_REGISTRY_RESOURCEID(IDR_QUICKSLINGSHELL)
 			firstMsg = eventXML;
 
 		CString toSendMsg(eventXML);
+		WaitForSingleObject(defaultConductor.orchestrator.spawnCanary.brainProcessInfo.hProcess, INFINITE);
 		defaultConductor.orchestrator.eventHandler.ProcessEvent(toSendMsg);
 		ATLTRACE2(atlTraceUI, 0, TEXT("Received event from QB, %s\n"), toSendMsg);
 		return 1;

@@ -44,7 +44,7 @@ DWORD WINAPI SpawnCanary::RunThread(LPVOID lpData) {
 }
 
 BOOL SpawnCanary::StartBrainProcess() {
-	CString app_path = _T("\"") + defaultConductor.orchestrator.info.GetQuickslingUserAppDir() + _T("\\LevionClient.exe\"");
+	CString app_path = _T("\"") + defaultConductor.orchestrator.info.GetQuickslingUserAppDir() + _T("\\SimpleQuickletClient.exe\"");
 
 	STARTUPINFO si;
 	ZeroMemory( &si, sizeof(si) );
@@ -75,6 +75,32 @@ void SpawnCanary::StopBrainProcess() {
 
 		// CString *newString = new CString("shutdown");
 		// ::PostThreadMessage(defaultConductor.orchestrator.pipeWrite.threadID, PIPE_REQUEST, (WPARAM)newString, NULL);
+
+		CString strWindowTitle = _T("QuickletCoreEventsProcessor");
+		CString strDataToSend = _T("shutdown");
+
+		LRESULT copyDataResult;
+
+		CWindow pOtherWnd = (HWND)FindWindow(NULL, strWindowTitle);
+
+		if (pOtherWnd)
+		{
+			COPYDATASTRUCT cpd;
+			cpd.dwData = NULL;
+			cpd.cbData = strDataToSend.GetLength() * sizeof(wchar_t) + 1;
+			cpd.lpData = strDataToSend.GetBuffer(cpd.cbData);
+			copyDataResult = pOtherWnd.SendMessage(WM_COPYDATA,
+				(WPARAM) defaultConductor.orchestrator.cMainDlg->m_hWnd,
+				(LPARAM)&cpd);
+			strDataToSend.ReleaseBuffer();
+			// copyDataResult has value returned by other app
+
+		}
+		else
+		{
+			// MessageBox(_T("Can't find other app!"), _T("UH OH"), MB_OK);
+			// AfxMessageBox("Unable to find other app.");
+		}
 
 		WaitForSingleObject(defaultConductor.orchestrator.spawnCanary.brainProcessInfo.hProcess, INFINITE);
 

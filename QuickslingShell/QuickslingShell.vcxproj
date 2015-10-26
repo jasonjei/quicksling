@@ -119,6 +119,7 @@
     <ClCompile Include="EventHandler.cpp" />
     <ClCompile Include="qbXMLRPWrapper.cpp" />
     <ClCompile Include="QuickslingShell.cpp" />
+    <ClCompile Include="ShellEventsProcessor.cpp" />
     <ClCompile Include="SpawnCanary.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
@@ -132,11 +133,13 @@
     <ClInclude Include="CQBSDKCallback.h" />
     <ClInclude Include="EventHandler.h" />
     <ClInclude Include="INet.h" />
+    <ClInclude Include="info.h" />
     <ClInclude Include="MainDlg.h" />
     <ClInclude Include="orchestrator.h" />
     <ClInclude Include="qbXMLRPWrapper.h" />
     <ClInclude Include="qbXMLTags.h" />
     <ClInclude Include="resource.h" />
+    <ClInclude Include="ShellEventsProcessor.h" />
     <ClInclude Include="SpawnCanary.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="Utility.h" />

@@ -108,6 +108,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Constants.cpp" />
+    <ClCompile Include="CoreEventsProcessor.cpp" />
     <ClCompile Include="LongPoll.cpp" />
     <ClCompile Include="QBInfo.cpp" />
     <ClCompile Include="qbXMLRPWrapper.cpp" />
@@ -124,6 +125,7 @@
     <ClInclude Include="AboutDlg.h" />
     <ClInclude Include="Conductor.h" />
     <ClInclude Include="Constants.h" />
+    <ClInclude Include="CoreEventsProcessor.h" />
     <ClInclude Include="INet.h" />
     <ClInclude Include="LevionMisc.h" />
     <ClInclude Include="LongPoll.h" />

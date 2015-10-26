@@ -6,6 +6,8 @@
 #include "atlframe.h"
 #include "resource.h"
 #include "AboutDlg.h"
+#include "ShellEventsProcessor.h"
+
 #pragma once
 
 class CMainDlg : public CDialogImpl<CMainDlg>, public CUpdateUI<CMainDlg>,
@@ -36,6 +38,8 @@ public:
 		COMMAND_ID_HANDLER(IDCANCEL, OnCancel)
 	END_MSG_MAP()
 
+	ShellEventsProcessor sep;
+
 // Handler prototypes (uncomment arguments if needed):
 //	LRESULT MessageHandler(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
 //	LRESULT CommandHandler(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
@@ -59,6 +63,7 @@ public:
 		pLoop->AddIdleHandler(this);
 
 		UIAddChildWindowContainer(m_hWnd);
+		sep.Create(this->m_hWnd);
 
 		return TRUE;
 	}
@@ -104,6 +109,7 @@ public:
 
 	void CloseDialog(int nVal)
 	{
+		sep.DestroyWindow();
 		DestroyWindow();
 		::PostQuitMessage(nVal);
 	}
