@@ -12,7 +12,8 @@ LRESULT ShellEventsProcessor::OnCopyData(UINT /*uMsg*/, WPARAM /*wParam*/, LPARA
 	// MessageBox(strRecievedText, _T("Received stuff from kkk!"), MB_OK);
 	if (strRecievedText.CompareNoCase(_T("shutdown")) == 0) {
 		SetEvent(defaultConductor.orchestrator.goOfflineSignal);
-		defaultConductor.orchestrator.StopConcert();
+		SendMessage(defaultConductor.orchestrator.cMainDlg->m_hWnd, WM_CLOSE, NULL, NULL);
+		// defaultConductor.orchestrator.StopConcert();
 	}
 	ATLTRACE2(atlTraceUI, 0, TEXT("Received stuff from QBSEP, %s\n"), strRecievedText);
 	return true;

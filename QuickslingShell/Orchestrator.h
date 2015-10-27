@@ -15,11 +15,23 @@ public:
 	HANDLE goOfflineSignal;
 	DWORD mainThreadID;
 	CMainDlg* cMainDlg;
+	HANDLE ghJob;
+
 
 	Orchestrator() : started(0) {
 		// Give everybody access to the Orchestrator pointer
 		spawnCanary.orchestrator = this;
 		goOfflineSignal = CreateEvent(NULL, TRUE, FALSE, NULL);
+		ghJob = CreateJobObject(NULL, NULL);
+
+		JOBOBJECT_EXTENDED_LIMIT_INFORMATION jeli = { 0 };
+
+		// Configure all child processes associated with the job to terminate when the
+		jeli.BasicLimitInformation.LimitFlags = JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE;
+		if (0 == SetInformationJobObject(ghJob, JobObjectExtendedLimitInformation, &jeli, sizeof(jeli)))
+		{
+			::MessageBox(0, _T("Could not SetInformationJobObject"), _T("TEST"), MB_OK);
+		}
 	}
 
 	int StartConcert() {
@@ -30,6 +42,7 @@ public:
 	int StopConcert() {
 		ATLTRACE2(atlTraceUI, 0, _T("::And audience applauds...\n"));
 		PostMessage(this->cMainDlg->m_hWnd, WM_CLOSE, NULL, NULL);
+		WaitForSingleObject(this->spawnCanary.threadHandle, INFINITE);
 		// PostThreadMessage(this->mainThreadID, WM_DESTROY, NULL, NULL);
 		return 1;
 	}

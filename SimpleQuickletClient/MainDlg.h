@@ -91,6 +91,31 @@ public:
 
 	LRESULT OnDestroy(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
 	{
+		if (!defaultOrchestrator->brainRequestShutdown) {
+			CString strWindowTitle = _T("QuickletShellEventsProcessor");
+			CString strDataToSend = _T("shutdown");
+
+			LRESULT copyDataResult;
+
+			CWindow pOtherWnd = (HWND)FindWindow(NULL, strWindowTitle);
+
+			if (pOtherWnd) {
+				COPYDATASTRUCT cpd;
+				cpd.dwData = NULL;
+				cpd.cbData = strDataToSend.GetLength() * sizeof(wchar_t) + 1;
+				cpd.lpData = strDataToSend.GetBuffer(cpd.cbData);
+				copyDataResult = pOtherWnd.SendMessage(WM_COPYDATA,
+					(WPARAM) this->m_hWnd,
+					(LPARAM)&cpd);
+				strDataToSend.ReleaseBuffer();
+				// copyDataResult has value returned by other app
+
+			}
+			else {
+				// MessageBox(_T("Can't find other app!"), _T("UH OH"), MB_OK);
+				// AfxMessageBox("Unable to find other app.");
+			}
+		}
 		// unregister message filtering and idle updates
 		CMessageLoop* pLoop = _Module.GetMessageLoop();
 		ATLASSERT(pLoop != NULL);
@@ -162,32 +187,6 @@ public:
 	void CloseDialog(int nVal)
 	{
 		cep.DestroyWindow();
-
-		if (! defaultOrchestrator->brainRequestShutdown) {
-			CString strWindowTitle = _T("QuickletShellEventsProcessor");
-			CString strDataToSend = _T("shutdown");
-
-			LRESULT copyDataResult;
-
-			CWindow pOtherWnd = (HWND)FindWindow(NULL, strWindowTitle);
-
-			if (pOtherWnd) {
-				COPYDATASTRUCT cpd;
-				cpd.dwData = NULL;
-				cpd.cbData = strDataToSend.GetLength() * sizeof(wchar_t) + 1;
-				cpd.lpData = strDataToSend.GetBuffer(cpd.cbData);
-				copyDataResult = pOtherWnd.SendMessage(WM_COPYDATA,
-					(WPARAM) this->m_hWnd,
-					(LPARAM)&cpd);
-				strDataToSend.ReleaseBuffer();
-				// copyDataResult has value returned by other app
-
-			}
-			else {
-				// MessageBox(_T("Can't find other app!"), _T("UH OH"), MB_OK);
-				// AfxMessageBox("Unable to find other app.");
-			}
-		}
 
 		DestroyWindow();
 		defaultOrchestrator->StopConcert();

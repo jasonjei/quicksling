@@ -23,17 +23,21 @@ DWORD SpawnCanary::StartThread() {
 
 DWORD WINAPI SpawnCanary::RunThread(LPVOID lpData) {
 	if (defaultConductor.orchestrator.spawnCanary.StartBrainProcess() == false) {
-		MessageBox(NULL, _T("Levion Connector failed to start! Please check for updates or reinstall Levion."), _T("Error!"), MB_OK);
+		MessageBox(NULL, _T("Quicksling Core couldn't start! Please check for updates or reinstall Quicksling."), _T("Error starting QuickSling Core"), MB_OK);
 		defaultConductor.orchestrator.StopConcert();
 		return 0;
 	}
 
 	WaitForSingleObject(defaultConductor.orchestrator.spawnCanary.brainProcessInfo.hProcess, INFINITE);
 
+	CloseHandle(defaultConductor.orchestrator.spawnCanary.brainProcessInfo.hProcess);
+	CloseHandle(defaultConductor.orchestrator.spawnCanary.brainProcessInfo.hThread);
+
 	if (WaitForSingleObject(defaultConductor.orchestrator.goOfflineSignal, 0) != 0) {
-		int res = MessageBox(NULL, _T("Levion Connector seems to have shut down incorrectly. Would you like it to restart?"), _T("Error."), MB_YESNO);
+		int res = MessageBox(NULL, _T("Quicksling seems to have shut down incorrectly. Would you like it to restart?"), _T("Quicksling Core abruptly exited"), MB_YESNO);
 		if (res == IDYES) {
-			defaultConductor.orchestrator.spawnCanary.RunThread(NULL);
+			defaultConductor.orchestrator.spawnCanary.threadID = NULL;
+			return defaultConductor.orchestrator.spawnCanary.StartThread();
 		} else {
 			defaultConductor.orchestrator.StopConcert();
 		}
@@ -62,6 +66,13 @@ BOOL SpawnCanary::StartBrainProcess() {
 	BOOL successful = CreateProcess(NULL, app_path.GetBuffer(0), NULL, NULL, TRUE, NULL, NULL, NULL, &si, &brainProcessInfo);
 
 	if (successful == 1) {
+		if (defaultConductor.orchestrator.ghJob)
+		{
+			if (0 == AssignProcessToJobObject(defaultConductor.orchestrator.ghJob, brainProcessInfo.hProcess))
+			{
+				::MessageBox(0, _T("Could not AssignProcessToObject"), _T("Crap"), MB_OK);
+			}
+		}
 		// CString *openString = new CString(defaultConductor.orchestrator.eventHandler.qbOpenEvent);
 		// ::PostThreadMessage(defaultConductor.orchestrator.pipeWrite.threadID, PIPE_REQUEST, (WPARAM)openString, NULL);
 	}
@@ -101,9 +112,6 @@ void SpawnCanary::StopBrainProcess() {
 		}
 
 		// WaitForSingleObject(defaultConductor.orchestrator.spawnCanary.threadHandle, INFINITE);
-
-		// CloseHandle(brainProcessInfo.hProcess);
-		// CloseHandle(brainProcessInfo.hThread);
 	}
 }
 
