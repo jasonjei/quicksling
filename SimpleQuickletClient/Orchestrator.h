@@ -4,6 +4,7 @@
 #include "RequestProcessor.h"
 #include "ResponseDispatcher.h"
 #include "QBInfo.h"
+#include "NetAware.h"
 
 class CMainDlg;
 class QBInfo;
@@ -13,6 +14,7 @@ public:
 	LongPoll longPoll;
 	RequestProcessor request;
 	ResponseDispatcher response;
+	NetAware netAware;
 	QBInfo qbInfo;
 	CMainDlg* cMainDlg;
 
@@ -44,6 +46,7 @@ public:
 			WaitForSingleObject(response.signal, INFINITE);
 			// This starts the chain of events
 			longPoll.StartThread();
+			netAware.StartThread();
 		}
 
 		started = 1;

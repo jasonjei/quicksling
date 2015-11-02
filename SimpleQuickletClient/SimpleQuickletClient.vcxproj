@@ -110,6 +110,7 @@
     <ClCompile Include="Constants.cpp" />
     <ClCompile Include="CoreEventsProcessor.cpp" />
     <ClCompile Include="LongPoll.cpp" />
+    <ClCompile Include="NetAware.cpp" />
     <ClCompile Include="QBInfo.cpp" />
     <ClCompile Include="qbXMLRPWrapper.cpp" />
     <ClCompile Include="RequestProcessor.cpp" />
@@ -130,6 +131,7 @@
     <ClInclude Include="LevionMisc.h" />
     <ClInclude Include="LongPoll.h" />
     <ClInclude Include="MainDlg.h" />
+    <ClInclude Include="NetAware.h" />
     <ClInclude Include="Orchestrator.h" />
     <ClInclude Include="QBInfo.h" />
     <ClInclude Include="qbXMLRPWrapper.h" />
