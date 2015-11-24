@@ -1,0 +1,52 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<Project ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="Z:\Projects\quicklet-dev-client\cef_binary\cefsimple\simple_app.cc">
+      <Filter>cefsimple</Filter>
+    </ClCompile>
+    <ClCompile Include="Z:\Projects\quicklet-dev-client\cef_binary\cefsimple\simple_handler.cc">
+      <Filter>cefsimple</Filter>
+    </ClCompile>
+    <ClCompile Include="Z:\Projects\quicklet-dev-client\cef_binary\cefsimple\cefsimple_win.cc">
+      <Filter>cefsimple</Filter>
+    </ClCompile>
+    <ClCompile Include="Z:\Projects\quicklet-dev-client\cef_binary\cefsimple\simple_handler_win.cc">
+      <Filter>cefsimple</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Z:\Projects\quicklet-dev-client\cef_binary\cefsimple\simple_app.h">
+      <Filter>cefsimple</Filter>
+    </ClInclude>
+    <ClInclude Include="Z:\Projects\quicklet-dev-client\cef_binary\cefsimple\simple_handler.h">
+      <Filter>cefsimple</Filter>
+    </ClInclude>
+    <ClInclude Include="Z:\Projects\quicklet-dev-client\cef_binary\cefsimple\resource.h">
+      <Filter>cefsimple</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="Z:\Projects\quicklet-dev-client\cef_binary\cefsimple\CMakeLists.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Z:\Projects\quicklet-dev-client\cef_binary\cefsimple\res\cefsimple.ico">
+      <Filter>cefsimple\res</Filter>
+    </None>
+    <None Include="Z:\Projects\quicklet-dev-client\cef_binary\cefsimple\res\small.ico">
+      <Filter>cefsimple\res</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="Z:\Projects\quicklet-dev-client\cef_binary\cefsimple\cefsimple.rc">
+      <Filter>cefsimple</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="cefsimple\res">
+      <UniqueIdentifier>{0AE9DDAB-9BCD-3114-BBEB-421BE379C2A6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="cefsimple">
+      <UniqueIdentifier>{7EFED668-DECC-3FC2-986D-122684A3CE8B}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

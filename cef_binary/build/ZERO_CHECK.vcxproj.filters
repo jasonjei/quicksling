@@ -1,0 +1,13 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<Project ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <CustomBuild Include="Z:\Projects\quicklet-dev-client\cef_binary\build\CMakeFiles\fb9a9c9cd810720bf92410625a36ac5d\generate.stamp.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="CMake Rules">
+      <UniqueIdentifier>{901243EC-C5AA-3238-B24F-AE01011B8A52}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>
