@@ -52,12 +52,13 @@
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_WINDOWS;STRICT;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(SolutionDir)wtl</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)wtl;$(SolutionDir)cef_binary</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <TargetMachine>MachineX86</TargetMachine>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;$(SolutionDir)cef_binary\$(Configuration)\libcef.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <ResourceCompile>
       <Culture>0x0409</Culture>
@@ -117,6 +118,9 @@
     <ClCompile Include="Quicksling.cpp" />
     <ClCompile Include="RequestProcessor.cpp" />
     <ClCompile Include="ResponseDispatcher.cpp" />
+    <ClCompile Include="simple_app.cc" />
+    <ClCompile Include="simple_handler.cc" />
+    <ClCompile Include="simple_handler_win.cc" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
@@ -145,6 +149,8 @@
     <ClInclude Include="ResponseEnvelope.h" />
     <ClInclude Include="rsettings.h" />
     <ClInclude Include="Settings.h" />
+    <ClInclude Include="simple_app.h" />
+    <ClInclude Include="simple_handler.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="Utility.h" />
   </ItemGroup>
@@ -153,6 +159,11 @@
   </ItemGroup>
   <ItemGroup>
     <Image Include="res\Quicksling.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="Z:\Projects\quicklet-dev-client\cef_binary\build\libcef_dll\libcef_dll_wrapper.vcxproj">
+      <Project>{dcdcc8c3-9af8-3587-8937-2a1c55fab0d0}</Project>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

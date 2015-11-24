@@ -16,6 +16,8 @@
 #include "Conductor.h"
 #include "Settings.h"
 
+#include "simple_app.h"
+
 CAppModule _Module;
 
 Conductor defaultConductor;
