@@ -51,9 +51,18 @@
     <ClCompile Include="Utility.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="simple_app.cc" />
-    <ClCompile Include="simple_handler.cc" />
-    <ClCompile Include="simple_handler_win.cc" />
+    <ClCompile Include="simple_app.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="simple_handler.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="simple_handler_win.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="BrowserHandler.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -129,6 +138,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="simple_handler.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="BrowserHandler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

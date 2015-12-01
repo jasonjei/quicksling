@@ -108,6 +108,7 @@
     </Midl>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="BrowserHandler.cpp" />
     <ClCompile Include="Constants.cpp" />
     <ClCompile Include="CoreEventsProcessor.cpp" />
     <ClCompile Include="EventHandler.cpp" />
@@ -129,6 +130,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AboutDlg.h" />
+    <ClInclude Include="BrowserHandler.h" />
     <ClInclude Include="Conductor.h" />
     <ClInclude Include="Constants.h" />
     <ClInclude Include="CoreEventsProcessor.h" />

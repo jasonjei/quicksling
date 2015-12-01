@@ -4,6 +4,7 @@
 #include "RequestProcessor.h"
 #include "ResponseDispatcher.h"
 #include "QBInfo.h"
+#include "BrowserHandler.h"
 #include "NetAware.h"
 
 class CMainDlg;
@@ -16,6 +17,7 @@ public:
 	ResponseDispatcher response;
 	NetAware netAware;
 	QBInfo qbInfo;
+	BrowserHandler browser;
 	CMainDlg* cMainDlg;
 
 	int started;

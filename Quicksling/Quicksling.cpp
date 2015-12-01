@@ -83,6 +83,18 @@ int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPTSTR lp
 	hRes = _Module.Init(NULL, hInstance);
 	ATLASSERT(SUCCEEDED(hRes));
 
+	// Enable High-DPI support on Windows 7 or newer.
+	CefEnableHighDPISupport();
+
+	// Provide CEF with command-line arguments.
+	defaultOrchestrator->browser.hInstance = hInstance;
+	defaultOrchestrator->browser.main_args = CefMainArgs(hInstance);
+
+	if (CString(lpstrCmdLine).Find(_T("--type=")) != -1) {
+		defaultConductor.orchestrator.browser.settings.multi_threaded_message_loop = false;
+		defaultConductor.orchestrator.browser.StartBrowser();
+	}
+
 	int nRet = Run(lpstrCmdLine, nCmdShow);
 
 	_Module.Term();
