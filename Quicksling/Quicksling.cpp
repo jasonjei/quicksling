@@ -24,9 +24,20 @@ Conductor defaultConductor;
 Orchestrator *defaultOrchestrator = &defaultConductor.orchestrator;
 LongPoll* defaultPoll;
 
+class QuickslingMessageFilter : public CMessageFilter {
+public:
+	virtual BOOL PreTranslateMessage(MSG* pMsg) {
+		CefDoMessageLoopWork();
+		return 0;
+	}
+};
+
+
 int Run(LPTSTR /*lpstrCmdLine*/ = NULL, int nCmdShow = SW_SHOWDEFAULT)
 {
 	CMessageLoop theLoop;
+	QuickslingMessageFilter quickslingMsgFilter;
+
 	_Module.AddMessageLoop(&theLoop);
 
 	Settings settings(HKEY_CURRENT_USER,
@@ -61,8 +72,10 @@ int Run(LPTSTR /*lpstrCmdLine*/ = NULL, int nCmdShow = SW_SHOWDEFAULT)
 	defaultConductor.orchestrator.cMainDlg = &dlgMain;
 	defaultConductor.orchestrator.StartConcert();
 
+	theLoop.AddMessageFilter(&quickslingMsgFilter);
 	int nRet = theLoop.Run();
 
+	CefShutdown();
 	_Module.RemoveMessageLoop();
 	return nRet;
 }
@@ -89,10 +102,29 @@ int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPTSTR lp
 	// Provide CEF with command-line arguments.
 	defaultOrchestrator->browser.hInstance = hInstance;
 	defaultOrchestrator->browser.main_args = CefMainArgs(hInstance);
+	defaultOrchestrator->browser.app = new SimpleApp;
+
+	int exit_code = CefExecuteProcess(defaultOrchestrator->browser.main_args, defaultOrchestrator->browser.app.get(), NULL);
+	if (exit_code >= 0) {
+		// MessageBox(NULL, _T("Got exit code"), _T("Got exit code"), MB_OK);
+		// TODO - handle. The sub-process terminated
+	}
 
 	if (CString(lpstrCmdLine).Find(_T("--type=")) != -1) {
+		defaultConductor.orchestrator.browser.settings.multi_threaded_message_loop = true;
+		CefInitialize(defaultOrchestrator->browser.main_args, defaultOrchestrator->browser.settings, defaultOrchestrator->browser.app.get(), NULL);
+
+		// Run the CEF message loop. This will block until CefQuitMessageLoop() is
+		// called.
+		CefRunMessageLoop();
+
+		// Shut down CEF.
+		CefShutdown();
+	}
+	else {
 		defaultConductor.orchestrator.browser.settings.multi_threaded_message_loop = false;
-		defaultConductor.orchestrator.browser.StartBrowser();
+		CefInitialize(defaultOrchestrator->browser.main_args, defaultOrchestrator->browser.settings, defaultOrchestrator->browser.app.get(), NULL);
+		// CefShutdown();
 	}
 
 	int nRet = Run(lpstrCmdLine, nCmdShow);

@@ -56,8 +56,8 @@ DWORD WINAPI BrowserHandler::RunThread(LPVOID lpData) {
 	// scheme_test::InitTest();
 
 	// Run the CEF message loop. This will block until CefQuitMessageLoop() is called.
-	// CefRunMessageLoop();
-
+	CefRunMessageLoop();
+	/* 
 	// Create a hidden window for message processing.
 	HWND hMessageWnd = NULL;
 	hMessageWnd = CreateMessageWindow(browser->hInstance);
@@ -77,6 +77,8 @@ DWORD WINAPI BrowserHandler::RunThread(LPVOID lpData) {
 	hMessageWnd = NULL;
 
 	return static_cast<int>(msg.wParam);
+	*/
+	return false;
 }
 
 void BrowserHandler::Shutdown() {

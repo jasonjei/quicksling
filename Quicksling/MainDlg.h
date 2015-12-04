@@ -165,11 +165,11 @@ public:
 		InternetCloseHandle(defaultOrchestrator->longPoll.currentHandle);
 		SetEvent(defaultOrchestrator->longPoll.tryAgainSignal);
 
-		if (defaultOrchestrator->browser.browser == NULL)
-			defaultOrchestrator->browser.StartThread();
-		WaitForSingleObject(defaultOrchestrator->browser.browserOpenSignal, INFINITE);
-
-		defaultOrchestrator->browser.browser->GetMainFrame()->LoadURL(_T("http://www.google.com/"));
+		// if (defaultOrchestrator->browser.browser == NULL)
+		// 	defaultOrchestrator->browser.StartThread();
+		// WaitForSingleObject(defaultOrchestrator->browser.browserOpenSignal, INFINITE);
+		// defaultOrchestrator->browser.browser->
+		// defaultOrchestrator->browser.browser->GetMainFrame()->LoadURL(_T("http://www.yahoo.com/"));
 
 		return 0;
 	}
