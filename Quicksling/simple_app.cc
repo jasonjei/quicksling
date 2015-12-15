@@ -21,6 +21,7 @@ SimpleApp::SimpleApp() {
 void SimpleApp::OnContextInitialized() {
   CEF_REQUIRE_UI_THREAD();
 
+  /*
   // Information used when creating the native window.
   CefWindowInfo window_info;
 
@@ -44,10 +45,10 @@ void SimpleApp::OnContextInitialized() {
       CefCommandLine::GetGlobalCommandLine();
   url = command_line->GetSwitchValue("url");
   if (url.empty())
-    url = "http://www.google.com";
+    url = "http://www.yahoo.com";
 
   // Create the first browser window.
   CefBrowserHost::CreateBrowser(window_info, handler.get(), url,
                                 browser_settings, NULL);
-  SetEvent(defaultOrchestrator->browser.browserOpenSignal);
+  SetEvent(defaultOrchestrator->browser.browserOpenSignal); */
 }

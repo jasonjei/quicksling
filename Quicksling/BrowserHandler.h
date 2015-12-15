@@ -4,6 +4,7 @@
 #include "Constants.h"
 #include "INet.h"
 #include "simple_app.h"
+#include "simple_handler.h"
 
 class Orchestrator;
 
@@ -30,7 +31,7 @@ public:
 	CefMainArgs main_args;
 	CefRefPtr<SimpleApp> app;
 	CefSettings settings;
-	CefRefPtr<CefBrowser> browser;
+	CefRefPtr<SimpleHandler> simpleHandler;
 	HINSTANCE hInstance;
 
 private:

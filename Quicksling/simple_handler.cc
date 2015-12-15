@@ -3,7 +3,7 @@
 // can be found in the LICENSE file.
 
 #include "stdafx.h"
-#include "cefsimple/simple_handler.h"
+#include "simple_handler.h"
 
 #include <sstream>
 #include <string>
@@ -75,6 +75,7 @@ void SimpleHandler::OnBeforeClose(CefRefPtr<CefBrowser> browser) {
   }
 }
 
+
 void SimpleHandler::OnLoadError(CefRefPtr<CefBrowser> browser,
                                 CefRefPtr<CefFrame> frame,
                                 ErrorCode errorCode,
@@ -109,4 +110,22 @@ void SimpleHandler::CloseAllBrowsers(bool force_close) {
   BrowserList::const_iterator it = browser_list_.begin();
   for (; it != browser_list_.end(); ++it)
     (*it)->GetHost()->CloseBrowser(force_close);
+}
+
+bool SimpleHandler::BrowserAvailable() {
+	if (browser_list_.empty())
+		return false;
+	return true;
+}
+
+CefRefPtr<CefBrowser> SimpleHandler::GetBrowser() {
+	if (browser_list_.empty())
+		return NULL;
+	BrowserList::const_iterator it = browser_list_.begin();
+	return (*it);
+}
+
+void SimpleHandler::OnBeforeContextMenu(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, CefRefPtr<CefContextMenuParams> params, CefRefPtr<CefMenuModel> model) {
+	model;
+	// model->
 }

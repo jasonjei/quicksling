@@ -107,7 +107,7 @@ void BrowserHandler::StartBrowser() {
 void BrowserHandler::LoadStatusPage() {
 	// TODO - should not be dev URL
 	CString url = "https://app.levion.dev/qb_client/status?company_tag=" + defaultOrchestrator->qbInfo.companyTag;
-	this->browser->GetMainFrame()->LoadURL(std::string(CW2A(url, CP_UTF8)));
+	// this->browser->GetMainFrame()->LoadURL(std::string(CW2A(url, CP_UTF8)));
 }
 
 HWND BrowserHandler::CreateMessageWindow(HINSTANCE hInstance) {

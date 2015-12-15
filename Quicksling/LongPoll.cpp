@@ -24,6 +24,7 @@ LongPoll::LongPoll(void) : firstTime(true), firstError(true) {
 	this->connectedSignal = CreateEvent(NULL, TRUE, FALSE, NULL);
 	this->goOfflineSignal = CreateEvent(NULL, TRUE, FALSE, NULL);
 	this->tryAgainSignal = CreateEvent(NULL, TRUE, FALSE, NULL);
+	state = _T("first_time");
 }
 
 LongPoll::~LongPoll(void) {
@@ -129,10 +130,10 @@ int LongPoll::DoLongPoll() {
 		sURL += "&data_events=" + numDataEventsStr;
 	}
 
-	if (firstTime == true) {
+	// if (firstTime == true) {
 		sURL += "&version=" + this->orchestrator->qbInfo.version + "&product_name=" + this->orchestrator->qbInfo.productName +
-			"&country=" + this->orchestrator->qbInfo.country + "&first_time=1";
-	}
+			"&country=" + this->orchestrator->qbInfo.country + "&state=" + this->state;
+	// }
 
 	CInternetSession Session(APP_NAME);
 	

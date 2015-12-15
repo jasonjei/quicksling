@@ -73,6 +73,7 @@ int Run(LPTSTR /*lpstrCmdLine*/ = NULL, int nCmdShow = SW_SHOWDEFAULT)
 	defaultConductor.orchestrator.StartConcert();
 
 	theLoop.AddMessageFilter(&quickslingMsgFilter);
+
 	int nRet = theLoop.Run();
 
 	CefShutdown();
@@ -103,6 +104,7 @@ int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPTSTR lp
 	defaultOrchestrator->browser.hInstance = hInstance;
 	defaultOrchestrator->browser.main_args = CefMainArgs(hInstance);
 	defaultOrchestrator->browser.app = new SimpleApp;
+	defaultOrchestrator->browser.simpleHandler = new SimpleHandler();
 
 	int exit_code = CefExecuteProcess(defaultOrchestrator->browser.main_args, defaultOrchestrator->browser.app.get(), NULL);
 	if (exit_code >= 0) {

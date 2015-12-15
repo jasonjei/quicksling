@@ -11,6 +11,7 @@
 #include "Orchestrator.h"
 #include "Settings.h"
 #include "CoreEventsProcessor.h"
+#include "simple_handler.h"
 
 extern Orchestrator *defaultOrchestrator;
 
@@ -170,6 +171,20 @@ public:
 		// WaitForSingleObject(defaultOrchestrator->browser.browserOpenSignal, INFINITE);
 		// defaultOrchestrator->browser.browser->
 		// defaultOrchestrator->browser.browser->GetMainFrame()->LoadURL(_T("http://www.yahoo.com/"));
+
+		if (! defaultOrchestrator->browser.simpleHandler->BrowserAvailable()) {
+			CefWindowInfo window_info;
+			window_info.SetAsPopup(NULL, "cefsimple");
+			CefBrowserSettings browser_settings;
+
+			CefBrowserHost::CreateBrowserSync(window_info, defaultOrchestrator->browser.simpleHandler, "http://www.google.com",
+				browser_settings, NULL);
+		}
+		else {
+			defaultOrchestrator->browser.simpleHandler->GetBrowser()->GetMainFrame()->LoadURL("http://www.google.com");
+		}
+
+
 
 		return 0;
 	}

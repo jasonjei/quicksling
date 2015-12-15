@@ -33,6 +33,7 @@ public:
 	HANDLE threadHandle;
 	HANDLE connectedSignal;
 	HINTERNET currentHandle;
+	CString state;
 
 private:
 	void ClearExpiredQBSession();
