@@ -150,6 +150,15 @@ static const CString GET_COMPANY_TAG = "<?xml version=\"1.0\"?>" \
 "</QBXMLMsgsRq>" \
 "</QBXML>";
 
+static const CString GET_TEMPLATES = "<?xml version=\"1.0\"?>" \
+"<?qbxml version=\"8.0\"?>" \
+"<QBXML>" \
+"<QBXMLMsgsRq onError=\"stopOnError\">" \
+"<TemplateQueryRq>" \
+"</TemplateQueryRq>" \
+"</QBXMLMsgsRq>" \
+"</QBXML>";
+
 static class URLS {
 public:
 	static CString APP_SERVER;

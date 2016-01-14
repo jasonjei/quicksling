@@ -39,7 +39,6 @@ public:
 	QBInfo(void) : persistentQBXMLWrapper(NULL) {
 		this->readyForLongPollSignal = CreateEvent(NULL, TRUE, FALSE, NULL);
 		this->version = LEVION_CLIENT_VER;
-		LoadConfigYaml();
 	}
 
 	~QBInfo(void) {
@@ -245,6 +244,7 @@ public:
 		SetCompanyInfo(result);
 		SetQBInfo();
 
+		LoadConfigYaml();
 		LoadAuthToken();
 		SaveConfigYaml();
 

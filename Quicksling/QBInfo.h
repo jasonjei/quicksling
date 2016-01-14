@@ -7,6 +7,7 @@
 #include "Constants.h"
 #include "LevionMisc.h"
 #include "INet.h"
+#include "inifile.h"
 
 #pragma comment(lib, "userenv.lib")
 
@@ -31,15 +32,17 @@ public:
 	CString version;
 	CString clientGuid;
 	CString state;
+	CString productInvoice;
+	CString packingSlip;
 	Orchestrator *orchestrator;
 	HANDLE readyForLongPollSignal;
 	qbXMLRPWrapper *persistentQBXMLWrapper;
+	int sequence;
 	bool processedQBRequest;
 
 	QBInfo(void) : persistentQBXMLWrapper(NULL) {
 		this->readyForLongPollSignal = CreateEvent(NULL, TRUE, FALSE, NULL);
 		this->version = LEVION_CLIENT_VER;
-		LoadConfigYaml();
 	}
 
 	~QBInfo(void) {
@@ -49,14 +52,14 @@ public:
 	CString GetLevionUserAppDir() {
 		TCHAR szPath[MAX_PATH];
 		SHGetFolderPath(NULL, CSIDL_LOCAL_APPDATA | CSIDL_FLAG_CREATE, NULL, 0, szPath);
-		PathAppend(szPath, _T("Levion"));
+		PathAppend(szPath, _T("Quicksling"));
 		return CString(szPath);
 	}
 
 	CString GetLevionUserAppDir(CString File) {
 		TCHAR szPath[MAX_PATH];
 		SHGetFolderPath(NULL, CSIDL_LOCAL_APPDATA | CSIDL_FLAG_CREATE, NULL, 0, szPath);
-		PathAppend(szPath, _T("Levion"));
+		PathAppend(szPath, _T("Quicksling"));
 		PathAppend(szPath, File);
 		return CString(szPath);
 	}
@@ -144,6 +147,46 @@ public:
 		CreateLevionAppDir();
 
 		FILE *fh;
+
+		CIniFile ini;
+		CIniSectionW* authSec;
+		CIniSectionW* sequenceSec;
+
+		ini.Load((LPCTSTR) GetLevionUserAppDir("config.ini"));
+		
+		if ((authSec = ini.GetSection(_T("Auth"))) == NULL) 
+			authSec = ini.AddSection(_T("Auth"));
+
+		if ((authSec = ini.GetSection(_T("Sequence"))) == NULL)
+			authSec = ini.AddSection(_T("Sequence"));
+
+		CString uniqueId;
+		uniqueId = this->productInvoice + _T(",") + this->packingSlip;
+
+		CIniKeyW *authKey = authSec->GetKey((LPCTSTR) uniqueId);
+
+		if (authKey == NULL) {
+			authKey = authSec->AddKey((LPCTSTR)uniqueId);
+			authKey->SetValue((LPCTSTR) GUIDgen());
+		}
+
+		this->authToken = authKey->GetValue().c_str();
+
+
+		CIniKeyW *sequenceKey = sequenceSec->GetKey((LPCTSTR)uniqueId);
+
+		if (sequenceKey == NULL) {
+			sequenceKey = authSec->AddKey((LPCTSTR)uniqueId);
+			sequenceKey->SetValue(_T("0"));
+		}
+		
+		this->sequence = std::stoi(sequenceKey->GetValue().c_str());
+
+		ini.Save((LPCTSTR)GetLevionUserAppDir("config.ini"));
+
+		/* if (authKey == NULL) {
+			this->authToken = 
+		} */
 
 		// _wfopen_s(&fh, (LPCTSTR) GetLevionUserAppDir("config.yml"), _T("r"));
 		/*
@@ -241,15 +284,27 @@ public:
 
 		qb.OpenCompanyFile(_T(""));
 		CString result = qb.ProcessRequest(std::wstring(GET_COMPANY_TAG)).c_str();
-
 		SetCompanyInfo(result);
+
+		result = qb.ProcessRequest(std::wstring(GET_TEMPLATES)).c_str();
+		SetCompanyTemplateInfo(result);
+
 		SetQBInfo();
 
+		LoadConfigYaml();
 		LoadAuthToken();
 		SaveConfigYaml();
 
 		SetEvent(this->readyForLongPollSignal);
 
+		return 1;
+	}
+
+	int SetupQuickslingWithQBData() {
+		qbXMLRPWrapper qb;
+
+		qb.OpenCompanyFile(_T(""));
+		CString result = qb.ProcessRequest(std::wstring(GET_COMPANY_TAG)).c_str();
 		return 1;
 	}
 
@@ -264,6 +319,38 @@ public:
 			return 1;
 		}
 
+		return 0;
+	}
+
+	int SetCompanyTemplateInfo(CString str) {
+		MSXML2::IXMLDOMDocument* outputXMLDoc = InstantiateXMLDocWithString(str);
+
+		if (outputXMLDoc) {
+			MSXML2::IXMLDOMNodeList *nodeList;
+			long size;
+
+			HRESULT hr = outputXMLDoc->getElementsByTagName(CComBSTR(_T("TemplateRet")), &nodeList);
+
+			if (hr == S_OK) {
+				nodeList->get_length(&size);
+
+				for (int i = 0; i < size; i++) {
+					MSXML2::IXMLDOMNode *node;
+					nodeList->get_item(i, &node);
+
+					if (GetValueFromNode("Name", node).Compare(_T("Intuit Packing Slip")) == 0) {
+						packingSlip = GetValueFromNode("ListID", node);
+					}
+					else if (GetValueFromNode("Name", node).Compare(_T("Intuit Product Invoice")) == 0) {
+						productInvoice = GetValueFromNode("ListID", node);
+					}
+					node->Release();
+				}
+				nodeList->Release();
+			}
+			outputXMLDoc->Release();
+			return 1;
+		}
 		return 0;
 	}
 
@@ -417,6 +504,23 @@ public:
 		else {
 			return NULL;
 		}
+	}
+
+	CString GUIDgen()
+	{
+		GUID guid;
+		CoCreateGuid(&guid);
+
+		BYTE * str;
+		UuidToString((UUID*)&guid, (RPC_WSTR*) &str);
+
+		CString unique((LPTSTR) str);
+
+		RpcStringFree((RPC_WSTR*) &str);
+
+		// unique.Replace(_T("-"), _T("_"));
+
+		return unique;
 	}
 
 };

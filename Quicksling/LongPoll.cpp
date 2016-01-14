@@ -179,7 +179,9 @@ int LongPoll::DoLongPoll() {
 			return 0;
 		}
 		else if (pageSource == "timeout") {
+			this->orchestrator->longPoll.connected = true;
 			this->orchestrator->qbInfo.processedQBRequest = false;
+			SendMessage(this->orchestrator->cMainDlg->m_hWnd, QUICKLET_CONNECT_UPD, NULL, NULL);
 
 		}
 		else if (pageSource == "offline") {
@@ -188,6 +190,7 @@ int LongPoll::DoLongPoll() {
 			this->orchestrator->longPoll.connected = true;
 			firstTime = false;
 			firstError = true;
+			this->state = pageSource;
 			TrayMessage *trayMessage = BuildTrayMessage(_T("Connected!"), _T("Your company is connected to Levion!"));
 			SendMessage(this->orchestrator->cMainDlg->m_hWnd, LEVION_TRAYICON_MSG, (WPARAM)trayMessage, NULL);
 			SendMessage(this->orchestrator->cMainDlg->m_hWnd, QUICKLET_CONNECT_UPD, NULL, NULL);
