@@ -39,10 +39,12 @@ public:
 	qbXMLRPWrapper *persistentQBXMLWrapper;
 	int sequence;
 	bool processedQBRequest;
+	bool hasRun;
 
 	QBInfo(void) : persistentQBXMLWrapper(NULL) {
 		this->readyForLongPollSignal = CreateEvent(NULL, TRUE, FALSE, NULL);
 		this->version = LEVION_CLIENT_VER;
+		this->hasRun = false;
 	}
 
 	~QBInfo(void) {
@@ -142,6 +144,11 @@ public:
 		// CreateMapNode(map.mapPtr, "companies");
 	}
 
+	int RegenerateGuid() {
+		this->authToken = GUIDgen();
+		LoadConfigYaml();
+	}
+
 	// TODO - Refactor to not keep yaml map loaded in memory. Load the file, get settings from file, and save settings to file.
 	int LoadConfigYaml() {
 		CreateLevionAppDir();
@@ -157,8 +164,8 @@ public:
 		if ((authSec = ini.GetSection(_T("Auth"))) == NULL) 
 			authSec = ini.AddSection(_T("Auth"));
 
-		if ((authSec = ini.GetSection(_T("Sequence"))) == NULL)
-			authSec = ini.AddSection(_T("Sequence"));
+		if ((sequenceSec = ini.GetSection(_T("Sequence"))) == NULL)
+			sequenceSec = ini.AddSection(_T("Sequence"));
 
 		CString uniqueId;
 		uniqueId = this->productInvoice + _T(",") + this->packingSlip;
@@ -170,18 +177,29 @@ public:
 			authKey->SetValue((LPCTSTR) GUIDgen());
 		}
 
-		this->authToken = authKey->GetValue().c_str();
-
+		if (this->hasRun) {
+			authKey->SetValue((LPCTSTR) this->authToken);
+		}
+		else {
+			this->authToken = authKey->GetValue().c_str();
+			this->authToken.TrimLeft();
+			this->authToken.TrimRight();
+		}
 
 		CIniKeyW *sequenceKey = sequenceSec->GetKey((LPCTSTR)uniqueId);
 
 		if (sequenceKey == NULL) {
-			sequenceKey = authSec->AddKey((LPCTSTR)uniqueId);
-			sequenceKey->SetValue(_T("0"));
+			sequenceKey = sequenceSec->AddKey((LPCTSTR)uniqueId);
+			sequenceKey->SetValue(std::to_wstring(this->sequence));
+		}
+
+		if (this->hasRun) {
+			sequenceKey->SetValue(std::to_wstring(this->sequence));
+		}
+		else {
+			this->sequence = std::stoi(sequenceKey->GetValue().c_str());
 		}
 		
-		this->sequence = std::stoi(sequenceKey->GetValue().c_str());
-
 		ini.Save((LPCTSTR)GetLevionUserAppDir("config.ini"));
 
 		/* if (authKey == NULL) {

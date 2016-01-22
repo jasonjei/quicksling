@@ -17,6 +17,9 @@ namespace QuickslingTest
 		{
 			QBInfo qbi;
 			qbi.GetInfoFromQB();
+			qbi.LoadConfigYaml();
+			qbi.sequence = 15;
+			qbi.LoadConfigYaml();
 			// TODO: Your test code here
 		}
 
