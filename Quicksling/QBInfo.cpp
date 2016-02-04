@@ -89,3 +89,19 @@ int QBInfo::RegisterConnector() {
 	// Set auth token from response and call SaveAuthTokenToYaml();
 	return 1;
 }
+
+void QBInfo::LaunchBrowser(CString url) {
+	std::string ansiUrl = ATL::CW2A(url, CP_UTF8);
+	if (!this->orchestrator->browser.simpleHandler->BrowserAvailable()) {
+		CefWindowInfo window_info;
+		window_info.SetAsPopup(NULL, "cefsimple");
+		CefBrowserSettings browser_settings;
+
+		CefBrowserHost::CreateBrowserSync(window_info, this->orchestrator->browser.simpleHandler, ansiUrl,
+			browser_settings, NULL);
+	}
+	else {
+		this->orchestrator->browser.simpleHandler->GetBrowser()->GetMainFrame()->LoadURL(ansiUrl);
+	}
+
+}

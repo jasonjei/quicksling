@@ -24,7 +24,7 @@ LongPoll::LongPoll(void) : firstTime(true), firstError(true) {
 	this->connectedSignal = CreateEvent(NULL, TRUE, FALSE, NULL);
 	this->goOfflineSignal = CreateEvent(NULL, TRUE, FALSE, NULL);
 	this->tryAgainSignal = CreateEvent(NULL, TRUE, FALSE, NULL);
-	state = _T("first_time");
+	state = _T("FIRST_TIME");
 }
 
 LongPoll::~LongPoll(void) {
@@ -119,9 +119,14 @@ int LongPoll::DoLongPoll() {
 	if (WaitForSingleObject(this->goOfflineSignal, 0) == 0)
 		return 0;
 
+	this->orchestrator->qbInfo.sequence += 1;
+	this->orchestrator->qbInfo.LoadConfigYaml();
 
 	CString sURL = URLS::GOLIATH_SERVER + "client/wait?auth_key=" + this->orchestrator->qbInfo.authToken +
 		"&company_tag=" + this->orchestrator->qbInfo.companyTag + "&client_guid=" + this->orchestrator->qbInfo.clientGuid;
+
+	sURL += "&session_key=";
+	sURL += std::to_wstring(this->orchestrator->qbInfo.sequence).c_str();
 
 	int numDataEvents = 0; // defaultConductor.orchestrator.eventHandler.dataEvents.size();
 	if (numDataEvents > 0) {
@@ -134,7 +139,7 @@ int LongPoll::DoLongPoll() {
 		sURL += "&version=" + this->orchestrator->qbInfo.version + "&product_name=" + this->orchestrator->qbInfo.productName +
 			"&country=" + this->orchestrator->qbInfo.country + "&state=" + this->state;
 	// }
-
+	
 	CInternetSession Session(APP_NAME);
 	
 	this->currentHandle = (HINTERNET) Session;
@@ -173,17 +178,36 @@ int LongPoll::DoLongPoll() {
 			pageSource += CA2W((LPCSTR)tChars, CP_UTF8);
 		}
 
-		if (pageSource == "badtag" || pageSource == "unauthorized") {
-			TrayMessage *trayMessage = BuildTrayMessage(_T("Registering Company"), _T("Please enter your login information in the browser window."));
-			this->orchestrator->qbInfo.RegisterConnector();
-			return 0;
+		if (pageSource == "UNREGISTERED") {
+			this->orchestrator->longPoll.connected = true;
+			if (state != "UNREGISTERED") {
+				CString *test = new CString(_T("https://www.yahoo.com/"));
+				SendMessage(this->orchestrator->cMainDlg->m_hWnd, LAUNCH_BROWSER, (WPARAM) test, NULL);
+			}
+			state = "UNREGISTERED";
+			// TrayMessage *trayMessage = BuildTrayMessage(_T("Registering Company"), _T("Please enter your login information in the browser window."));
+			// some code to run the browser endpoint
+			// this->orchestrator->qbInfo.RegisterConnector();
+			// return 0;
 		}
-		else if (pageSource == "timeout") {
+		else if (pageSource == "ONLINE") {
+			// Indicate company is good to go -- no browser action is required
+			state = "ONLINE";
+			this->orchestrator->longPoll.connected = true;
+			this->orchestrator->qbInfo.processedQBRequest = false;
+		}
+		else if (pageSource == "OLD_SESSION_KEY") {
+			// regenerate GUID
+			this->orchestrator->longPoll.connected = true;
+			this->orchestrator->qbInfo.authToken = this->orchestrator->qbInfo.GUIDgen();
+			this->orchestrator->qbInfo.LoadConfigYaml();
+		}
+		else if (pageSource == "TIMEOUT") {
 			this->orchestrator->longPoll.connected = true;
 			this->orchestrator->qbInfo.processedQBRequest = false;
 			SendMessage(this->orchestrator->cMainDlg->m_hWnd, QUICKLET_CONNECT_UPD, NULL, NULL);
 
-		}
+		}/*
 		else if (pageSource == "offline") {
 		}
 		else if (pageSource == "live") {
@@ -195,7 +219,7 @@ int LongPoll::DoLongPoll() {
 			SendMessage(this->orchestrator->cMainDlg->m_hWnd, LEVION_TRAYICON_MSG, (WPARAM)trayMessage, NULL);
 			SendMessage(this->orchestrator->cMainDlg->m_hWnd, QUICKLET_CONNECT_UPD, NULL, NULL);
 
-		}
+		} */
 		else if (pageSource.Find(_T(":/")) != -1) {
 			this->ReceivedMessage(&pageSource);
 		}

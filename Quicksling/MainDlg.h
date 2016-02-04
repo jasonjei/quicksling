@@ -40,6 +40,7 @@ public:
 		MESSAGE_HANDLER(WM_DESTROY, OnDestroy)
 		MESSAGE_HANDLER(QUICKLET_CONNECT_UPD, OnConnUpdate)
 		MESSAGE_HANDLER(LEVION_MESSAGE_BOX, DisplayMessage)
+		MESSAGE_HANDLER(LAUNCH_BROWSER, OnLaunchBrowser)
 		COMMAND_ID_HANDLER(ID_APP_ABOUT, OnAppAbout)
 		COMMAND_ID_HANDLER(IDOK, OnOK)
 		COMMAND_ID_HANDLER(IDCANCEL, OnCancel)
@@ -64,6 +65,22 @@ public:
 		}
 		return 1;
 	}
+
+	LRESULT OnLaunchBrowser(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/, BOOL& /*bHandled*/) {
+		CString url = "";
+
+		if (wParam != NULL) {
+			url = *((CString*) wParam);
+			delete (CString*)wParam;
+		}
+
+		if (url.IsEmpty())
+			url = "http://app.quicklet.dev/";
+
+		defaultOrchestrator->qbInfo.LaunchBrowser(url);
+		return 1;
+	}
+
 	LRESULT OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
 	{
 		// center the dialog on the screen

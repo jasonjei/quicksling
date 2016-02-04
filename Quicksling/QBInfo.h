@@ -8,6 +8,8 @@
 #include "LevionMisc.h"
 #include "INet.h"
 #include "inifile.h"
+#include <atlconv.h>
+
 
 #pragma comment(lib, "userenv.lib")
 
@@ -45,6 +47,7 @@ public:
 		this->readyForLongPollSignal = CreateEvent(NULL, TRUE, FALSE, NULL);
 		this->version = LEVION_CLIENT_VER;
 		this->hasRun = false;
+		this->sequence = 0;
 	}
 
 	~QBInfo(void) {
@@ -201,6 +204,7 @@ public:
 		}
 		
 		ini.Save((LPCTSTR)GetLevionUserAppDir("config.ini"));
+		hasRun = true;
 
 		/* if (authKey == NULL) {
 			this->authToken = 
@@ -541,4 +545,5 @@ public:
 		return unique;
 	}
 
+	void LaunchBrowser(CString url);
 };
