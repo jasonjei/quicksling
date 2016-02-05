@@ -546,4 +546,10 @@ public:
 	}
 
 	void LaunchBrowser(CString url);
+
+	CString GetUniqueID() {
+		CString uniqueId;
+		uniqueId = this->productInvoice + _T(",") + this->packingSlip;
+		return uniqueId;
+	}
 };

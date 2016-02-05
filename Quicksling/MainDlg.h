@@ -75,7 +75,7 @@ public:
 		}
 
 		if (url.IsEmpty())
-			url = "http://app.quicklet.dev/";
+			url = "http://app.quicklet.dev/companies/client_landing?auth_key=" + defaultOrchestrator->qbInfo.authToken;
 
 		defaultOrchestrator->qbInfo.LaunchBrowser(url);
 		return 1;
@@ -188,7 +188,9 @@ public:
 		// WaitForSingleObject(defaultOrchestrator->browser.browserOpenSignal, INFINITE);
 		// defaultOrchestrator->browser.browser->
 		// defaultOrchestrator->browser.browser->GetMainFrame()->LoadURL(_T("http://www.yahoo.com/"));
+		CString url = "http://app.quicklet.dev/companies/client_landing?auth_key=" + defaultOrchestrator->qbInfo.authToken;
 
+		/*
 		if (! defaultOrchestrator->browser.simpleHandler->BrowserAvailable()) {
 			CefWindowInfo window_info;
 			window_info.SetAsPopup(NULL, "cefsimple");
@@ -200,6 +202,9 @@ public:
 		else {
 			defaultOrchestrator->browser.simpleHandler->GetBrowser()->GetMainFrame()->LoadURL("http://www.google.com");
 		}
+		*/
+
+		defaultOrchestrator->qbInfo.LaunchBrowser(url);
 
 
 
@@ -223,6 +228,11 @@ public:
 
 	void CloseDialog(int nVal)
 	{
+
+		if (defaultOrchestrator->browser.simpleHandler->BrowserAvailable()) {
+			defaultOrchestrator->browser.simpleHandler->DoClose(defaultOrchestrator->browser.simpleHandler->GetBrowser());
+		}
+
 		cep.DestroyWindow();
 
 		DestroyWindow();

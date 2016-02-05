@@ -123,7 +123,7 @@ int LongPoll::DoLongPoll() {
 	this->orchestrator->qbInfo.LoadConfigYaml();
 
 	CString sURL = URLS::GOLIATH_SERVER + "client/wait?auth_key=" + this->orchestrator->qbInfo.authToken +
-		"&company_tag=" + this->orchestrator->qbInfo.companyTag + "&client_guid=" + this->orchestrator->qbInfo.clientGuid;
+		"&unique_id=" + this->orchestrator->qbInfo.GetUniqueID(); // +"&client_guid=" + this->orchestrator->qbInfo.clientGuid;
 
 	sURL += "&session_key=";
 	sURL += std::to_wstring(this->orchestrator->qbInfo.sequence).c_str();
@@ -180,9 +180,10 @@ int LongPoll::DoLongPoll() {
 
 		if (pageSource == "UNREGISTERED") {
 			this->orchestrator->longPoll.connected = true;
+			this->orchestrator->qbInfo.processedQBRequest = false;
+
 			if (state != "UNREGISTERED") {
-				CString *test = new CString(_T("https://www.yahoo.com/"));
-				SendMessage(this->orchestrator->cMainDlg->m_hWnd, LAUNCH_BROWSER, (WPARAM) test, NULL);
+				SendMessage(this->orchestrator->cMainDlg->m_hWnd, LAUNCH_BROWSER, (WPARAM) NULL, NULL);
 			}
 			state = "UNREGISTERED";
 			// TrayMessage *trayMessage = BuildTrayMessage(_T("Registering Company"), _T("Please enter your login information in the browser window."));
@@ -195,6 +196,7 @@ int LongPoll::DoLongPoll() {
 			state = "ONLINE";
 			this->orchestrator->longPoll.connected = true;
 			this->orchestrator->qbInfo.processedQBRequest = false;
+			SendMessage(this->orchestrator->cMainDlg->m_hWnd, QUICKLET_CONNECT_UPD, NULL, NULL);
 		}
 		else if (pageSource == "OLD_SESSION_KEY") {
 			// regenerate GUID
@@ -224,8 +226,9 @@ int LongPoll::DoLongPoll() {
 			this->ReceivedMessage(&pageSource);
 		}
 		else {
+			this->orchestrator->longPoll.connected = false;
+
 			if (firstError == true) {
-				this->orchestrator->longPoll.connected = false;
 
 				TrayMessage *trayMessage = BuildTrayMessage(_T("Network Error"), _T("Could not connect to Levion. Retrying...\nPlease check your internet connection."));
 				SendMessage(this->orchestrator->cMainDlg->m_hWnd, LEVION_TRAYICON_MSG, (WPARAM)trayMessage, NULL);
