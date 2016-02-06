@@ -16,7 +16,7 @@
 extern Orchestrator *defaultOrchestrator;
 
 class CMainDlg : public CDialogImpl<CMainDlg>, public CUpdateUI<CMainDlg>,
-		public CMessageFilter, public CIdleHandler
+	public CMessageFilter, public CIdleHandler
 {
 public:
 	enum { IDD = IDD_MAINDLG };
@@ -38,6 +38,7 @@ public:
 	BEGIN_MSG_MAP(CMainDlg)
 		MESSAGE_HANDLER(WM_INITDIALOG, OnInitDialog)
 		MESSAGE_HANDLER(WM_DESTROY, OnDestroy)
+		MESSAGE_HANDLER(WM_CLOSE, OnClose)
 		MESSAGE_HANDLER(QUICKLET_CONNECT_UPD, OnConnUpdate)
 		MESSAGE_HANDLER(LEVION_MESSAGE_BOX, DisplayMessage)
 		MESSAGE_HANDLER(LAUNCH_BROWSER, OnLaunchBrowser)
@@ -48,10 +49,20 @@ public:
 
 	CoreEventsProcessor cep;
 
-// Handler prototypes (uncomment arguments if needed):
-//	LRESULT MessageHandler(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
-//	LRESULT CommandHandler(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
-//	LRESULT NotifyHandler(int /*idCtrl*/, LPNMHDR /*pnmh*/, BOOL& /*bHandled*/)
+	// Handler prototypes (uncomment arguments if needed):
+	//	LRESULT MessageHandler(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
+	//	LRESULT CommandHandler(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
+	//	LRESULT NotifyHandler(int /*idCtrl*/, LPNMHDR /*pnmh*/, BOOL& /*bHandled*/)
+	LRESULT OnClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/) {
+		if (defaultOrchestrator->browser.simpleHandler.get() && !defaultOrchestrator->browser.simpleHandler->IsClosing()) {
+			if (defaultOrchestrator->browser.simpleHandler->BrowserAvailable()) {
+				defaultOrchestrator->browser.simpleHandler->GetBrowser()->GetHost()->CloseBrowser(false);
+			}
+		}
+		if (!defaultOrchestrator->browser.simpleHandler->BrowserAvailable())
+			PostMessage(WM_QUIT);
+		return 1;
+	}
 
 	LRESULT OnConnUpdate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/) {
 		if (defaultOrchestrator->longPoll.connected == true) {
@@ -134,6 +145,8 @@ public:
 				// AfxMessageBox("Unable to find other app.");
 			}
 		}
+
+
 		// unregister message filtering and idle updates
 		CMessageLoop* pLoop = _Module.GetMessageLoop();
 		ATLASSERT(pLoop != NULL);
@@ -229,13 +242,11 @@ public:
 	void CloseDialog(int nVal)
 	{
 
-		if (defaultOrchestrator->browser.simpleHandler->BrowserAvailable()) {
-			defaultOrchestrator->browser.simpleHandler->DoClose(defaultOrchestrator->browser.simpleHandler->GetBrowser());
-		}
-
 		cep.DestroyWindow();
 
 		DestroyWindow();
+
+
 		defaultOrchestrator->StopConcert();
 		::PostQuitMessage(nVal);
 	}
