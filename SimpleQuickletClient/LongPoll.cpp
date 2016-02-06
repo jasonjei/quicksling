@@ -5,6 +5,7 @@
 #include "Orchestrator.h"
 #include "INet.h"
 #include "LongPoll.h"
+#include "LevionMisc.h"
 #include <strsafe.h>
 #include <exception>
 
@@ -130,9 +131,13 @@ int LongPoll::DoLongPoll() {
 	}
 
 	if (firstTime == true) {
+		// TODO - temp, replace with state logic
+		this->orchestrator->qbInfo.state = "UNREGISTERED";
 		sURL += "&version=" + this->orchestrator->qbInfo.version + "&product_name=" + this->orchestrator->qbInfo.productName +
 			"&country=" + this->orchestrator->qbInfo.country + "&first_time=1";
 	}
+
+	sURL += "&state=" + this->orchestrator->qbInfo.state;
 
 	CInternetSession Session(APP_NAME);
 	
@@ -183,8 +188,9 @@ int LongPoll::DoLongPoll() {
 		}
 		else if (pageSource == "offline") {
 		}
-		else if (pageSource == "live") {
+		else if (pageSource == "ONLINE") {
 			this->orchestrator->longPoll.connected = true;
+			this->orchestrator->qbInfo.state = "ONLINE";
 			firstTime = false;
 			firstError = true;
 			TrayMessage *trayMessage = BuildTrayMessage(_T("Connected!"), _T("Your company is connected to Levion!"));

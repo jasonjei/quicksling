@@ -11,11 +11,13 @@
 #include "Orchestrator.h"
 #include "Settings.h"
 #include "CoreEventsProcessor.h"
+#include "LevionMisc.h"
+#include "trayiconimpl.h"
 
 extern Orchestrator *defaultOrchestrator;
 
 class CMainDlg : public CDialogImpl<CMainDlg>, public CUpdateUI<CMainDlg>,
-		public CMessageFilter, public CIdleHandler
+	public CMessageFilter, public CIdleHandler, public CTrayIconImpl<CMainDlg>
 {
 public:
 	enum { IDD = IDD_MAINDLG };
@@ -39,9 +41,11 @@ public:
 		MESSAGE_HANDLER(WM_DESTROY, OnDestroy)
 		MESSAGE_HANDLER(QUICKLET_CONNECT_UPD, OnConnUpdate)
 		MESSAGE_HANDLER(LEVION_MESSAGE_BOX, DisplayMessage)
+		MESSAGE_HANDLER(LEVION_TRAYICON_MSG, DisplayNotification)
 		COMMAND_ID_HANDLER(ID_APP_ABOUT, OnAppAbout)
 		COMMAND_ID_HANDLER(IDOK, OnOK)
 		COMMAND_ID_HANDLER(IDCANCEL, OnCancel)
+		CHAIN_MSG_MAP(CTrayIconImpl<CMainDlg>)
 	END_MSG_MAP()
 
 	CoreEventsProcessor cep;
@@ -73,6 +77,8 @@ public:
 		SetIcon(hIcon, TRUE);
 		HICON hIconSmall = AtlLoadIconImage(IDR_MAINFRAME, LR_DEFAULTCOLOR, ::GetSystemMetrics(SM_CXSMICON), ::GetSystemMetrics(SM_CYSMICON));
 		SetIcon(hIconSmall, FALSE);
+
+		InstallIcon(APP_NAME, hIconSmall, IDR_POPUP);
 
 		// register object for message filtering and idle updates
 		CMessageLoop* pLoop = _Module.GetMessageLoop();
@@ -169,6 +175,15 @@ public:
 		return 0;
 	}
 
+	LRESULT DisplayNotification(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/, BOOL& /*bHandled*/) {
+		TrayMessage lNIS = *((TrayMessage*)wParam);
+		delete (TrayMessage*)wParam;
+
+		SetTooltipText(lNIS.Title, lNIS.Body);
+
+		return TRUE;
+	}
+
 	LRESULT DisplayMessage(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/, BOOL& /*bHandled*/) {
 		CString textToDisplay = *((CString*)wParam);
 		delete (CString*)wParam;
@@ -186,6 +201,7 @@ public:
 
 	void CloseDialog(int nVal)
 	{
+		RemoveIcon();
 		cep.DestroyWindow();
 
 		DestroyWindow();
