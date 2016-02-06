@@ -75,6 +75,9 @@
       <TypeLibraryName>$(IntDir)/SimpleQuickletClient.tlb</TypeLibraryName>
       <DllDataFileName />
     </Midl>
+    <PostBuildEvent>
+      <Command>xcopy /Q /Y /R /C "$(TargetPath)" "$(LOCALAPPDATA)\Quicksling\"</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -127,6 +130,7 @@
     <ClInclude Include="Conductor.h" />
     <ClInclude Include="Constants.h" />
     <ClInclude Include="CoreEventsProcessor.h" />
+    <ClInclude Include="trayiconimpl.h" />
     <ClInclude Include="INet.h" />
     <ClInclude Include="LevionMisc.h" />
     <ClInclude Include="LongPoll.h" />

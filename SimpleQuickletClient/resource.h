@@ -5,6 +5,7 @@
 #define IDD_ABOUTBOX                    100
 #define IDR_MAINFRAME                   128
 #define IDD_MAINDLG                     129
+#define IDR_POPUP                       130
 #define IDC_EDIT1                       1000
 #define IDC_CONN_STATIC                 1002
 #define IDC_CONN_DESC                   1003
