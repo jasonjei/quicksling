@@ -68,11 +68,12 @@ int LongPoll::GoOffline() {
 
 	timeToQuit = 1;
 
-	if (this->orchestrator->qbInfo.companyTag.Compare(_T("")) == 0) {
+	// we don't use tags anymore 
+	/* if (this->orchestrator->qbInfo.companyTag.Compare(_T("")) == 0) {
 		return 1;
-	}
+	} */
 
-	CString sURL = URLS::GOLIATH_SERVER + "client/offline?auth_token=" + this->orchestrator->qbInfo.authToken +
+	CString sURL = URLS::GOLIATH_SERVER + "client/offline?auth_key=" + this->orchestrator->qbInfo.authToken +
 		"&client_guid=" + this->orchestrator->qbInfo.clientGuid;
 
 	CInternetSession session(APP_NAME);

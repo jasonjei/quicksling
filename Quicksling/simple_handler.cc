@@ -12,6 +12,10 @@
 #include "include/cef_app.h"
 #include "include/wrapper/cef_closure_task.h"
 #include "include/wrapper/cef_helpers.h"
+#include "Orchestrator.h"
+#include "Conductor.h"
+
+extern Orchestrator *defaultOrchestrator;
 
 namespace {
 
@@ -20,7 +24,7 @@ SimpleHandler* g_instance = NULL;
 }  // namespace
 
 SimpleHandler::SimpleHandler()
-    : is_closing_(false) {
+    : is_closing_(false), appClosing(false) {
   DCHECK(!g_instance);
   g_instance = this;
 }
@@ -54,6 +58,7 @@ bool SimpleHandler::DoClose(CefRefPtr<CefBrowser> browser) {
 
   // Allow the close. For windowed browsers this will result in the OS close
   // event being sent.
+
   return false;
 }
 
@@ -72,6 +77,8 @@ void SimpleHandler::OnBeforeClose(CefRefPtr<CefBrowser> browser) {
   if (browser_list_.empty()) {
     // All browser windows have closed. Quit the application message loop.
     CefQuitMessageLoop();
+	if (appClosing)
+		PostMessage(defaultOrchestrator->cMainDlg->m_hWnd, WM_CLOSE, NULL, NULL);
   }
 }
 
@@ -123,6 +130,22 @@ CefRefPtr<CefBrowser> SimpleHandler::GetBrowser() {
 		return NULL;
 	BrowserList::const_iterator it = browser_list_.begin();
 	return (*it);
+}
+
+void SimpleHandler::CloseBrowserAndQuit() {
+	bool force_close = true;
+	if (!CefCurrentlyOn(TID_UI)) {
+		// Execute on the UI thread.
+		CefPostTask(TID_UI,
+			base::Bind(&SimpleHandler::CloseAllBrowsers, this, force_close));
+		return;
+	}
+
+	BrowserList::const_iterator it = browser_list_.begin();
+	for (; it != browser_list_.end(); ++it)
+		(*it)->GetHost()->CloseBrowser(force_close);
+
+	appClosing = true;
 }
 
 void SimpleHandler::OnBeforeContextMenu(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, CefRefPtr<CefContextMenuParams> params, CefRefPtr<CefMenuModel> model) {

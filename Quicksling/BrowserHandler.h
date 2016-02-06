@@ -27,6 +27,7 @@ public:
 	HANDLE signal;
 	HANDLE browserOpenSignal;
 	HANDLE threadHandle;
+	HWND mainDlgHwnd;
 
 	CefMainArgs main_args;
 	CefRefPtr<SimpleApp> app;

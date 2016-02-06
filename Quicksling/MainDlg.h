@@ -57,14 +57,11 @@ public:
 	//	LRESULT MessageHandler(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
 	//	LRESULT CommandHandler(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 	//	LRESULT NotifyHandler(int /*idCtrl*/, LPNMHDR /*pnmh*/, BOOL& /*bHandled*/)
-	LRESULT OnClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/) {
-		if (defaultOrchestrator->browser.simpleHandler.get() && !defaultOrchestrator->browser.simpleHandler->IsClosing()) {
-			if (defaultOrchestrator->browser.simpleHandler->BrowserAvailable()) {
-				defaultOrchestrator->browser.simpleHandler->GetBrowser()->GetHost()->CloseBrowser(false);
-			}
+	LRESULT OnClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled) {
+		if (defaultOrchestrator->browser.simpleHandler.get() && ! defaultOrchestrator->browser.simpleHandler->IsClosing()) {
+			defaultOrchestrator->browser.simpleHandler->CloseBrowserAndQuit();
 		}
-		if (!defaultOrchestrator->browser.simpleHandler->BrowserAvailable())
-			PostMessage(WM_QUIT);
+		bHandled = FALSE;
 		return 1;
 	}
 

@@ -58,6 +58,9 @@ class SimpleHandler : public CefClient,
 
   bool BrowserAvailable();
   CefRefPtr<CefBrowser> GetBrowser();
+  void CloseBrowserAndQuit();
+
+  bool appClosing;
 
  private:
   // List of existing browser windows. Only accessed on the CEF UI thread.

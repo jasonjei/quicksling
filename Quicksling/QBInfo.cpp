@@ -8,6 +8,8 @@
 #include <ShlObj.h>
 #include "INet.h"
 #include "Orchestrator.h"
+#include "Conductor.h"
+#include "MainDlg.h"
 
 int QBInfo::RegisterConnector() {
 	ResetEvent(this->readyForLongPollSignal);
@@ -94,7 +96,10 @@ void QBInfo::LaunchBrowser(CString url) {
 	std::string ansiUrl = ATL::CW2A(url, CP_UTF8);
 	if (!this->orchestrator->browser.simpleHandler->BrowserAvailable()) {
 		CefWindowInfo window_info;
+
+		// window_info.SetAsPopup(this->orchestrator->cMainDlg->m_hWnd, "Quicksling");
 		window_info.SetAsPopup(NULL, "Quicksling");
+
 		CefBrowserSettings browser_settings;
 
 		CefBrowserHost::CreateBrowserSync(window_info, this->orchestrator->browser.simpleHandler, ansiUrl,

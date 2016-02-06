@@ -75,9 +75,8 @@ int Run(LPTSTR /*lpstrCmdLine*/ = NULL, int nCmdShow = SW_SHOWDEFAULT)
 	theLoop.AddMessageFilter(&quickslingMsgFilter);
 
 	int nRet = theLoop.Run();
+	CefDoMessageLoopWork();
 	CefShutdown();
-
-
 	_Module.RemoveMessageLoop();
 	return nRet;
 }
