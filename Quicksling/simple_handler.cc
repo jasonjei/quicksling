@@ -43,6 +43,11 @@ void SimpleHandler::OnAfterCreated(CefRefPtr<CefBrowser> browser) {
 
   // Add to the list of existing browsers.
   browser_list_.push_back(browser);
+
+  HICON icon = LoadIcon(defaultOrchestrator->browser.hInstance, MAKEINTRESOURCE(IDR_MAINFRAME));
+  HWND windowHandle = browser->GetHost()->GetWindowHandle();
+  SendMessage(windowHandle, WM_SETICON, ICON_BIG, (LPARAM) icon);
+  SendMessage(windowHandle, WM_SETICON, ICON_SMALL, (LPARAM) icon);
 }
 
 bool SimpleHandler::DoClose(CefRefPtr<CefBrowser> browser) {

@@ -97,9 +97,8 @@ void QBInfo::LaunchBrowser(CString url) {
 	if (!this->orchestrator->browser.simpleHandler->BrowserAvailable()) {
 		CefWindowInfo window_info;
 
-		// window_info.SetAsPopup(this->orchestrator->cMainDlg->m_hWnd, "Quicksling");
-		window_info.SetAsPopup(NULL, "Quicksling");
-
+		window_info.SetAsPopup(this->orchestrator->cMainDlg->m_hWnd, "Quicksling");
+		// window_info.SetAsPopup(NULL, "Quicksling");
 		CefBrowserSettings browser_settings;
 
 		CefBrowserHost::CreateBrowserSync(window_info, this->orchestrator->browser.simpleHandler, ansiUrl,
