@@ -23,6 +23,8 @@ static CString UrlEncode(CString url) {
 	escapedMessage.Replace(_T(";"), _T("%3B"));
 	escapedMessage.Replace(_T("'"), _T("%27"));
 	escapedMessage.Replace(_T(","), _T("%2C"));
+	escapedMessage.Replace(_T("+"), _T("%2B"));
+
 	return escapedMessage;
 }
 

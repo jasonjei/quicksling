@@ -139,6 +139,8 @@ int LongPoll::DoLongPoll() {
 	// if (firstTime == true) {
 		sURL += "&version=" + this->orchestrator->qbInfo.version + "&product_name=" + this->orchestrator->qbInfo.productName +
 			"&country=" + this->orchestrator->qbInfo.country + "&state=" + this->state;
+
+		sURL += "&company_name=" + UrlEncode(this->orchestrator->qbInfo.companyName);
 	// }
 	
 	CInternetSession Session(APP_NAME);
