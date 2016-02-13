@@ -66,6 +66,10 @@ int LongPoll::GoOffline() {
 	SetEvent(this->orchestrator->qbInfo.readyForLongPollSignal);
 	SetEvent(this->goOfflineSignal);
 
+	CString oldAuthToken = this->orchestrator->qbInfo.authToken;
+	this->state = "OFFLINE";
+	this->orchestrator->qbInfo.authToken = this->orchestrator->qbInfo.GUIDgen();
+
 	timeToQuit = 1;
 
 	// we don't use tags anymore 
@@ -74,7 +78,7 @@ int LongPoll::GoOffline() {
 	} */
 
 	CString sURL = URLS::GOLIATH_SERVER + "client/offline?auth_key=" + this->orchestrator->qbInfo.authToken +
-		"&client_guid=" + this->orchestrator->qbInfo.clientGuid;
+		"&old_auth_key=" + oldAuthToken;
 
 	CInternetSession session(APP_NAME);
 	session.SetOption(INTERNET_OPTION_RECEIVE_TIMEOUT, 1);
@@ -105,6 +109,8 @@ int LongPoll::GoOffline() {
 		}
 
 		pageSource.Format(_T("%s"), pageSource);
+		this->orchestrator->qbInfo.LoadConfigYaml();
+
 	}
 
 	delete cHttpFile;
@@ -120,7 +126,10 @@ int LongPoll::DoLongPoll() {
 	if (WaitForSingleObject(this->goOfflineSignal, 0) == 0)
 		return 0;
 
-	this->orchestrator->qbInfo.sequence += 1;
+	if (state == "OFFLINE")
+		return 0;
+
+	// this->orchestrator->qbInfo.sequence += 1;
 	this->orchestrator->qbInfo.LoadConfigYaml();
 
 	CString sURL = URLS::GOLIATH_SERVER + "client/wait?auth_key=" + this->orchestrator->qbInfo.authToken +

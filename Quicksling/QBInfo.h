@@ -167,8 +167,10 @@ public:
 		if ((authSec = ini.GetSection(_T("Auth"))) == NULL) 
 			authSec = ini.AddSection(_T("Auth"));
 
+		/*
 		if ((sequenceSec = ini.GetSection(_T("Sequence"))) == NULL)
 			sequenceSec = ini.AddSection(_T("Sequence"));
+		*/ 
 
 		CString uniqueId;
 		uniqueId = this->productInvoice + _T(",") + this->packingSlip;
@@ -189,6 +191,8 @@ public:
 			this->authToken.TrimRight();
 		}
 
+		/*
+
 		CIniKeyW *sequenceKey = sequenceSec->GetKey((LPCTSTR)uniqueId);
 
 		if (sequenceKey == NULL) {
@@ -202,7 +206,8 @@ public:
 		else {
 			this->sequence = std::stoi(sequenceKey->GetValue().c_str());
 		}
-		
+		*/
+
 		ini.Save((LPCTSTR)GetLevionUserAppDir("config.ini"));
 		hasRun = true;
 
