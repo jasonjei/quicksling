@@ -4,6 +4,11 @@
 #include "SpawnCanary.h"
 #include "Conductor.h"
 #include <string>
+#include <memory>
+#include "unzip.h"
+#include "zip.h"
+#include "DownloadCallback.h"
+#include "LevionMisc.h"
 
 extern Conductor defaultConductor;
 
@@ -22,6 +27,8 @@ DWORD SpawnCanary::StartThread() {
 }
 
 DWORD WINAPI SpawnCanary::RunThread(LPVOID lpData) {
+	defaultConductor.orchestrator.spawnCanary.CheckForUpdates();
+
 	if (defaultConductor.orchestrator.spawnCanary.StartBrainProcess() == false) {
 		MessageBox(NULL, _T("Quicksling Core couldn't start! Please check for updates or reinstall Quicksling."), _T("Error starting QuickSling Core"), MB_OK);
 		defaultConductor.orchestrator.StopConcert();
@@ -48,7 +55,7 @@ DWORD WINAPI SpawnCanary::RunThread(LPVOID lpData) {
 }
 
 BOOL SpawnCanary::StartBrainProcess() {
-	CString app_path = _T("\"") + defaultConductor.orchestrator.info.GetQuickslingUserAppDir() + _T("\\SimpleQuickletClient.exe\"");
+	CString app_path = _T("\"") + defaultConductor.orchestrator.info.GetQuickslingUserAppDir() + _T("\\Quicksling.exe\"");
 
 	STARTUPINFO si;
 	ZeroMemory( &si, sizeof(si) );
@@ -115,47 +122,57 @@ void SpawnCanary::StopBrainProcess() {
 	}
 }
 
-/*
+
 void DownloadFilesWithProgress(HWND dialogWindow, UpdatesInfo* updatesInfo)
 {
-	// Tell the download callback how many bytes we need to download, pointing it to progress dialog
-	DownloadCallback pCallback(dialogWindow, updatesInfo->totalBytes);
+	try {
+		// Tell the download callback how many bytes we need to download, pointing it to progress dialog
+		DownloadCallback pCallback(dialogWindow, updatesInfo->totalBytes);
 
-	for (auto &fileName : updatesInfo->filesToDownload) {
-		CString serverFilePath(updatesInfo->serverCRCMap.mapPtr->map[fileName].mapPtr->map["path"].value.c_str());
-		CString localFilePath = defaultConductor.orchestrator.qbInfo.GetLevionUserAppDir() + _T("\\") + CString(fileName.c_str());
+		for (std::wstring fileName : updatesInfo->filesToDownload) {
+			std::wstring serverFilePath(updatesInfo->serverCRCIni.GetKeyValue(fileName, std::wstring(_T("path"))));
+			CString localFilePath = defaultConductor.orchestrator.info.GetQuickslingUserAppDir() + _T("\\") + CString(fileName.c_str());
 
-		DeleteFile(localFilePath);
+			if (updatesInfo->serverCRCIni.GetKeyValue(fileName, std::wstring(_T("decompress"))) == std::wstring(_T("true")))
+				localFilePath += _T(".zip");
 
-		if (updatesInfo->serverCRCMap.mapPtr->map[fileName].mapPtr->map["decompress"].value == "true")
-			localFilePath += _T(".zip");
+			// fix for MS retardedness
+			DeleteUrlCacheEntry(URLS::DOWNLOAD_SERVER + serverFilePath.c_str());
 
-		// fix for MS retardedness
-		DeleteUrlCacheEntry(URLS::DOWNLOAD_SERVER + serverFilePath);
-
-		HRESULT result = URLDownloadToFile(NULL, URLS::DOWNLOAD_SERVER + serverFilePath, localFilePath, 0, &pCallback);
-		// TODO - If result != S_OK, then panic
-
-		// Decompress the file if necessary and delete zip
-		if (updatesInfo->serverCRCMap.mapPtr->map[fileName].mapPtr->map["decompress"].value == "true") {
-			HZIP hz = OpenZip(localFilePath,0);
-			SetUnzipBaseDir(hz, defaultConductor.orchestrator.qbInfo.GetLevionUserAppDir());
-			ZIPENTRY ze;
-			GetZipItem(hz,-1,&ze);
-			int numitems=ze.index;
-
-			for (int i=0; i<numitems; i++)
-			{
-				GetZipItem(hz,i,&ze);
-				UnzipItem(hz,i,ze.name);
+			// Delete the old version of the file only if the download of the new version succeeds
+			MoveFile(localFilePath, localFilePath + _T("OLD"));
+			HRESULT result = URLDownloadToFile(NULL, URLS::DOWNLOAD_SERVER + serverFilePath.c_str(), localFilePath, 0, &pCallback);
+			if (result != S_OK) {
+				MoveFile(localFilePath + _T("OLD"), localFilePath);
+				continue; // TODO - pop up notification?
 			}
-			CloseZip(hz);
+			else {
+				DeleteFile(localFilePath + _T("OLD"));
+			}
 
-			DeleteFile(localFilePath);
+			// Decompress the file if necessary and delete zip
+			if (updatesInfo->serverCRCIni.GetKeyValue(fileName, std::wstring(_T("decompress"))) == std::wstring(_T("true"))) {
+				HZIP hz = OpenZip(localFilePath, 0);
+				SetUnzipBaseDir(hz, defaultConductor.orchestrator.info.GetQuickslingUserAppDir());
+				ZIPENTRY ze;
+				GetZipItem(hz, -1, &ze);
+				int numitems = ze.index;
+
+				for (int i = 0; i < numitems; i++)
+				{
+					GetZipItem(hz, i, &ze);
+					UnzipItem(hz, i, ze.name);
+				}
+				CloseZip(hz);
+
+				DeleteFile(localFilePath);
+			}
 		}
+		delete updatesInfo; //TODO - figure out how to get shared_ptr working with lParam
 	}
-
-	delete updatesInfo;
+	catch (...) {
+		delete updatesInfo; //TODO - confirm ptr is destroyed
+	}
 }
 
 BOOL CALLBACK DownloadDialogProc(HWND hwnd,UINT msg,WPARAM wParam,LPARAM lParam)
@@ -178,22 +195,23 @@ int SpawnCanary::CheckForUpdates() {
 	UpdatesInfo* updatesInfo = new UpdatesInfo;
 	updatesInfo->totalBytes = 0;
 
-	// Create a yaml map of the current CRC's for critical files retrieved from the download server.
-	updatesInfo->serverCRCMap = MapObject::processYaml(std::string(CW2A(VisitURL(URLS::DOWNLOAD_SERVER + _T("file_versions.yml")), CP_UTF8)));
-	for (auto &fileName : updatesInfo->serverCRCMap.mapPtr->keys) {
-		CString localFilePath = defaultConductor.orchestrator.qbInfo.GetLevionUserAppDir() + _T("\\") + CString(fileName.c_str());
+	// Create an ini map of the current CRC's for critical files retrieved from the download server.
+	CString serverCRCIniPath = defaultConductor.orchestrator.info.GetQuickslingUserAppDir() + _T("\\") + _T("file_versions.ini");
+
+	HRESULT result = URLDownloadToFile(NULL, URLS::APP_SERVER + _T("file_versions.ini"), serverCRCIniPath, 0, NULL);
+
+	updatesInfo->serverCRCIni.Load(std::wstring(serverCRCIniPath));
+	for (SecIndex::const_iterator itr = updatesInfo->serverCRCIni.GetSections().begin(); itr != updatesInfo->serverCRCIni.GetSections().end(); ++itr) {
+		CString localFilePath = defaultConductor.orchestrator.info.GetQuickslingUserAppDir() + _T("\\") + (*itr)->GetSectionName().c_str();
 		DWORD dwCrc32;
 		DWORD dwErrorCode = CCrc32Static::FileCrc32Assembly(localFilePath, dwCrc32);
 
-		std::ostringstream stream;
-		stream << dwCrc32;
-
-		std::string currentCRC= stream.str();
-		std::string updatedCRC = updatesInfo->serverCRCMap.mapPtr->map[fileName].mapPtr->map["CRC"].value;
-
+		std::wstring currentCRC = std::to_wstring(dwCrc32);
+		std::wstring updatedCRC = (*itr)->GetKeyValue(std::wstring(_T("CRC")));
+		
 		if (currentCRC != updatedCRC) {
-			updatesInfo->filesToDownload.push_back(fileName);
-			updatesInfo->totalBytes += atoi(updatesInfo->serverCRCMap.mapPtr->map[fileName].mapPtr->map["size"].value.c_str());
+			updatesInfo->filesToDownload.push_back((*itr)->GetSectionName());
+			updatesInfo->totalBytes += std::stoi((*itr)->GetKeyValue(std::wstring(_T("size"))));
 		}
 	}
 
@@ -216,40 +234,10 @@ int SpawnCanary::CheckForUpdates() {
 		{{WS_CHILD|WS_VISIBLE,0,7,7,264,18,1},L"msctls_progress32",L"",0} };
 #pragma pack(pop)
 
-		DialogBoxIndirectParam(hInstance, (DLGTEMPLATE*) &dtp, 0, DownloadDialogProc, (LPARAM) updatesInfo);
+		DialogBoxIndirectParam(hInstance, (DLGTEMPLATE*) &dtp, 0, DownloadDialogProc, (LPARAM) updatesInfo); //TODO
 
 		return 1;
-	} else
+	} else {
 		return 0;
-}
-
-int SpawnCanary::DownloadFile(MapObject serverCRCMap, std::string fileName) {
-	CString localFilePath = orchestrator->qbInfo.GetLevionUserAppDir() + _T("\\") + CString(fileName.c_str());
-	CString serverFilePath(serverCRCMap.mapPtr->map[fileName].mapPtr->map["path"].value.c_str());
-
-	HRESULT result = URLDownloadToFile(NULL, URLS::DOWNLOAD_SERVER + serverFilePath, localFilePath, 0, NULL);
-	if (result != S_OK)
-		return 0;
-
-	// Decompress the file if necessary and delete zip
-	if (serverCRCMap.mapPtr->map[fileName].mapPtr->map["decompress"].value == "true") {
-		HZIP hz = OpenZip(localFilePath,0);
-		SetUnzipBaseDir(hz, orchestrator->qbInfo.GetLevionUserAppDir());
-		ZIPENTRY ze;
-		GetZipItem(hz,-1,&ze);
-		int numitems=ze.index;
-
-		for (int i=0; i<numitems; i++)
-		{
-			GetZipItem(hz,i,&ze);
-			UnzipItem(hz,i,ze.name);
-		}
-		CloseZip(hz);
-
-		DeleteFile(localFilePath);
 	}
-
-	return 1;
 }
-
-*/

@@ -8,6 +8,8 @@
 #include <strsafe.h>
 #include <exception>
 #include "stdafx.h"
+#include "Crc32Static.h"
+#include "inifile.h"
 
 class Orchestrator;
 
@@ -18,8 +20,7 @@ public:
 	DWORD StartThread();
 	BOOL StartBrainProcess();
 	void StopBrainProcess();
-	// int CheckForUpdates();
-	// CString DownloadCRCMap();
+	int CheckForUpdates();
 
 	static DWORD WINAPI RunThread(LPVOID lpData);
 
