@@ -48,6 +48,8 @@ public:
 		COMMAND_ID_HANDLER(ID_APP_ABOUT, OnAppAbout)
 		COMMAND_ID_HANDLER(IDOK, OnOK)
 		COMMAND_ID_HANDLER(IDCANCEL, OnCancel)
+		COMMAND_ID_HANDLER(ID_LAUNCH_BROWSER, OnLaunchBrowserDashboard)
+		// COMMAND_ID_HANDLER(ID_ACTIONS)
 		CHAIN_MSG_MAP(CTrayIconImpl<CMainDlg>)
 	END_MSG_MAP()
 
@@ -104,7 +106,7 @@ public:
 		HICON hIconSmall = AtlLoadIconImage(IDR_MAINFRAME, LR_DEFAULTCOLOR, ::GetSystemMetrics(SM_CXSMICON), ::GetSystemMetrics(SM_CYSMICON));
 		SetIcon(hIconSmall, FALSE);
 
-		InstallIcon(APP_NAME, hIconSmall, IDR_POPUP);
+		InstallIcon(APP_NAME, hIconSmall, IDR_MENU1);
 
 		// register object for message filtering and idle updates
 		CMessageLoop* pLoop = _Module.GetMessageLoop();
@@ -164,6 +166,14 @@ public:
 		CAboutDlg dlg;
 		dlg.DoModal();
 		return 0;
+	}
+
+
+	LRESULT OnLaunchBrowserDashboard(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled) {
+		CString url = "http://app.quicklet.dev/companies/client_landing?auth_key=" + defaultOrchestrator->qbInfo.authToken;
+
+		defaultOrchestrator->qbInfo.LaunchBrowser(url);
+		return 1;
 	}
 
 	LRESULT OnOK(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled)
@@ -261,5 +271,13 @@ public:
 
 		defaultOrchestrator->StopConcert();
 		::PostQuitMessage(nVal);
+	}
+
+	virtual void PrepareMenu(HMENU hMenu) override
+	{
+		CMenuHandle menu(hMenu);
+	// 	BOOL result = menu.LoadMenuW(IDR_MENU1);
+	//	CMenuHandle menu2(menu.GetSubMenu(0));
+
 	}
 };
