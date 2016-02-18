@@ -191,6 +191,8 @@ int LongPoll::DoLongPoll() {
 		}
 
 		if (pageSource == "UNREGISTERED") {
+
+			firstError = true;
 			this->orchestrator->longPoll.connected = true;
 			this->orchestrator->qbInfo.processedQBRequest = false;
 
@@ -202,21 +204,30 @@ int LongPoll::DoLongPoll() {
 			// some code to run the browser endpoint
 			// this->orchestrator->qbInfo.RegisterConnector();
 			// return 0;
+			SendMessage(this->orchestrator->cMainDlg->m_hWnd, QUICKLET_CONNECT_UPD, NULL, NULL);
+
 		}
 		else if (pageSource == "ONLINE") {
+			firstError = true;
 			// Indicate company is good to go -- no browser action is required
+			if (!(state == "ONLINE" || state == "UNREGISTERED")) {
+				TrayMessage *trayMessage = BuildTrayMessage(_T("Connected"), _T("Connected to Quicklet!"));
+				SendMessage(this->orchestrator->cMainDlg->m_hWnd, LEVION_TRAYICON_MSG, (WPARAM)trayMessage, NULL);
+			}
 			state = "ONLINE";
 			this->orchestrator->longPoll.connected = true;
 			this->orchestrator->qbInfo.processedQBRequest = false;
 			SendMessage(this->orchestrator->cMainDlg->m_hWnd, QUICKLET_CONNECT_UPD, NULL, NULL);
 		}
 		else if (pageSource == "OLD_SESSION_KEY") {
+			firstError = true;
 			// regenerate GUID
 			this->orchestrator->longPoll.connected = true;
 			this->orchestrator->qbInfo.authToken = this->orchestrator->qbInfo.GUIDgen();
 			this->orchestrator->qbInfo.LoadConfigYaml();
 		}
 		else if (pageSource == "TIMEOUT") {
+			firstError = true;
 			this->orchestrator->longPoll.connected = true;
 			this->orchestrator->qbInfo.processedQBRequest = false;
 			SendMessage(this->orchestrator->cMainDlg->m_hWnd, QUICKLET_CONNECT_UPD, NULL, NULL);
@@ -235,6 +246,11 @@ int LongPoll::DoLongPoll() {
 
 		} */
 		else if (pageSource.Find(_T(":/")) != -1) {
+			SendMessage(this->orchestrator->cMainDlg->m_hWnd, QUICKLET_CONNECT_UPD, NULL, NULL);
+
+			firstError = true;
+			this->orchestrator->longPoll.connected = true;
+
 			this->ReceivedMessage(&pageSource);
 		}
 		else {
@@ -242,7 +258,7 @@ int LongPoll::DoLongPoll() {
 
 			if (firstError == true) {
 
-				TrayMessage *trayMessage = BuildTrayMessage(_T("Network Error"), _T("Could not connect to Levion. Retrying...\nPlease check your internet connection."));
+				TrayMessage *trayMessage = BuildTrayMessage(_T("Network Error"), _T("Could not connect to Quicklet. Retrying..."));
 				SendMessage(this->orchestrator->cMainDlg->m_hWnd, LEVION_TRAYICON_MSG, (WPARAM)trayMessage, NULL);
 				SendMessage(this->orchestrator->cMainDlg->m_hWnd, QUICKLET_CONNECT_UPD, NULL, NULL);
 
@@ -270,7 +286,7 @@ int LongPoll::DoLongPoll() {
 		if (firstError == true) {
 			this->orchestrator->longPoll.connected = false;
 
-			TrayMessage *trayMessage = BuildTrayMessage(_T("Network Error"), _T("Could not connect to Levion. Retrying...\nPlease check your internet connection."));
+			TrayMessage *trayMessage = BuildTrayMessage(_T("Network Error"), _T("Could not connect to Quicklet. Retrying..."));
 			SendMessage(this->orchestrator->cMainDlg->m_hWnd, LEVION_TRAYICON_MSG, (WPARAM)trayMessage, NULL);
 
 			firstError = false;

@@ -184,7 +184,7 @@ BEGIN
     POPUP "Tray Icon Actions"
     BEGIN
         MENUITEM "Launch Browser",              ID_LAUNCH_BROWSER
-        MENUITEM "Exit Quicksling",             ID_VIEW_REFRESH
+        MENUITEM "Exit Quicksling",             ID_TRAYICONACTIONS_EXITQUICKSLING
     END
 END
 

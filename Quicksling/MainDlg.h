@@ -49,7 +49,7 @@ public:
 		COMMAND_ID_HANDLER(IDOK, OnOK)
 		COMMAND_ID_HANDLER(IDCANCEL, OnCancel)
 		COMMAND_ID_HANDLER(ID_LAUNCH_BROWSER, OnLaunchBrowserDashboard)
-		// COMMAND_ID_HANDLER(ID_ACTIONS)
+		COMMAND_ID_HANDLER(ID_TRAYICONACTIONS_EXITQUICKSLING, OnCancel)
 		CHAIN_MSG_MAP(CTrayIconImpl<CMainDlg>)
 	END_MSG_MAP()
 
@@ -69,11 +69,12 @@ public:
 
 	LRESULT OnConnUpdate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/) {
 		if (defaultOrchestrator->longPoll.connected == true) {
-			
+			SetTooltip(_T("Quicksling - Connected to Quicklet"));
 			SetDlgItemText(IDC_CONN_STATIC, _T("CONNECTED!"));
 		} 
 		else {
 			// SetDlgItemText(IDC_)
+			SetTooltip(_T("Quicksling - Not Connected"));
 			SetDlgItemText(IDC_CONN_STATIC, _T("NOT CONNECTED"));
 
 		}

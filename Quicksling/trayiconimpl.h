@@ -85,6 +85,17 @@ public:
 		return Shell_NotifyIcon(NIM_MODIFY, &m_nid) ? true : false;
 	}
 
+	bool SetTooltip(LPCTSTR pszTooltip)
+	{
+		if (pszTooltip == NULL)
+			return FALSE;
+		// Fill the structure
+		m_nid.uFlags = NIF_ICON | NIF_MESSAGE | NIF_TIP;
+
+		_tcscpy_s(m_nid.szTip, pszTooltip);
+		return Shell_NotifyIcon(NIM_MODIFY, &m_nid) ? true : false;
+	}
+
 	// Set the default menu item ID
 	inline void SetDefaultItem(UINT nID) { m_nDefault = nID; }
 
