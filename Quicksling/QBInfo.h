@@ -161,6 +161,7 @@ public:
 		CIniFile ini;
 		CIniSectionW* authSec;
 		CIniSectionW* sequenceSec;
+		CIniSectionW* devSec;
 
 		ini.Load((LPCTSTR) GetLevionUserAppDir("config.ini"));
 		
@@ -171,6 +172,8 @@ public:
 		if ((sequenceSec = ini.GetSection(_T("Sequence"))) == NULL)
 			sequenceSec = ini.AddSection(_T("Sequence"));
 		*/ 
+		
+		devSec = ini.GetSection(_T("Development"));
 
 		CString uniqueId;
 		uniqueId = this->productInvoice + _T(",") + this->packingSlip;
@@ -191,6 +194,16 @@ public:
 			this->authToken.TrimRight();
 		}
 
+		if (devSec != NULL) {
+			CIniKeyW* appUrl = devSec->GetKey(_T("app_url"));
+			CIniKeyW* commUrl = devSec->GetKey(_T("communicate_url"));
+
+			if (appUrl != NULL)
+				URLS::APP_SERVER = appUrl->GetValue().c_str();
+
+			if (commUrl != NULL)
+				URLS::GOLIATH_SERVER = commUrl->GetValue().c_str();
+		}
 		/*
 
 		CIniKeyW *sequenceKey = sequenceSec->GetKey((LPCTSTR)uniqueId);

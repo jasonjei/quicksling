@@ -39,16 +39,18 @@ int Run(LPTSTR /*lpstrCmdLine*/ = NULL, int nCmdShow = SW_SHOWDEFAULT)
 	QuickslingMessageFilter quickslingMsgFilter;
 
 	_Module.AddMessageLoop(&theLoop);
-
+	/* TO DELETE
 	Settings settings(HKEY_CURRENT_USER,
 		_T("Software\\Quicklet\\DevClient\\1.0"));
 
 	settings.Load(); // Load configuration
+	*/
 
-	defaultConductor.orchestrator.qbInfo.authToken = settings.ClientKey;
-	URLS::GOLIATH_SERVER = settings.URL;
+	// defaultConductor.orchestrator.qbInfo.authToken = settings.ClientKey;
+	// URLS::GOLIATH_SERVER = settings.URL;
 
 	if (!defaultConductor.orchestrator.qbInfo.TestQBWorks()) {
+		//TO FIX
 		return 0;
 	}
 
