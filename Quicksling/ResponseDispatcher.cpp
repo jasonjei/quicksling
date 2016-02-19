@@ -145,7 +145,7 @@ int ResponseDispatcher::SendBack(CString respKey, CString reply) {
 	}
 	catch (CInternetException exception) {
 		#ifdef DEBUG
-		MessageBox(NULL, exception.GetErrorMessage(), _T(""), MB_OK);
+		// MessageBox(NULL, exception.GetErrorMessage(), _T(""), MB_OK);
 		#endif
 	}
 

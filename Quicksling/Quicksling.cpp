@@ -62,7 +62,7 @@ int Run(LPTSTR /*lpstrCmdLine*/ = NULL, int nCmdShow = SW_SHOWDEFAULT)
 		return 0;
 	}
 
-	dlgMain.ShowWindow(nCmdShow);
+	// dlgMain.ShowWindow(nCmdShow);
 
 
 
