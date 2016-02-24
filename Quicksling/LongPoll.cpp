@@ -210,7 +210,7 @@ int LongPoll::DoLongPoll() {
 		else if (pageSource == "ONLINE") {
 			firstError = true;
 			// Indicate company is good to go -- no browser action is required
-			if (!(state == "ONLINE" || state == "UNREGISTERED")) {
+			if (!(state == "ONLINE" || state == "UNREGISTERED") || this->orchestrator->longPoll.connected == false) {
 				TrayMessage *trayMessage = BuildTrayMessage(_T("Connected"), _T("Connected to Quicklet!"));
 				SendMessage(this->orchestrator->cMainDlg->m_hWnd, LEVION_TRAYICON_MSG, (WPARAM)trayMessage, NULL);
 			}
@@ -228,6 +228,10 @@ int LongPoll::DoLongPoll() {
 		}
 		else if (pageSource == "TIMEOUT") {
 			firstError = true;
+			if (this->orchestrator->longPoll.connected == false) {
+				TrayMessage *trayMessage = BuildTrayMessage(_T("Connected"), _T("Connected to Quicklet!"));
+				SendMessage(this->orchestrator->cMainDlg->m_hWnd, LEVION_TRAYICON_MSG, (WPARAM)trayMessage, NULL);
+			}
 			this->orchestrator->longPoll.connected = true;
 			this->orchestrator->qbInfo.processedQBRequest = false;
 			SendMessage(this->orchestrator->cMainDlg->m_hWnd, QUICKLET_CONNECT_UPD, NULL, NULL);

@@ -64,7 +64,7 @@ int QBInfo::RegisterConnector() {
 
 			this->RemoveTagFromYaml();
 			this->companyTag = GetValueFromNodeString(_T("company-tag"), outputXMLDoc);
-			this->authToken = GetValueFromNodeString(_T("auth-token"), outputXMLDoc);
+			// this->authToken = GetValueFromNodeString(_T("auth-token"), outputXMLDoc);
 			this->subdomain = GetValueFromNodeString(_T("subdomain"), outputXMLDoc);
 
 			if (this->companyTag == "") {
