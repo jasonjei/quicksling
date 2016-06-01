@@ -63,7 +63,7 @@ LPCWSTR /*szStatusText*/) {
 			lastBytes = ulProgress;
 			lastTime = nowTime;
 			if (downloader.currentDownloadAbort == 0)
-				SendMessage(cMainDlg->m_hWnd, SHOW_DOWNLOAD_PROGRESS, NULL, NULL);
+				PostMessage(cMainDlg->m_hWnd, SHOW_DOWNLOAD_PROGRESS, NULL, NULL); 
 			downloader.currentProgress = percent;
 			// LoadBar(percent, 100);
 			m_percentLast = percent;

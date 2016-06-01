@@ -51,6 +51,11 @@ DWORD Downloader::GetFile(CString url) {
 	this->currentProgress = 0;
 	this->bytesPerSecond = 0.0;
 	this->bytesTotal = 0;
+
+	SetFileAttributes(filePath,
+		GetFileAttributes(filePath) & ~FILE_ATTRIBUTE_READONLY);
+	DeleteFile(filePath);
+
 	HRESULT hr = URLDownloadToFile(
 		NULL,   // A pointer to the controlling IUnknown interface
 		url,

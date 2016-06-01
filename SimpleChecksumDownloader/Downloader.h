@@ -51,5 +51,6 @@ public:
 	int showErrors;
 	float bytesPerSecond;
 	ULONG bytesTotal;
+	ULONG ulProgress;
 };
 #endif /* DOWNLOADER_H */

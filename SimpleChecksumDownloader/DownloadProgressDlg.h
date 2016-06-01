@@ -20,6 +20,7 @@ public:
 	BEGIN_MSG_MAP(CDownloadProgressDlg)
 		MESSAGE_HANDLER(WM_INITDIALOG, OnInitDialog)
 		MESSAGE_HANDLER(WM_DESTROY, OnDestroy)
+		MESSAGE_HANDLER(WM_SYSCOMMAND, OnSysCommand)
 		COMMAND_ID_HANDLER(IDOK, OnOK)
 		COMMAND_ID_HANDLER(IDCANCEL, OnCancel)
 	END_MSG_MAP()
@@ -38,9 +39,19 @@ public:
 		return TRUE;
 	}
 
+	LRESULT OnSysCommand(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+	{
+		bHandled = false;
+
+		if (wParam == SC_CLOSE) {
+			downloader.currentDownloadAbort = 1;
+		}
+		return TRUE;
+	}
+
 	LRESULT OnDestroy(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
 	{
-		downloader.currentDownloadAbort = 1;
+		// downloader.currentDownloadAbort = 1;
 		return 0;
 	}
 
@@ -51,9 +62,9 @@ public:
 		return 0;
 	}
 
-	LRESULT OnCancel(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
+	LRESULT OnCancel(WORD wNotifyCode, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 	{
-		downloader.currentDownloadAbort = 1;
+		// downloader.currentDownloadAbort = 1;
 
 		CloseDialog(wID);
 		return 0;
