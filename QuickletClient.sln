@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2013
-VisualStudioVersion = 12.0.21005.1
+VisualStudioVersion = 12.0.31101.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SimpleQuickletClient", "SimpleQuickletClient\SimpleQuickletClient.vcxproj", "{4A824770-A218-4A87-904C-1BB56D234BE9}"
 EndProject
@@ -12,6 +12,8 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libcef_dll_wrapper", "cef_binary\build\libcef_dll\libcef_dll_wrapper.vcxproj", "{DCDCC8C3-9AF8-3587-8937-2A1C55FAB0D0}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "QuickslingTest", "QuickslingTest\QuickslingTest.vcxproj", "{97C9194F-A1B2-457B-BBC1-A3C750DD28AE}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SimpleChecksumDownloader", "SimpleChecksumDownloader\SimpleChecksumDownloader.vcxproj", "{CD314856-FD11-40C5-B5A8-32339F80176E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -39,6 +41,10 @@ Global
 		{97C9194F-A1B2-457B-BBC1-A3C750DD28AE}.Debug|Win32.Build.0 = Debug|Win32
 		{97C9194F-A1B2-457B-BBC1-A3C750DD28AE}.Release|Win32.ActiveCfg = Release|Win32
 		{97C9194F-A1B2-457B-BBC1-A3C750DD28AE}.Release|Win32.Build.0 = Release|Win32
+		{CD314856-FD11-40C5-B5A8-32339F80176E}.Debug|Win32.ActiveCfg = Debug|Win32
+		{CD314856-FD11-40C5-B5A8-32339F80176E}.Debug|Win32.Build.0 = Debug|Win32
+		{CD314856-FD11-40C5-B5A8-32339F80176E}.Release|Win32.ActiveCfg = Release|Win32
+		{CD314856-FD11-40C5-B5A8-32339F80176E}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
