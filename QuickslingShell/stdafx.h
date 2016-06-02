@@ -13,6 +13,8 @@
 
 #define _ATL_APARTMENT_THREADED
 
+#define _USE_32BIT_TIME_T	//+++1.2
+
 #include <atlbase.h>
 #include <atlapp.h>
 

@@ -119,8 +119,12 @@
   <ItemGroup>
     <ClCompile Include="Constants.cpp" />
     <ClCompile Include="Crc32Static.cpp" />
+    <ClCompile Include="Downloader.cpp" />
+    <ClCompile Include="DownloaderCallbackHandler.cpp" />
+    <ClCompile Include="DownloadProgressDlg.cpp" />
     <ClCompile Include="EventHandler.cpp" />
     <ClCompile Include="inifile.cpp" />
+    <ClCompile Include="MainDlg.cpp" />
     <ClCompile Include="qbXMLRPWrapper.cpp" />
     <ClCompile Include="QuickslingShell.cpp" />
     <ClCompile Include="ShellEventsProcessor.cpp" />
@@ -129,8 +133,8 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="unzip.cpp" />
     <ClCompile Include="Utility.cpp" />
+    <ClCompile Include="XUnzip.cpp" />
     <ClCompile Include="zip.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -141,6 +145,9 @@
     <ClInclude Include="CQBSDKCallback.h" />
     <ClInclude Include="Crc32Static.h" />
     <ClInclude Include="DownloadCallback.h" />
+    <ClInclude Include="Downloader.h" />
+    <ClInclude Include="DownloaderCallbackHandler.h" />
+    <ClInclude Include="DownloadProgressDlg.h" />
     <ClInclude Include="EventHandler.h" />
     <ClInclude Include="INet.h" />
     <ClInclude Include="info.h" />
@@ -154,8 +161,8 @@
     <ClInclude Include="ShellEventsProcessor.h" />
     <ClInclude Include="SpawnCanary.h" />
     <ClInclude Include="stdafx.h" />
-    <ClInclude Include="unzip.h" />
     <ClInclude Include="Utility.h" />
+    <ClInclude Include="XUnzip.h" />
     <ClInclude Include="zip.h" />
   </ItemGroup>
   <ItemGroup>

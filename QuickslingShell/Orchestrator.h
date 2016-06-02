@@ -4,6 +4,7 @@
 #include "EventHandler.h"
 #include "Info.h"
 #include "MainDlg.h"
+#include "Downloader.h"
 
 class Orchestrator {
 public:
@@ -16,7 +17,7 @@ public:
 	DWORD mainThreadID;
 	CMainDlg* cMainDlg;
 	HANDLE ghJob;
-
+	Downloader downloader;
 
 	Orchestrator() : started(0) {
 		// Give everybody access to the Orchestrator pointer

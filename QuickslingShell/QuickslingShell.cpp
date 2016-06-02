@@ -119,6 +119,14 @@ int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPTSTR lp
 			// bAutomation = true;
 			break;
 		}
+		else if ((lstrcmpi(lpszToken, _T("Testing")) == 0))
+		{
+			bRun = true;
+			// bAutomation = true;
+			defaultOrchestrator->spawnCanary.StartThread();
+
+			break;
+		}
 		lpszToken = _Module.FindOneOf(lpszToken, szTokens);
 	}
 

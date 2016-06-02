@@ -7,6 +7,9 @@
 #include "resource.h"
 #include "AboutDlg.h"
 #include "ShellEventsProcessor.h"
+#include "DownloadProgressDlg.h"
+#include "Constants.h"
+#include "atlctrls.h"
 
 #pragma once
 
@@ -14,6 +17,8 @@ class CMainDlg : public CDialogImpl<CMainDlg>, public CUpdateUI<CMainDlg>,
 		public CMessageFilter, public CIdleHandler
 {
 public:
+	CDownloadProgressDlg progressDlg;
+
 	enum { IDD = IDD_MAINDLG };
 
 	virtual BOOL PreTranslateMessage(MSG* pMsg)
@@ -33,6 +38,8 @@ public:
 	BEGIN_MSG_MAP(CMainDlg)
 		MESSAGE_HANDLER(WM_INITDIALOG, OnInitDialog)
 		MESSAGE_HANDLER(WM_DESTROY, OnDestroy)
+		MESSAGE_HANDLER(SHOW_DOWNLOAD_PROGRESS, OnShowProgressBar)
+		MESSAGE_HANDLER(HIDE_DOWNLOAD_PROGRESS, OnHideProgressBar)
 		COMMAND_ID_HANDLER(ID_APP_ABOUT, OnAppAbout)
 		COMMAND_ID_HANDLER(IDOK, OnOK)
 		COMMAND_ID_HANDLER(IDCANCEL, OnCancel)
@@ -44,6 +51,10 @@ public:
 //	LRESULT MessageHandler(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
 //	LRESULT CommandHandler(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 //	LRESULT NotifyHandler(int /*idCtrl*/, LPNMHDR /*pnmh*/, BOOL& /*bHandled*/)
+
+	LRESULT OnShowProgressBar(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/);
+
+	LRESULT OnHideProgressBar(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/);
 
 	LRESULT OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
 	{
