@@ -11,22 +11,13 @@
 #define _WIN32_IE	0x0501
 #define _RICHEDIT_VER	0x0500
 
-#define _ATL_APARTMENT_THREADED
-
 #define _USE_32BIT_TIME_T	//+++1.2
 
 #include <atlbase.h>
 #include <atlapp.h>
 
-extern CServerAppModule _Module;
+extern CAppModule _Module;
 
-// This is here only to tell VC7 Class Wizard this is an ATL project
-#ifdef ___VC7_CLWIZ_ONLY___
-CComModule
-CExeModule
-#endif
-
-#include <atlcom.h>
 #include <atlwin.h>
 
 #if defined _M_IX86

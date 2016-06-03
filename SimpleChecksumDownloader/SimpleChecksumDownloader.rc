@@ -38,7 +38,6 @@ END
 
 3 TEXTINCLUDE 
 BEGIN
-    "1 TYPELIB ""QuickslingShell.tlb""\r\n"
     "\0"
 END
 
@@ -52,7 +51,7 @@ END
 
 // Icon with lowest ID value placed first to ensure application icon
 // remains consistent on all systems.
-IDR_MAINFRAME           ICON                    "res\\QuickslingShell.ico"
+IDR_MAINFRAME           ICON                    "res\\SimpleChecksumDownloader.ico"
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -65,14 +64,14 @@ CAPTION "About"
 FONT 8, "MS Shell Dlg"
 BEGIN
     DEFPUSHBUTTON   "OK",IDOK,130,81,50,14
-    CTEXT           "QuickslingShell Application v1.0\n\n(c) Copyright 2015",IDC_STATIC,25,57,78,32
+    CTEXT           "SimpleChecksumDownloader Application v1.0\n\n(c) Copyright 2016",IDC_STATIC,25,57,78,32
     ICON            IDR_MAINFRAME,IDC_STATIC,55,26,18,20
     GROUPBOX        "",IDC_STATIC,7,7,115,88
 END
 
 IDD_MAINDLG DIALOG 0, 0, 187, 98
 STYLE DS_SETFONT | WS_MINIMIZEBOX | WS_CAPTION | WS_SYSMENU
-CAPTION "QuickslingShell"
+CAPTION "SimpleChecksumDownloader"
 FONT 8, "MS Shell Dlg"
 BEGIN
     DEFPUSHBUTTON   "OK",IDOK,130,7,50,14
@@ -82,7 +81,7 @@ END
 
 IDD_DIALOG1 DIALOGEX 0, 0, 310, 85
 STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
-CAPTION "Downloading Quicksling Files"
+CAPTION "Dialog"
 FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
     PUSHBUTTON      "Cancel",IDCANCEL,253,54,50,14
@@ -172,12 +171,12 @@ BEGIN
     BEGIN
         BLOCK "040904B0"
         BEGIN
-            VALUE "FileDescription", "QuickslingShell Module"
+            VALUE "FileDescription", "SimpleChecksumDownloader Module"
             VALUE "FileVersion", "1, 0, 0, 1"
-            VALUE "InternalName", "QuickslingShell"
-            VALUE "LegalCopyright", "Copyright 2015"
-            VALUE "OriginalFilename", "QuickslingShell.exe"
-            VALUE "ProductName", "QuickslingShell Module"
+            VALUE "InternalName", "SimpleChecksumDownloader"
+            VALUE "LegalCopyright", "Copyright 2016"
+            VALUE "OriginalFilename", "SimpleChecksumDownloader.exe"
+            VALUE "ProductName", "SimpleChecksumDownloader Module"
             VALUE "ProductVersion", "1, 0, 0, 1"
         END
     END
@@ -190,19 +189,12 @@ END
 
 /////////////////////////////////////////////////////////////////////////////
 //
-// REGISTRY
-//
-
-IDR_QUICKSLINGSHELL     REGISTRY                "QuickslingShell.rgs"
-
-/////////////////////////////////////////////////////////////////////////////
-//
 // String Table
 //
 
 STRINGTABLE
 BEGIN
-    IDR_MAINFRAME           "QuickslingShell"
+    IDR_MAINFRAME           "SimpleChecksumDownloader"
 END
 
 STRINGTABLE
@@ -283,23 +275,7 @@ BEGIN
     ATL_IDS_MRU_FILE        "Open this document"
 END
 
-STRINGTABLE
-BEGIN
-    IDS_PROJNAME            "QuickslingShell"
-END
-
 #endif    // English (United States) resources
 /////////////////////////////////////////////////////////////////////////////
 
-
-
-#ifndef APSTUDIO_INVOKED
-/////////////////////////////////////////////////////////////////////////////
-//
-// Generated from the TEXTINCLUDE 3 resource.
-//
-1 TYPELIB "QuickslingShell.tlb"
-
-/////////////////////////////////////////////////////////////////////////////
-#endif    // not APSTUDIO_INVOKED
 
