@@ -1,0 +1,5 @@
+LIBRARY "VerifyQBInstalled"
+
+EXPORTS
+
+CustomAction1

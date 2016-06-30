@@ -16,6 +16,8 @@
 #include <iomanip>
 #include "downloader.h"
 #include <wininet.h>
+// Include CrashRpt Header 
+#include "CrashRpt.h"
 
 #pragma comment(lib, "wininet.lib")
 #pragma comment(lib, "urlmon.lib")
@@ -23,6 +25,19 @@
 CAppModule _Module;
 Downloader downloader;
 CMainDlg* cMainDlg;
+
+// Define the callback function that will be called on crash
+int CALLBACK CrashCallback(CR_CRASH_CALLBACK_INFO* pInfo)
+{
+	// The application has crashed!
+
+	// Close the log file here
+	// to ensure CrashRpt is able to include it into error report
+
+
+	// Return CR_CB_DODEFAULT to generate error report
+	return CR_CB_DODEFAULT;
+}
 
 class CallbackHandler : public IBindStatusCallback
 {
@@ -193,6 +208,47 @@ int Run(LPTSTR /*lpstrCmdLine*/ = NULL, int nCmdShow = SW_SHOWDEFAULT)
 
 int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPTSTR lpstrCmdLine, int nCmdShow)
 {
+	wchar_t path[MAX_PATH];
+	GetModuleFileName(NULL, path, MAX_PATH);
+	std::wstring::size_type pos = std::wstring(path).find_last_of(_T("\\/"));
+	
+	CString pathToLangFile = std::wstring(path).substr(0, pos).c_str();
+	pathToLangFile += _T("\\crashrpt_lang_EN.ini");
+
+
+	// Define CrashRpt configuration parameters
+	CR_INSTALL_INFO info;
+	memset(&info, 0, sizeof(CR_INSTALL_INFO));
+	info.cb = sizeof(CR_INSTALL_INFO);
+	info.pszAppName = _T("MyApp");
+	info.pszAppVersion = _T("1.0.0");
+	info.pszEmailSubject = _T("MyApp 1.0.0 Error Report");
+	info.pszEmailTo = _T("myapp_support@hotmail.com");
+	info.pszUrl = _T("http://myapp.com/tools/crashrpt.php");
+	info.uPriorities[CR_HTTP] = 3;  // First try send report over HTTP 
+	info.uPriorities[CR_SMTP] = 2;  // Second try send report over SMTP  
+	info.uPriorities[CR_SMAPI] = 1; // Third try send report over Simple MAPI    
+	// Install all available exception handlers
+	info.dwFlags |= CR_INST_ALL_POSSIBLE_HANDLERS;
+	// Restart the app on crash 
+	info.dwFlags |= CR_INST_APP_RESTART;
+	info.dwFlags |= CR_INST_SEND_QUEUED_REPORTS;
+	info.pszRestartCmdLine = _T("/restart");
+	// Define the Privacy Policy URL 
+	info.pszPrivacyPolicyURL = _T("http://myapp.com/privacypolicy.html");
+	info.pszLangFilePath = (LPCTSTR) pathToLangFile;
+
+	// Install crash reporting
+	int nResult = crInstall(&info);
+	if (nResult != 0)
+	{
+		// Something goes wrong. Get error message.
+		TCHAR szErrorMsg[512] = _T("");
+		crGetLastErrorMsg(szErrorMsg, 512);
+		_tprintf_s(_T("%s\n"), szErrorMsg);
+		return 1;
+	}
+
 	HRESULT hRes = ::CoInitialize(NULL);
 // If you are running on NT 4.0 or higher you can use the following call instead to 
 // make the EXE free threaded. This means that calls come in on a random RPC thread.

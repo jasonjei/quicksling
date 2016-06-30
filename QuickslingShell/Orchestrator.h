@@ -18,6 +18,7 @@ public:
 	CMainDlg* cMainDlg;
 	HANDLE ghJob;
 	Downloader downloader;
+	HINSTANCE hInstance;
 
 	Orchestrator() : started(0) {
 		// Give everybody access to the Orchestrator pointer

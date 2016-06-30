@@ -74,8 +74,10 @@ int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPTSTR lp
 
 	hRes = _Module.Init(ObjectMap, hInstance);
 	ATLASSERT(SUCCEEDED(hRes));
+	
+	// MessageBox(NULL, _T("DEBUG HOOK"), _T("DEBUG HOOK"), MB_OK);
 
-	MessageBox(NULL, _T("DEBUG HOOK"), _T("DEBUG HOOK"), MB_OK);
+	defaultConductor.orchestrator.hInstance = hInstance;
 
 	// Parse command line, register or unregister or run the server
 	int nRet = 0;
@@ -91,6 +93,7 @@ int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPTSTR lp
 			_Module.UpdateRegistryFromResource(IDR_QUICKSLINGSHELL, FALSE);
 			nRet = _Module.UnregisterServer(TRUE);
 			bRun = false;
+			return nRet;
 			break;
 		}
 		else if(lstrcmpi(lpszToken, _T("RegServer")) == 0)
@@ -98,18 +101,21 @@ int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPTSTR lp
 			_Module.UpdateRegistryFromResource(IDR_QUICKSLINGSHELL, TRUE);
 			nRet = _Module.RegisterServer(TRUE);
 			bRun = false;
+			return nRet;
 			break;
 		}
 		else if (lstrcmpi(lpszToken, _T("RegUIEvents")) == 0)
 		{
 			int success = ShellUtilities::RegisterUICallbacks();
 			bRun = false;
+			return (success == 1 ? 0 : 1);
 			break;
 		}
 		else if (lstrcmpi(lpszToken, _T("UnregUIEvents")) == 0)
 		{
 			int success = ShellUtilities::UnregisterUICallbacks();
 			bRun = false;
+			return (success == 1 ? 0 : 1);
 			break;
 		}
 		else if((lstrcmpi(lpszToken, _T("Automation")) == 0) ||

@@ -12,6 +12,7 @@
 #define _RICHEDIT_VER	0x0500
 
 #define _USE_32BIT_TIME_T	//+++1.2
+#define SPDLOG_USE_WCHAR 1
 
 #include <atlbase.h>
 #include <atlapp.h>

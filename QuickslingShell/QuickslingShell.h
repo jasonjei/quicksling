@@ -4,7 +4,7 @@
 
 
  /* File created by MIDL compiler version 8.00.0603 */
-/* at Fri Feb 05 19:43:34 2016
+/* at Wed Jun 08 00:10:18 2016
  */
 /* Compiler settings for QuickslingShell.idl:
     Oicf, W1, Zp8, env=Win32 (32b run), target_arch=X86 8.00.0603 
