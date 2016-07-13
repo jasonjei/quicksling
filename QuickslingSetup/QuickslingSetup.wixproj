@@ -23,6 +23,8 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Product.wxs" />
+    <Compile Include="QuickletWelcomeEulaDlg.wxs" />
+    <Compile Include="WixUI_Minimal.wxs" />
   </ItemGroup>
   <Import Project="$(WixTargetsPath)" />
   <!--

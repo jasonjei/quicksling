@@ -1,11 +1,15 @@
 
 #include "stdafx.h"
-
+#include "strutil.h"
+#include "qbXMLRPWrapper.h"
+#include "Constants.h"
 
 UINT __stdcall CustomAction1(MSIHANDLE hInstall)
 {
 	HRESULT hr = S_OK;
 	UINT er = ERROR_SUCCESS;
+	
+	qbXMLRPWrapper qb;
 
 	hr = WcaInitialize(hInstall, "CustomAction1");
 	ExitOnFailure(hr, "Failed to initialize");
@@ -13,7 +17,13 @@ UINT __stdcall CustomAction1(MSIHANDLE hInstall)
 	WcaLog(LOGMSG_STANDARD, "Initialized.");
 
 	// TODO: Add your custom action code here.
-	MsiSetProperty(hInstall, TEXT("TEST"), TEXT("123"));
+	hr = WcaSetProperty(TEXT("TESTQBINSTALLED"), TEXT("YES"));
+	
+	if (qb.TestQBInstalled() == false) {
+		hr = WcaSetProperty(TEXT("TESTQBINSTALLED"), TEXT("NO"));
+	}
+
+	ExitOnFailure(hr, "failed to set TESTQBINSTALLED");
 
 LExit:
 	er = SUCCEEDED(hr) ? ERROR_SUCCESS : ERROR_INSTALL_FAILURE;

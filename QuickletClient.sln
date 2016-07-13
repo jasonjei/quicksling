@@ -18,6 +18,9 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "VerifyQBInstalled", "VerifyQBInstalled\VerifyQBInstalled.vcxproj", "{DD360421-47C4-47A8-A16F-BAF35ABE953F}"
 EndProject
 Project("{930C7802-8A8C-48F9-8165-68863BCCD9DD}") = "QuickslingSetup", "QuickslingSetup\QuickslingSetup.wixproj", "{C5077262-10A9-4B59-A2F9-FCC54DECB29B}"
+	ProjectSection(ProjectDependencies) = postProject
+		{DD360421-47C4-47A8-A16F-BAF35ABE953F} = {DD360421-47C4-47A8-A16F-BAF35ABE953F}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

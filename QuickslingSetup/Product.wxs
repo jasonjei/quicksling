@@ -2,7 +2,7 @@
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
     <Product Id="*" UpgradeCode="1CC4A5CA-5753-4605-B28A-7CA8E27F0F32" Version="0.9.0.1" Language="1033" Name="Quicksling" Manufacturer="Quicklet">
         <Package InstallerVersion="300" Compressed="yes"/>
-        <UIRef Id="WixUI_Minimal" />
+        <UIRef Id="QuickletWixUI_Minimal" />
 
         <Property Id="PREVIOUSVERSIONSINSTALLED" Secure="yes" />
         <Upgrade Id="1CC4A5CA-5753-4605-B28A-7CA8E27F0F32">  
@@ -18,7 +18,21 @@
         <Property Id="ARPHELPLINK" Value="http://www.quicklet.io"/>
         <Property Id="ARPURLINFOABOUT" Value="http://www.quicklet.io"/>
         <Property Id="ARPNOREPAIR" Value="1"/>
+
+        <Property Id="TESTQBINSTALLED" Value="YES"/>
+
+        <WixVariable Id="WixUILicenseRtf" Value="license.rtf" />
+        <WixVariable Id="WixUIDialogBmp" Value="WixUIDialog.bmp" />
+        <WixVariable Id="WixUIBannerBmp" Value="WixUIBanner.bmp" />
+
         <SetProperty Id="URL" Value="http://app.quicklet.io/" Sequence="execute"  Before="CreateShortcuts" />
+
+
+        <Binary Id="CAVerifyQBInstalled"
+          SourceFile="..\VerifyQBInstalled\bin\debug\VerifyQBInstalled.dll" />
+
+        <CustomAction Id="VerifyQBInstalled" BinaryKey="CAVerifyQBInstalled"
+          DllEntry="CustomAction1" Execute="firstSequence" Return="check" />
 
         <!-- Step 1: Define the directory structure -->
         <Directory Id="TARGETDIR" Name="SourceDir">
@@ -112,17 +126,33 @@
 
 
 
+        <InstallUISequence>
+              <Custom Action="VerifyQBInstalled" Before="LaunchConditions">NOT Installed</Custom>
+        </InstallUISequence>
+
+      <InstallExecuteSequence>
+        <Custom Action="VerifyQBInstalled" Before="LaunchConditions">NOT Installed</Custom>
+      </InstallExecuteSequence>
+
 
         <InstallExecuteSequence>
            <RemoveExistingProducts After="InstallInitialize"/>
         </InstallExecuteSequence>
-        
 
 
+      <Condition Message="This application is only supported on Windows XP Service Pack 3, Windows Server 2003 Service Pack 2, or higher.">
+        <![CDATA[Installed OR (VersionNT = 501 AND ServicePackLevel = 3) OR (VersionNT = 502 AND ServicePackLevel = 2) OR (VersionNT >= 600)]]>
+      </Condition>
+      
+      <Condition Message="You must have QuickBooks to use Quicklet.">
+        <![CDATA[Installed OR (TESTQBINSTALLED = "YES")]]>
+      </Condition>
 
-        <!-- Step 3: Tell WiX to install the files -->
-        <Feature Id="MainApplication" Title="Main Application" Level="1">
-            <ComponentRef Id="QuickslingShell.exe" />
+      <!-- Step 3: Tell WiX to install the files -->
+      <Feature Id="MainApplication" Title="Main Application" Level="1">
+
+
+        <ComponentRef Id="QuickslingShell.exe" />
             <ComponentRef Id="sdkevent.dll" />
             <ComponentRef Id="QBXMLRP2.dll" />
             <ComponentRef Id="ApplicationShortcuts" />
