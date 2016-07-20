@@ -219,6 +219,34 @@ int Downloader::DoDownload() {
 	if (lock.try_lock() == false)
 		return -1; 
 
+	CIniFile configIni;
+	CIniSectionW* devSec;
+
+	// Decide whether to disable download
+	configIni.Load((LPCTSTR)GetLevionUserAppDir("config.ini"));
+
+	devSec = configIni.GetSection(_T("Development"));
+	int disableCheck = 0;
+
+	if (devSec != NULL) {
+		CIniKeyW* disableCheckKey = devSec->GetKey(_T("disable_download"));
+
+		if (disableCheckKey != NULL) {
+			try {
+				disableCheck = std::stoi(disableCheckKey->GetValue().c_str());
+			}
+			catch (std::exception& e) {
+				// do nothing
+			}
+		}
+	}
+
+	if (disableCheck == 1) {
+		lock.unlock();
+		cvThreadFinished.notify_one();
+		return 1;
+	}
+
 	int filesMismatched = 0;
 
 	CString downloadManifest = GetDownloadManifest();
