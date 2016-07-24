@@ -17,5 +17,10 @@ LRESULT CoreEventsProcessor::OnCopyData(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM
 		SendMessage(defaultConductor.orchestrator.cMainDlg->m_hWnd, WM_CLOSE, NULL, NULL);
 		// defaultConductor.orchestrator.StopConcert();
 	}
+	else if (strRecievedText.Find(_T("version:")) == 0) {
+		CString shellVersion = strRecievedText;
+		shellVersion.Delete(0, 8);
+		defaultConductor.orchestrator.shellVersion = shellVersion;
+	}
 	return true;
 }

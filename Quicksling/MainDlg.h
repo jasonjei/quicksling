@@ -121,6 +121,7 @@ public:
 
 		HWND ret = this->cep.Create(this->m_hWnd);
 
+		GetShellVersion();
 		return TRUE;
 	}
 
@@ -160,6 +161,29 @@ public:
 		pLoop->RemoveIdleHandler(this);
 
 		return 0;
+	}
+
+	bool GetShellVersion() {
+		CString strWindowTitle = _T("QuickletShellEventsProcessor");
+		CString strDataToSend = _T("version");
+
+		LRESULT copyDataResult;
+
+		CWindow pOtherWnd = (HWND)FindWindow(NULL, strWindowTitle);
+
+		if (pOtherWnd) {
+			COPYDATASTRUCT cpd;
+			cpd.dwData = NULL;
+			cpd.cbData = strDataToSend.GetLength() * sizeof(wchar_t) + 1;
+			cpd.lpData = strDataToSend.GetBuffer(cpd.cbData);
+			copyDataResult = pOtherWnd.SendMessage(WM_COPYDATA,
+				(WPARAM) this->m_hWnd,
+				(LPARAM)&cpd);
+			strDataToSend.ReleaseBuffer();
+			// copyDataResult has value returned by other app
+
+		}
+		return true;
 	}
 
 	LRESULT OnAppAbout(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)

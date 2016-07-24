@@ -19,6 +19,7 @@ public:
 	QBInfo qbInfo;
 	BrowserHandler browser;
 	CMainDlg* cMainDlg;
+	CString shellVersion;
 
 	int started;
 	bool brainRequestShutdown;

@@ -39,5 +39,5 @@ public:
 	//	threadHandle = ::CreateThread(NULL, 0, CoreEventsProcessor::RunThread, NULL, 0, &threadID);
 	//	return threadID;
 	//}
-
+	bool GetProductAndVersion(CString &strProductName, CString &strProductVersion);
 };
