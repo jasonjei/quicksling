@@ -126,6 +126,36 @@ int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPTSTR lp
 		CefShutdown();
 	}
 	else {
+		TCHAR szTokens[] = _T("-/");
+		LPCTSTR lpszToken = _Module.FindOneOf(::GetCommandLine(), szTokens);
+		CString* currentToken = new CString(lpszToken);
+
+		while (!currentToken->IsEmpty())
+		{
+			CString nextToken;
+			int nextTokenPos = currentToken->Find(_T(" -"));
+			if (nextTokenPos != -1) {
+				nextToken = currentToken->Right(currentToken->GetLength() - nextTokenPos - 2);
+				*currentToken = currentToken->Left(nextTokenPos);
+			}
+
+			if (currentToken->Find(_T("ShellPID")) != -1)
+			{
+				defaultOrchestrator->shellPID = currentToken->Right(currentToken->GetLength() - 9);
+			}
+			else if (currentToken->Find(_T("ShellVersion")) != -1) {
+				defaultOrchestrator->shellVersion = currentToken->Right(currentToken->GetLength() - 13);
+			}
+			else if (currentToken->Find(_T("DoNotAskToSend")) != -1)
+			{
+				defaultConductor.askToSendCrashRpt = false;
+				// InitCrashReport();
+			}
+
+			*currentToken = nextToken;
+		}
+		delete currentToken;
+
 		defaultConductor.orchestrator.browser.settings.multi_threaded_message_loop = false;
 		CefInitialize(defaultOrchestrator->browser.main_args, defaultOrchestrator->browser.settings, defaultOrchestrator->browser.app.get(), NULL);
 		// CefShutdown();

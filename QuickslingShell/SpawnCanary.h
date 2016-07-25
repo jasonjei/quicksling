@@ -21,6 +21,7 @@ public:
 	BOOL StartBrainProcess();
 	void StopBrainProcess();
 	int CheckForUpdates();
+	bool GetProductAndVersion(CString & strProductName, CString & strProductVersion);
 
 	static DWORD WINAPI RunThread(LPVOID lpData);
 

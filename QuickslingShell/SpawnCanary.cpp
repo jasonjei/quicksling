@@ -49,8 +49,70 @@ DWORD WINAPI SpawnCanary::RunThread(LPVOID lpData) {
 	return 0;
 }
 
+bool SpawnCanary::GetProductAndVersion(CString & strProductName, CString & strProductVersion) {
+	// get the filename of the executable containing the version resource
+	TCHAR szFilename[MAX_PATH + 1] = { 0 };
+	if (GetModuleFileName(NULL, szFilename, MAX_PATH) == 0)
+	{
+		// TRACE("GetModuleFileName failed with error %d\n", GetLastError());
+		return false;
+	}
+
+	// allocate a block of memory for the version info
+	DWORD dummy;
+	DWORD dwSize = GetFileVersionInfoSize(szFilename, &dummy);
+	if (dwSize == 0)
+	{
+		// TRACE("GetFileVersionInfoSize failed with error %d\n", GetLastError());
+		return false;
+	}
+	std::vector<BYTE> data(dwSize);
+
+	// load the version info
+	if (!GetFileVersionInfo(szFilename, NULL, dwSize, &data[0]))
+	{
+		// TRACE("GetFileVersionInfo failed with error %d\n", GetLastError());
+		return false;
+	}
+
+	// get the name and version strings
+	LPVOID pvProductName = NULL;
+	unsigned int iProductNameLen = 0;
+	LPVOID pvProductVersion = NULL;
+	unsigned int iProductVersionLen = 0;
+
+	// replace "040904e4" with the language ID of your resources
+	UINT                uiVerLen = 0;
+	VS_FIXEDFILEINFO*   pFixedInfo = 0;     // pointer to fixed file info structure
+	// get the fixed file info (language-independend) 
+	if (VerQueryValue(&data[0], TEXT("\\"), (void**)&pFixedInfo, (UINT *)&uiVerLen) == 0)
+	{
+		return false;
+	}
+
+	strProductVersion.Format(_T("%u.%u.%u.%u"),
+		HIWORD(pFixedInfo->dwProductVersionMS),
+		LOWORD(pFixedInfo->dwProductVersionMS),
+		HIWORD(pFixedInfo->dwProductVersionLS),
+		LOWORD(pFixedInfo->dwProductVersionLS));
+
+	// strProductName.SetString((LPCSTR)pvProductName, iProductNameLen);
+	// strProductVersion.SetString((LPCSTR)pvProductVersion, iProductVersionLen);
+
+	return true;
+}
+
 BOOL SpawnCanary::StartBrainProcess() {
 	CString app_path = _T("\"") + defaultConductor.orchestrator.info.GetQuickslingUserAppDir() + _T("\\Quicksling.exe\"");
+
+	CString productName;
+	CString productVersion;
+
+	GetProductAndVersion(productName, productVersion);
+
+#ifdef DEBUG
+	productVersion += _T("D");
+#endif
 
 	STARTUPINFO si;
 	ZeroMemory( &si, sizeof(si) );
@@ -61,6 +123,7 @@ BOOL SpawnCanary::StartBrainProcess() {
 	std::ostringstream stream;
 	stream << pid;
 	app_path = app_path + _T(" -ShellPID ") + stream.str().c_str();
+	app_path += _T(" -ShellVersion ") + productVersion;
 	if (defaultConductor.askToSendCrashRpt == false) {
 		app_path += _T(" -DoNotAskToSend");
 	}
