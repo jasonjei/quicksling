@@ -54,7 +54,13 @@ public:
 			actions.Call(str, request, envelope);
 			
 			WaitForSingleObject(request->orchestrator->response.signal, INFINITE);
-			PostThreadMessage(request->orchestrator->response.threadID, LEVION_RESPONSE, (WPARAM)envelope, NULL);
+			
+			if (envelope->doNotReply == false) {
+				PostThreadMessage(request->orchestrator->response.threadID, LEVION_RESPONSE, (WPARAM)envelope, NULL);
+			}
+			else {
+				delete envelope;
+			}
 
 			delete ((CString*)pMsg->wParam);
 		}
@@ -183,6 +189,10 @@ int RequestProcessor::cmd_qb(ResponseEnvelope* res) {
 	}
 	else if (res->body.Compare(_T("clear_lost_data_events")) == 0) {
 
+		this->orchestrator->lostDataEvents = false;
+		res->reply = this->orchestrator->qbInfo.ProcessQBXMLRequest(DATA_EVENT_RECOVERY_DELETE);
+		this->orchestrator->dataEvents.clear();
+		this->orchestrator->newDataEvents.clear();
 	}
 	else {
 		res->reply = this->orchestrator->qbInfo.ProcessQBXMLRequest(res->body);
@@ -270,6 +280,28 @@ int RequestProcessor::cmd_quit(ResponseEnvelope *res) {
 int RequestProcessor::cmd_update(ResponseEnvelope *res) {
 	res->reply = "OK";
 
+	CString strWindowTitle = _T("QuickletShellEventsProcessor");
+	CString strDataToSend = _T("update_requested");
+
+	LRESULT copyDataResult;
+
+	CWindow pOtherWnd = (HWND)FindWindow(NULL, strWindowTitle);
+
+	if (pOtherWnd) {
+		COPYDATASTRUCT cpd;
+		cpd.dwData = NULL;
+		cpd.cbData = strDataToSend.GetLength() * sizeof(wchar_t) + 1;
+		cpd.lpData = strDataToSend.GetBuffer(cpd.cbData);
+		copyDataResult = pOtherWnd.SendMessage(WM_COPYDATA,
+			(WPARAM) defaultOrchestrator->cMainDlg->m_hWnd,
+			(LPARAM)&cpd);
+		strDataToSend.ReleaseBuffer();
+		// copyDataResult has value returned by other app
+
+	}
+
+	PostMessage(defaultOrchestrator->cMainDlg->m_hWnd, WM_CLOSE, NULL, NULL);
+
 	// Send update command to shell
 	// CString *newString = new CString("update");
 	// ::PostThreadMessage(defaultOrchestrator->pipeWrite.threadID, PIPE_REQUEST, (WPARAM)newString, NULL);
@@ -299,5 +331,18 @@ int RequestProcessor::cmd_clear_events(ResponseEnvelope *res) {
 
 int RequestProcessor::cmd_ping(ResponseEnvelope *res) {
 	res->reply = "pong";
+	return 1;
+}
+
+int RequestProcessor::cmd_query_lost_data_events(ResponseEnvelope* res) {
+	res->doNotReply = true;
+	CString result = this->orchestrator->qbInfo.ProcessQBXMLRequest(DATA_EVENT_RECOVERY_QUERY);
+	
+	if (result.Find(_T("DataEventRecoveryTime")) >= 0)
+		this->orchestrator->lostDataEvents = true;
+	else {
+		this->orchestrator->lostDataEvents = false;
+	}
+
 	return 1;
 }

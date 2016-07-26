@@ -22,5 +22,12 @@ LRESULT CoreEventsProcessor::OnCopyData(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM
 		shellVersion.Delete(0, 8);
 		defaultConductor.orchestrator.shellVersion = shellVersion;
 	}
+	else if (strRecievedText.Find(_T("qbeventsxml:")) == 0) {
+		CString qbxmleventxml = strRecievedText;
+		qbxmleventxml.Delete(0, 12);
+
+		defaultConductor.orchestrator.dataEvents.push_back(qbxmleventxml);
+		defaultConductor.orchestrator.newDataEvents.push_back(qbxmleventxml);
+	}
 	return true;
 }

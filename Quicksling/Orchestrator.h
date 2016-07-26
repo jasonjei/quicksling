@@ -20,7 +20,9 @@ public:
 	BrowserHandler browser;
 	CMainDlg* cMainDlg;
 	CString shellVersion;
-
+	bool lostDataEvents;
+	std::vector<CString> dataEvents;
+	std::vector<CString> newDataEvents;
 	int started;
 	bool brainRequestShutdown;
 	CString shellPID;
@@ -32,6 +34,7 @@ public:
 		longPoll.orchestrator = this;
 		response.orchestrator = this;
 		request.orchestrator = this;
+		lostDataEvents = false;
 	}
 
 	int SetDlgMain(CMainDlg *mainDlg) {

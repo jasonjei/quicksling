@@ -35,6 +35,7 @@ public:
 	int cmd_quit(ResponseEnvelope* res);
 	int cmd_update(ResponseEnvelope* res);
 	int cmd_start_test_sync(ResponseEnvelope* res);
+	int cmd_query_lost_data_events(ResponseEnvelope* res);
 
 	static DWORD WINAPI RunThread(LPVOID lpData);
 
@@ -63,6 +64,7 @@ struct Actions {
 		fmap.insert(std::make_pair("/show_message", &RequestProcessor::cmd_show_message));
 		fmap.insert(std::make_pair("/offline", &RequestProcessor::cmd_quit));
 		fmap.insert(std::make_pair("/update", &RequestProcessor::cmd_update));
+		fmap.insert(std::make_pair("/query_lost_data_events", &RequestProcessor::cmd_query_lost_data_events));
 		fmap.insert(std::make_pair("/start_test_sync", &RequestProcessor::cmd_start_test_sync));
 	}
 

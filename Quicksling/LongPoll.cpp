@@ -146,7 +146,7 @@ int LongPoll::DoLongPoll() {
 	}
 
 	// if (firstTime == true) {
-		sURL += "&version=" + this->orchestrator->qbInfo.version + "&product_name=" + this->orchestrator->qbInfo.productName +
+		sURL += "&version=" + this->orchestrator->qbInfo.version +  "&shell_version=" + this->orchestrator->shellVersion + "&product_name=" + this->orchestrator->qbInfo.productName +
 			"&country=" + this->orchestrator->qbInfo.country + "&state=" + this->state;
 
 		sURL += "&company_name=" + UrlEncode(this->orchestrator->qbInfo.companyName);
@@ -235,6 +235,11 @@ int LongPoll::DoLongPoll() {
 			this->orchestrator->longPoll.connected = true;
 			this->orchestrator->qbInfo.processedQBRequest = false;
 			SendMessage(this->orchestrator->cMainDlg->m_hWnd, QUICKLET_CONNECT_UPD, NULL, NULL);
+
+			if (this->orchestrator->lostDataEvents == false) {
+				CString cmd = _T("0:/query_lost_data_events");
+				this->ReceivedMessage(&cmd);
+			}
 
 		}/*
 		else if (pageSource == "offline") {

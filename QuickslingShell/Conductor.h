@@ -7,8 +7,9 @@ class Conductor {
 public:
 	Orchestrator orchestrator;
 	bool askToSendCrashRpt;
+	bool updateRequested;
 
-	Conductor(void) {
+	Conductor(void) : updateRequested(false) {
 		askToSendCrashRpt = true;
 	}
 

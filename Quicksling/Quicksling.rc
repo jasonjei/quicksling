@@ -142,8 +142,8 @@ END
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 1,0,0,1
- PRODUCTVERSION 1,0,0,1
+ FILEVERSION 1,0,0,0
+ PRODUCTVERSION 1,0,0,0
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -156,15 +156,16 @@ VS_VERSION_INFO VERSIONINFO
 BEGIN
     BLOCK "StringFileInfo"
     BEGIN
-        BLOCK "040904B0"
+        BLOCK "040904b0"
         BEGIN
-            VALUE "FileDescription", "Quicksling Module"
-            VALUE "FileVersion", "1, 0, 0, 1"
+            VALUE "CompanyName", "Quicklet"
+            VALUE "FileDescription", "Quicksling (Core)"
+            VALUE "FileVersion", "1.0.0.0"
             VALUE "InternalName", "Quicksling"
             VALUE "LegalCopyright", "Copyright 2015"
             VALUE "OriginalFilename", "Quicksling.exe"
-            VALUE "ProductName", "Quicksling Module"
-            VALUE "ProductVersion", "1, 0, 0, 1"
+            VALUE "ProductName", "Quicksling (Core)"
+            VALUE "ProductVersion", "1.0.0.0"
         END
     END
     BLOCK "VarFileInfo"

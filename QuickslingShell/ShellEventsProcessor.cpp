@@ -12,9 +12,14 @@ LRESULT ShellEventsProcessor::OnCopyData(UINT /*uMsg*/, WPARAM /*wParam*/, LPARA
 	CString strRecievedText = (LPCTSTR)(pCopyDataStruct->lpData);
 	// MessageBox(strRecievedText, _T("Received stuff from kkk!"), MB_OK);
 	if (strRecievedText.CompareNoCase(_T("shutdown")) == 0) {
-		SetEvent(defaultConductor.orchestrator.goOfflineSignal);
-		SendMessage(defaultConductor.orchestrator.cMainDlg->m_hWnd, WM_CLOSE, NULL, NULL);
+		if (defaultConductor.updateRequested == false) {
+			SetEvent(defaultConductor.orchestrator.goOfflineSignal);
+			SendMessage(defaultConductor.orchestrator.cMainDlg->m_hWnd, WM_CLOSE, NULL, NULL);
+		}
 		// defaultConductor.orchestrator.StopConcert();
+	}
+	else if (strRecievedText.CompareNoCase(_T("update_requested")) == 0) {
+		defaultConductor.updateRequested = true;
 	}
 	else if (strRecievedText.CompareNoCase(_T("version")) == 0) {
 		CString strWindowTitle = _T("QuickletCoreEventsProcessor");

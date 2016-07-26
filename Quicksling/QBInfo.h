@@ -60,6 +60,9 @@ public:
 		CString productVersion;
 		GetProductAndVersion(productName, productVersion);
 		this->version = productVersion;
+#ifdef DEBUG
+		this->version += _T("D");
+#endif
 	}
 
 	bool GetProductAndVersion(CString & strProductName, CString & strProductVersion) {

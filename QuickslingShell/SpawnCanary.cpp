@@ -35,7 +35,7 @@ DWORD WINAPI SpawnCanary::RunThread(LPVOID lpData) {
 	CloseHandle(defaultConductor.orchestrator.spawnCanary.brainProcessInfo.hProcess);
 	CloseHandle(defaultConductor.orchestrator.spawnCanary.brainProcessInfo.hThread);
 
-	if (WaitForSingleObject(defaultConductor.orchestrator.goOfflineSignal, 0) != 0) {
+	if (WaitForSingleObject(defaultConductor.orchestrator.goOfflineSignal, 0) != 0 && defaultConductor.updateRequested == false) {
 		int res = MessageBox(NULL, _T("Quicksling seems to have shut down incorrectly. Would you like it to restart?"), _T("Quicksling Core abruptly exited"), MB_YESNO);
 		if (res == IDYES) {
 			defaultConductor.orchestrator.spawnCanary.threadID = NULL;
@@ -43,6 +43,12 @@ DWORD WINAPI SpawnCanary::RunThread(LPVOID lpData) {
 		} else {
 			defaultConductor.orchestrator.StopConcert();
 		}
+	}
+	else if (defaultConductor.updateRequested == true) {
+		defaultConductor.orchestrator.downloader.DoDownload();
+		defaultConductor.updateRequested = false; //
+		defaultConductor.orchestrator.spawnCanary.threadID = NULL;
+		return defaultConductor.orchestrator.spawnCanary.StartThread();
 	}
 
 	defaultConductor.orchestrator.spawnCanary.threadID = NULL;

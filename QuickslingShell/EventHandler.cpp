@@ -36,15 +36,17 @@ int EventHandler::ProcessEvent(CString strMsg) {
 
 		CWindow pOtherWnd = (HWND)FindWindow(NULL, strWindowTitle);
 
+		CString toSendMsg = "qbeventsxml:" + strMsg;
+
 		if (pOtherWnd) {
 			COPYDATASTRUCT cpd;
 			cpd.dwData = NULL;
-			cpd.cbData = strMsg.GetLength() * sizeof(wchar_t) + 1;
-			cpd.lpData = strMsg.GetBuffer(cpd.cbData);
+			cpd.cbData = toSendMsg.GetLength() * sizeof(wchar_t) + 1;
+			cpd.lpData = toSendMsg.GetBuffer(cpd.cbData);
 			copyDataResult = pOtherWnd.SendMessage(WM_COPYDATA,
 				(WPARAM) defaultOrchestrator->cMainDlg->m_hWnd,
 				(LPARAM) &cpd);
-			strMsg.ReleaseBuffer();
+			toSendMsg.ReleaseBuffer();
 			// copyDataResult has value returned by other app
 
 		}

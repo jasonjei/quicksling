@@ -160,6 +160,23 @@ static const CString GET_TEMPLATES = "<?xml version=\"1.0\"?>" \
 "</QBXMLMsgsRq>" \
 "</QBXML>";
 
+
+static const CString DATA_EVENT_RECOVERY_QUERY = "<?xml version=\"1.0\"?>" \
+"<?qbxml version=\"8.0\"?>" \
+"<QBXML><QBXMLMsgsRq onError=\"stopOnError\">" \
+"<DataEventRecoveryInfoQueryRq>" \
+"<SubscriberID>" + SUBSCRIBER_ID + "</SubscriberID>" \
+"</DataEventRecoveryInfoQueryRq>" \
+"</QBXMLMsgsRq></QBXML>";
+
+static const CString DATA_EVENT_RECOVERY_DELETE = "<?xml version=\"1.0\"?>" \
+"<?qbxml version=\"8.0\"?>" \
+"<QBXML><QBXMLMsgsRq onError=\"stopOnError\">" \
+"<DataEventRecoveryInfoDelRq>" \
+"<SubscriberID>" + SUBSCRIBER_ID +  "</SubscriberID>" \
+"</DataEventRecoveryInfoDelRq>" \
+"</QBXMLMsgsRq></QBXML>";
+
 static class URLS {
 public:
 	static CString APP_SERVER;
