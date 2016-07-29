@@ -61,7 +61,35 @@ int EventHandler::ProcessEvent(CString strMsg) {
 			
 			//if (defaultConductor.orchestrator.info.shouldUpdate == true)
 			//	defaultConductor.orchestrator.spawnCanary.CheckForUpdates();
-			defaultOrchestrator->spawnCanary.StartThread();
+			if (defaultOrchestrator->spawnCanary.threadID != NULL) {
+				CString strWindowTitle = _T("QuickletCoreEventsProcessor");
+
+				LRESULT copyDataResult;
+
+				CWindow pOtherWnd = (HWND)FindWindow(NULL, strWindowTitle);
+
+				CString toSendMsg = "refresh";
+
+				if (pOtherWnd) {
+					COPYDATASTRUCT cpd;
+					cpd.dwData = NULL;
+					cpd.cbData = toSendMsg.GetLength() * sizeof(wchar_t) + 1;
+					cpd.lpData = toSendMsg.GetBuffer(cpd.cbData);
+					copyDataResult = pOtherWnd.SendMessage(WM_COPYDATA,
+						(WPARAM)defaultOrchestrator->cMainDlg->m_hWnd,
+						(LPARAM)&cpd);
+					toSendMsg.ReleaseBuffer();
+					// copyDataResult has value returned by other app
+
+				}
+				else {
+					// MessageBox(_T("Can't find other app!"), _T("UH OH"), MB_OK);
+					// AfxMessageBox("Unable to find other app.");
+				}
+			}
+			else {
+				defaultOrchestrator->spawnCanary.StartThread();
+			}
 		}
 
 		if (defaultOrchestrator->info.state.Compare(_T("Close")) == 0) {

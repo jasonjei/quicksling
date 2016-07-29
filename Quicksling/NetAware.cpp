@@ -30,6 +30,7 @@ DWORD WINAPI NetAware::RunThread(LPVOID lpData)  {
 
 	while (WaitForSingleObject(defaultConductor.orchestrator.longPoll.goOfflineSignal, 0) != WAIT_OBJECT_0) {
 		wait_for_connection_type_change_with_winsock();
+		Sleep(2000);
 		SetEvent(defaultConductor.orchestrator.longPoll.tryAgainSignal);
 	}
 

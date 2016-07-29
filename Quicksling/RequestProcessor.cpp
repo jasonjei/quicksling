@@ -9,6 +9,7 @@
 #include <time.h>
 
 extern Orchestrator *defaultOrchestrator;
+extern std::mutex mutexDataEvents;
 
 class RequestProcessorMessageIdler : public CIdleHandler {
 public:
@@ -147,6 +148,15 @@ int RequestProcessor::cmd_show_message(ResponseEnvelope* res) {
 	return 1;
 }
 
+
+int RequestProcessor::cmd_subscribexml(ResponseEnvelope* res) {
+	// TrayMessage *trayMessage = BuildTrayMessage(_T("Levion"), res->body);
+	//SendMessage(this->orchestrator->cMainDlg->m_hWnd, LEVION_MESSAGE_BOX, (WPARAM)trayMessage, NULL);
+	qbXMLRPWrapper qbWrapper;
+	res->reply = qbWrapper.ProcessSubscription((LPCTSTR) res->body).c_str();
+	return 1;
+}
+
 /* This is a catch-all command if we can't find a proper routing */
 int RequestProcessor::cmd_misunderestimate(ResponseEnvelope* res) {
 	res->reply = _T("MISUNDERESTIMATE_MSG_OK");
@@ -172,8 +182,8 @@ int RequestProcessor::cmd_qb(ResponseEnvelope* res) {
 	this->orchestrator->qbInfo.processedQBRequest = true;
 
 	if (res->body.Compare(_T("versions")) == 0) {
-		if (this->orchestrator->qbInfo.qbxmlVersions.Compare(_T("")) == 0)
-			this->orchestrator->qbInfo.GetInfoFromQB();
+		// if (this->orchestrator->qbInfo.qbxmlVersions.Compare(_T("")) == 0)
+		this->orchestrator->qbInfo.GetInfoFromQB();
 		res->reply = this->orchestrator->qbInfo.qbxmlVersions;
 	}
 	else if (res->body.Compare(_T("startsession")) == 0) {
@@ -210,6 +220,7 @@ int RequestProcessor::cmd_utcoffset(ResponseEnvelope *res) {
 int RequestProcessor::cmd_closemodal(ResponseEnvelope *res) {
 	qbXMLRPWrapper qbWrapper;
 	qbWrapper.CloseModal();
+	res->reply = _T("OK");
 	return 1;
 }
 
@@ -236,17 +247,24 @@ int RequestProcessor::cmd_debug_timeout(ResponseEnvelope *res) {
 }
 
 int RequestProcessor::cmd_get_events(ResponseEnvelope *res) {
-	/*
-	CString data_events;
-	for (std::vector<CString>::iterator it = defaultOrchestrator->eventHandler.dataEvents.begin(); it != defaultOrchestrator->eventHandler.dataEvents.end(); ++it) {
-		if (it != defaultOrchestrator->eventHandler.dataEvents.begin())
-			data_events += _T("|-|");
-		data_events += *it;
+	// We clear new data events to differentiate from the events being 
+	// sent to the server now versus events to be sent to the app server
+	// for later.  In essence, this is the start of a new queue.
+	{
+		std::lock_guard<std::mutex> guard(mutexDataEvents);
+		defaultOrchestrator->newDataEvents.clear();
+
+		std::wstringstream ss;
+		for (size_t i = 0; i < defaultOrchestrator->dataEvents.size(); ++i)
+		{
+			if (i != 0)
+				ss << "|-|";
+			ss << (LPCTSTR) defaultOrchestrator->dataEvents[i];
+		}
+		std::wstring s = ss.str();
+
+		res->reply = s.c_str(); // data_events;
 	}
-	defaultOrchestrator->eventHandler.ClearDataEvents();
-	*/
-	res->reply = ""; // data_events;
-	
 	return 1;
 }
 
@@ -325,6 +343,11 @@ int RequestProcessor::cmd_start_test_sync(ResponseEnvelope *res) {
 int RequestProcessor::cmd_clear_events(ResponseEnvelope *res) {
 	// EventHandler eh;
 	// eh.ClearDataEvents();
+	{
+		std::lock_guard<std::mutex> guard(mutexDataEvents);
+		defaultOrchestrator->dataEvents.clear();
+		defaultOrchestrator->dataEvents.insert(std::end(defaultOrchestrator->dataEvents), std::begin(defaultOrchestrator->newDataEvents), std::end(defaultOrchestrator->newDataEvents));
+	}
 	res->reply = "OK";
 	return 1;
 }

@@ -11,6 +11,54 @@
 #include "Conductor.h"
 #include "MainDlg.h"
 
+extern Conductor defaultConductor;
+
+int QBInfo::Reset() {
+	SetEvent(readyForLongPollSignal);
+
+	CString oldAuthToken = authToken;
+	this->state = "LINKDEAD";
+
+	CString sURL = URLS::GOLIATH_SERVER + "client/linkdead?auth_key=" + oldAuthToken +
+		"&old_auth_key=" + oldAuthToken;
+
+	CInternetSession session(APP_NAME);
+	session.SetOption(INTERNET_OPTION_RECEIVE_TIMEOUT, 1);
+	session.SetOption(INTERNET_OPTION_SEND_TIMEOUT, 1);
+	CHttpFile *cHttpFile = NULL;
+
+	int fail = 0;
+
+	try {
+		cHttpFile = new CHttpFile(session, sURL, NULL, 0, INTERNET_FLAG_DONT_CACHE);
+	}
+
+	catch (CInternetException&) {
+		fail = 1;
+	}
+
+	if (!fail) {
+		WTL::CString pageSource;
+
+		UINT bytes = (UINT)cHttpFile->GetLength();
+
+		char tChars[2048 + 1];
+		int bytesRead;
+
+		while ((bytesRead = cHttpFile->Read((LPVOID)tChars, 2048)) != 0) {
+			tChars[bytesRead] = '\0';
+			pageSource += tChars;
+		}
+
+		pageSource.Format(_T("%s"), pageSource);
+
+	}
+
+	delete cHttpFile;
+	session.Close();
+	return 1;
+}
+
 int QBInfo::RegisterConnector() {
 	ResetEvent(this->readyForLongPollSignal);
 

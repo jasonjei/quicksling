@@ -9,7 +9,7 @@
 #include "INet.h"
 #include "inifile.h"
 #include <atlconv.h>
-
+#include <mutex>
 
 #pragma comment(lib, "userenv.lib")
 
@@ -21,6 +21,7 @@ void __stdcall CallMaster(
 	DWORD dwStatusInformationLength);
 
 class Orchestrator;
+extern std::mutex mutexQBInfo;
 
 class QBInfo {
 public:
@@ -383,11 +384,17 @@ public:
 		return 1;
 	}
 
+	int Reset();
+
 	int GetInfoFromQB() {
+		std::lock_guard<std::mutex> guard(mutexQBInfo);
 		qbXMLRPWrapper qb;
 
 		qb.OpenCompanyFile(_T(""));
+		
 		CString result = qb.ProcessRequest(std::wstring(GET_COMPANY_TAG)).c_str();
+		CString originalUniqueId = GetUniqueID();
+
 		SetCompanyInfo(result);
 
 		result = qb.ProcessRequest(std::wstring(GET_TEMPLATES)).c_str();
@@ -395,8 +402,14 @@ public:
 
 		SetQBInfo();
 
+		if ((originalUniqueId != GetUniqueID()) && (originalUniqueId != _T(","))) {
+			ResetEvent(this->readyForLongPollSignal);
+			Reset();
+			this->authToken = _T("");
+			this->hasRun = false;
+		}
+
 		LoadConfigYaml();
-		LoadAuthToken();
 		SaveConfigYaml();
 
 		SetEvent(this->readyForLongPollSignal);

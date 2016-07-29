@@ -63,7 +63,7 @@ DWORD WINAPI LongPoll::RunThread(LPVOID lpData) {
 }
 
 int LongPoll::GoOffline() {
-	SetEvent(this->orchestrator->qbInfo.readyForLongPollSignal);
+	ResetEvent(this->orchestrator->qbInfo.readyForLongPollSignal);
 	SetEvent(this->goOfflineSignal);
 
 	CString oldAuthToken = this->orchestrator->qbInfo.authToken;
@@ -116,6 +116,7 @@ int LongPoll::GoOffline() {
 	delete cHttpFile;
 	session.Close();
 	EndRequestNow();
+	SetEvent(this->orchestrator->qbInfo.readyForLongPollSignal);
 	return 1;
 }
 
@@ -130,7 +131,7 @@ int LongPoll::DoLongPoll() {
 		return 0;
 
 	// this->orchestrator->qbInfo.sequence += 1;
-	this->orchestrator->qbInfo.LoadConfigYaml();
+	// this->orchestrator->qbInfo.LoadConfigYaml();
 
 	CString sURL = URLS::GOLIATH_SERVER + "client/wait?auth_key=" + this->orchestrator->qbInfo.authToken +
 		"&unique_id=" + this->orchestrator->qbInfo.GetUniqueID(); // +"&client_guid=" + this->orchestrator->qbInfo.clientGuid;
@@ -226,7 +227,7 @@ int LongPoll::DoLongPoll() {
 			this->orchestrator->qbInfo.authToken = this->orchestrator->qbInfo.GUIDgen();
 			this->orchestrator->qbInfo.LoadConfigYaml();
 		}
-		else if (pageSource == "TIMEOUT") {
+		else if (pageSource == "TIMEOUT" || pageSource == "LINKDEAD") {
 			firstError = true;
 			if (this->orchestrator->longPoll.connected == false) {
 				TrayMessage *trayMessage = BuildTrayMessage(_T("Connected"), _T("Connected to Quicklet!"));

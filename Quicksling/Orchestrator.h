@@ -6,6 +6,7 @@
 #include "QBInfo.h"
 #include "BrowserHandler.h"
 #include "NetAware.h"
+#include <mutex>
 
 class CMainDlg;
 class QBInfo;

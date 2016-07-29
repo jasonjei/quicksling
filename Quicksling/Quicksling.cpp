@@ -17,12 +17,16 @@
 #include "Settings.h"
 
 #include "simple_app.h"
+#include <mutex>
 
 CAppModule _Module;
 
 Conductor defaultConductor;
 Orchestrator *defaultOrchestrator = &defaultConductor.orchestrator;
 LongPoll* defaultPoll;
+
+std::mutex mutexDataEvents;
+std::mutex mutexQBInfo;
 
 class QuickslingMessageFilter : public CMessageFilter {
 public:

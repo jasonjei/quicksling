@@ -90,7 +90,7 @@ public:
 		}
 
 		if (url.IsEmpty())
-			url =  URLS::APP_SERVER + "/companies/client_landing?auth_key=" + defaultOrchestrator->qbInfo.authToken;
+			url =  URLS::APP_SERVER + "/companies/client_landing?auth_key=" + defaultOrchestrator->qbInfo.authToken + "&unique_id=" + defaultOrchestrator->qbInfo.GetUniqueID();
 
 		defaultOrchestrator->qbInfo.LaunchBrowser(url);
 		return 1;
@@ -195,7 +195,7 @@ public:
 
 
 	LRESULT OnLaunchBrowserDashboard(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled) {
-		CString url = URLS::APP_SERVER + "companies/client_landing?auth_key=" + defaultOrchestrator->qbInfo.authToken;
+		CString url = URLS::APP_SERVER + "companies/client_landing?auth_key=" + defaultOrchestrator->qbInfo.authToken + "&unique_id=" + defaultOrchestrator->qbInfo.GetUniqueID();
 
 		defaultOrchestrator->qbInfo.LaunchBrowser(url);
 		return 1;

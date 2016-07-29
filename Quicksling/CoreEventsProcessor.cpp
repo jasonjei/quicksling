@@ -4,6 +4,7 @@
 #include "Conductor.h"
 
 extern Conductor defaultConductor;
+extern std::mutex mutexDataEvents;
 
 LRESULT CoreEventsProcessor::OnCopyData(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM lParam, BOOL& /*bHandled*/)
 {
@@ -17,6 +18,9 @@ LRESULT CoreEventsProcessor::OnCopyData(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM
 		SendMessage(defaultConductor.orchestrator.cMainDlg->m_hWnd, WM_CLOSE, NULL, NULL);
 		// defaultConductor.orchestrator.StopConcert();
 	}
+	else if (strRecievedText.CompareNoCase(_T("refresh")) == 0) {
+		defaultConductor.orchestrator.qbInfo.GetInfoFromQB();
+	}
 	else if (strRecievedText.Find(_T("version:")) == 0) {
 		CString shellVersion = strRecievedText;
 		shellVersion.Delete(0, 8);
@@ -25,9 +29,11 @@ LRESULT CoreEventsProcessor::OnCopyData(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM
 	else if (strRecievedText.Find(_T("qbeventsxml:")) == 0) {
 		CString qbxmleventxml = strRecievedText;
 		qbxmleventxml.Delete(0, 12);
-
-		defaultConductor.orchestrator.dataEvents.push_back(qbxmleventxml);
-		defaultConductor.orchestrator.newDataEvents.push_back(qbxmleventxml);
+		{
+			std::lock_guard<std::mutex> guard(mutexDataEvents);
+			defaultConductor.orchestrator.dataEvents.push_back(qbxmleventxml);
+			defaultConductor.orchestrator.newDataEvents.push_back(qbxmleventxml);
+		}
 	}
 	return true;
 }
