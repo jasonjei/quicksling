@@ -56,6 +56,10 @@ public:
 			
 			WaitForSingleObject(request->orchestrator->response.signal, INFINITE);
 			
+			if (envelope->responseKey == _T("0")) {
+				envelope->doNotReply = true;
+			}
+
 			if (envelope->doNotReply == false) {
 				PostThreadMessage(request->orchestrator->response.threadID, LEVION_RESPONSE, (WPARAM)envelope, NULL);
 			}

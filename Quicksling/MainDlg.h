@@ -63,6 +63,7 @@ public:
 		if (defaultOrchestrator->browser.simpleHandler.get() && ! defaultOrchestrator->browser.simpleHandler->IsClosing()) {
 			defaultOrchestrator->browser.simpleHandler->CloseBrowserAndQuit();
 		}
+		defaultOrchestrator->browser.simpleHandler->CloseAllBrowsers(true);
 		bHandled = FALSE;
 		return 1;
 	}

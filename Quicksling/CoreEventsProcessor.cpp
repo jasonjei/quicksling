@@ -19,7 +19,9 @@ LRESULT CoreEventsProcessor::OnCopyData(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM
 		// defaultConductor.orchestrator.StopConcert();
 	}
 	else if (strRecievedText.CompareNoCase(_T("refresh")) == 0) {
-		defaultConductor.orchestrator.qbInfo.GetInfoFromQB();
+		CString *newString = new CString(_T("0:/qb versions"));
+		WaitForSingleObject(defaultConductor.orchestrator.request.signal, INFINITE);
+		::PostThreadMessage(defaultConductor.orchestrator.request.threadID, LEVION_REQUEST, (WPARAM)newString, NULL);
 	}
 	else if (strRecievedText.Find(_T("version:")) == 0) {
 		CString shellVersion = strRecievedText;

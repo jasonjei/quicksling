@@ -56,7 +56,7 @@ int EventHandler::ProcessEvent(CString strMsg) {
 		}
 	}
 	else {
-		if (defaultOrchestrator->info.state.Compare(_T("Open")) == 0) {
+		if ((defaultOrchestrator->info.state.Compare(_T("Open")) == 0) && qbOpenEvent != strMsg) {
 			qbOpenEvent = strMsg;
 			
 			//if (defaultConductor.orchestrator.info.shouldUpdate == true)
