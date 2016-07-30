@@ -266,6 +266,10 @@ int LongPoll::DoLongPoll() {
 		else {
 			this->orchestrator->longPoll.connected = false;
 
+			if (state == _T("ONLINE")) {
+				state = _T("DISCONNECTED");
+			}
+
 			if (firstError == true) {
 
 				TrayMessage *trayMessage = BuildTrayMessage(_T("Network Error"), _T("Could not connect to Quicklet. Retrying..."));

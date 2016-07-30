@@ -33,6 +33,9 @@ public:
 
 	LRESULT OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
 	{
+		auto l = spdlog::get("quicksling_shell");
+		l->info("Showing download dialog");
+
 		// center the dialog on the screen
 		CenterWindow(GetParent());
 
@@ -47,6 +50,8 @@ public:
 
 	LRESULT OnDestroy(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
 	{
+		auto l = spdlog::get("quicksling_shell");
+		l->info("Closing download dialog");
 		// downloader.currentDownloadAbort = 1;
 		return 0;
 	}

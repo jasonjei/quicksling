@@ -7,6 +7,7 @@
 #include "Orchestrator.h"
 #include <string>
 #include "Constants.h"
+#include "spdlog\spdlog.h"
 
 extern Conductor defaultConductor;
 extern Orchestrator *defaultOrchestrator;
@@ -25,8 +26,11 @@ int EventHandler::ClearDataEvents() {
 
 int EventHandler::ProcessEvent(CString strMsg) {
 	int isUIEvent = defaultOrchestrator->info.SetState(strMsg);
-	
+	auto l = spdlog::get("quicksling_shell");
+
 	if (!isUIEvent) {
+		l->info("Received data event from QuickBooks");
+
 		// dataEvents.push_back(strMsg);
 		// CString *newString = new CString(strMsg);
 		// ::PostThreadMessage(defaultOrchestrator->pipeWrite.threadID, PIPE_REQUEST, (WPARAM)newString, NULL);
@@ -57,6 +61,7 @@ int EventHandler::ProcessEvent(CString strMsg) {
 	}
 	else {
 		if ((defaultOrchestrator->info.state.Compare(_T("Open")) == 0) && qbOpenEvent != strMsg) {
+			l->info("Received open message from QuickBooks");
 			qbOpenEvent = strMsg;
 			
 			//if (defaultConductor.orchestrator.info.shouldUpdate == true)
@@ -83,6 +88,7 @@ int EventHandler::ProcessEvent(CString strMsg) {
 
 				}
 				else {
+					l->error("Couldn't send refresh message to core");
 					// MessageBox(_T("Can't find other app!"), _T("UH OH"), MB_OK);
 					// AfxMessageBox("Unable to find other app.");
 				}
@@ -93,6 +99,7 @@ int EventHandler::ProcessEvent(CString strMsg) {
 		}
 
 		if (defaultOrchestrator->info.state.Compare(_T("Close")) == 0) {
+			l->info("Received close message from QuickBooks--exiting");
 			SetEvent(defaultOrchestrator->goOfflineSignal);
 			defaultOrchestrator->spawnCanary.StopBrainProcess();
 			defaultOrchestrator->StopConcert();

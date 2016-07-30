@@ -22,9 +22,12 @@ DWORD SpawnCanary::StartThread() {
 }
 
 DWORD WINAPI SpawnCanary::RunThread(LPVOID lpData) {
+	auto l = spdlog::get("quicksling_shell");
+
 	defaultConductor.orchestrator.downloader.DoDownload();
 
 	if (defaultConductor.orchestrator.spawnCanary.StartBrainProcess() == false) {
+		l->error("Couldn't start Quicksling Core");
 		MessageBox(NULL, _T("Quicksling Core couldn't start! Please check for updates or reinstall Quicksling."), _T("Error starting QuickSling Core"), MB_OK);
 		defaultConductor.orchestrator.StopConcert();
 		return 0;
@@ -36,6 +39,8 @@ DWORD WINAPI SpawnCanary::RunThread(LPVOID lpData) {
 	CloseHandle(defaultConductor.orchestrator.spawnCanary.brainProcessInfo.hThread);
 
 	if (WaitForSingleObject(defaultConductor.orchestrator.goOfflineSignal, 0) != 0 && defaultConductor.updateRequested == false) {
+
+		l->warn("Quicksling Core shut down abruptly without warning");
 		int res = MessageBox(NULL, _T("Quicksling seems to have shut down incorrectly. Would you like it to restart?"), _T("Quicksling Core abruptly exited"), MB_YESNO);
 		if (res == IDYES) {
 			defaultConductor.orchestrator.spawnCanary.threadID = NULL;
@@ -45,6 +50,8 @@ DWORD WINAPI SpawnCanary::RunThread(LPVOID lpData) {
 		}
 	}
 	else if (defaultConductor.updateRequested == true) {
+		l->info("Quicksling Core requested client update");
+
 		defaultConductor.orchestrator.downloader.DoDownload();
 		defaultConductor.updateRequested = false; //
 		defaultConductor.orchestrator.spawnCanary.threadID = NULL;
@@ -120,6 +127,9 @@ BOOL SpawnCanary::StartBrainProcess() {
 	productVersion += _T("D");
 #endif
 
+	auto l = spdlog::get("quicksling_shell");
+	l->info("Starting core at {}", CW2A(app_path, CP_UTF8));
+
 	STARTUPINFO si;
 	ZeroMemory( &si, sizeof(si) );
 	si.cb = sizeof(si);
@@ -141,12 +151,14 @@ BOOL SpawnCanary::StartBrainProcess() {
 		{
 			if (0 == AssignProcessToJobObject(defaultConductor.orchestrator.ghJob, brainProcessInfo.hProcess))
 			{
+				l->info("Couldn't assign process to job object");
 				::MessageBox(0, _T("Could not AssignProcessToObject"), _T("Crap"), MB_OK);
 			}
 		}
 		// CString *openString = new CString(defaultConductor.orchestrator.eventHandler.qbOpenEvent);
 		// ::PostThreadMessage(defaultConductor.orchestrator.pipeWrite.threadID, PIPE_REQUEST, (WPARAM)openString, NULL);
 	}
+	l->info("Core started");
 	return successful;
 }
 

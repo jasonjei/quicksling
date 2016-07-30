@@ -24,19 +24,31 @@
 #include "Orchestrator.h"
 
 #import "sdkevent.dll" no_namespace named_guids raw_interfaces_only
+#include "spdlog\spdlog.h"
 
 CServerAppModule _Module;
 
 Conductor defaultConductor;
 Orchestrator *defaultOrchestrator = &defaultConductor.orchestrator;
 
+
 BEGIN_OBJECT_MAP(ObjectMap)
 	OBJECT_ENTRY(CLSID_QBSDKCallback, CQBSDKCallback)
 END_OBJECT_MAP()
 
-int Run(LPTSTR /*lpstrCmdLine*/ = NULL, int nCmdShow = SW_SHOWDEFAULT)
+void InitLogger() {
+	CString fileName = defaultConductor.orchestrator.downloader.GetLevionUserAppDir(_T("quickslingshell_log")); 
+	defaultConductor.orchestrator.downloader.CreateLevionAppDir();
+
+	auto rotating_logger = spdlog::rotating_logger_mt("quicksling_shell", (LPCTSTR)fileName, 1048576, 3);
+}
+
+int Run(LPTSTR lpstrCmdLine = NULL, int nCmdShow = SW_SHOWDEFAULT)
 {
+	auto l = spdlog::get("quicksling_shell");
+
 	defaultConductor.orchestrator.mainThreadID = GetCurrentThreadId();
+	l->info("Main thread started on {}", defaultConductor.orchestrator.mainThreadID);
 
 	CMessageLoop theLoop;
 	_Module.AddMessageLoop(&theLoop);
@@ -46,6 +58,8 @@ int Run(LPTSTR /*lpstrCmdLine*/ = NULL, int nCmdShow = SW_SHOWDEFAULT)
 
 	if(dlgMain.Create(NULL) == NULL)
 	{
+		l->error("Main dialog creation failed");
+
 		ATLTRACE(_T("Main dialog creation failed!\n"));
 		return 0;
 	}
@@ -61,6 +75,17 @@ int Run(LPTSTR /*lpstrCmdLine*/ = NULL, int nCmdShow = SW_SHOWDEFAULT)
 
 int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPTSTR lpstrCmdLine, int nCmdShow)
 {
+	InitLogger();
+	auto l = spdlog::get("quicksling_shell");
+
+	CString productName;
+	CString productVersion;
+
+	defaultConductor.orchestrator.spawnCanary.GetProductAndVersion(productName, productVersion);
+
+	l->info("Welcome to QuickslingShell (Version {})", CW2A(productVersion, CP_UTF8));
+	l->info("Process ID is {}", GetCurrentProcessId());
+
 	HRESULT hRes = ::CoInitialize(NULL);
 // If you are running on NT 4.0 or higher you can use the following call instead to 
 // make the EXE free threaded. This means that calls come in on a random RPC thread.
@@ -106,21 +131,32 @@ int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPTSTR lp
 		}
 		else if (lstrcmpi(lpszToken, _T("RegUIEvents")) == 0)
 		{
+			l->info("Registering UI Events");
 			int success = ShellUtilities::RegisterUICallbacks();
+
+			if (success != 1)
+				l->error("Couldn't register callback");
+
 			bRun = false;
 			return (success == 1 ? 0 : 1);
 			break;
 		}
 		else if (lstrcmpi(lpszToken, _T("UnregUIEvents")) == 0)
 		{
+			l->info("Unregistering UI Events");
 			int success = ShellUtilities::UnregisterUICallbacks();
 			bRun = false;
+
+			if (success != 1)
+				l->error("Couldn't unregister callback");
+
 			return (success == 1 ? 0 : 1);
 			break;
 		}
 		else if((lstrcmpi(lpszToken, _T("Automation")) == 0) ||
 			(lstrcmpi(lpszToken, _T("Embedding")) == 0))
 		{
+			l->info("Started by COM automation/embedding");
 			bRun = true;
 			// bAutomation = true;
 			break;
@@ -160,8 +196,11 @@ int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPTSTR lp
 		::Sleep(_Module.m_dwPause);
 	}
 	else {
+		l->alert("Not started by COM QuickBooks");
 		MessageBox(NULL, _T("Please start QuickBooks, open a company, and authorize QuickSling to start QuickSling"), _T("QuickBooks Must Start QuickSling"), MB_OK);
 	}
+
+	l->info("Bye Bye!!! See you next time! (Process ID {})", GetCurrentProcessId());
 
 	_Module.Term();
 	::CoUninitialize();

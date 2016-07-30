@@ -5,6 +5,7 @@
 #include "Info.h"
 #include "MainDlg.h"
 #include "Downloader.h"
+#include "spdlog\spdlog.h"
 
 class Orchestrator {
 public:
@@ -21,6 +22,8 @@ public:
 	HINSTANCE hInstance;
 
 	Orchestrator() : started(0) {
+		auto l = spdlog::get("quicksling_shell");
+
 		// Give everybody access to the Orchestrator pointer
 		spawnCanary.orchestrator = this;
 		goOfflineSignal = CreateEvent(NULL, TRUE, FALSE, NULL);
@@ -32,6 +35,7 @@ public:
 		jeli.BasicLimitInformation.LimitFlags = JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE;
 		if (0 == SetInformationJobObject(ghJob, JobObjectExtendedLimitInformation, &jeli, sizeof(jeli)))
 		{
+			l->error("Couldn't set job object");
 			::MessageBox(0, _T("Could not SetInformationJobObject"), _T("TEST"), MB_OK);
 		}
 	}
