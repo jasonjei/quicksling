@@ -65,6 +65,7 @@ public:
 		longPoll.GoOffline();
 		::PostThreadMessage(this->longPoll.threadID, WM_QUIT, NULL, NULL);
 		WaitForSingleObject(this->longPoll.threadHandle, INFINITE);
+		
 		::PostThreadMessage(this->request.threadID, WM_QUIT, NULL, NULL);
 		WaitForSingleObject(this->request.threadHandle, INFINITE);
 

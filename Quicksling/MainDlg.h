@@ -294,7 +294,6 @@ public:
 
 		DestroyWindow();
 
-
 		defaultOrchestrator->StopConcert();
 		::PostQuitMessage(nVal);
 	}

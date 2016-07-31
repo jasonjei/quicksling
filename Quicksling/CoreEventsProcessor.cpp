@@ -15,6 +15,7 @@ LRESULT CoreEventsProcessor::OnCopyData(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM
 	if (strRecievedText.CompareNoCase(_T("shutdown")) == 0) {
 		// PostMessage(defaultConductor.orchestrator.cMainDlg->m_hWnd, WM_CLOSE, NULL, NULL);
 		defaultConductor.orchestrator.brainRequestShutdown = true;
+		// WaitForSingleObject(defaultConductor.orchestrator.request.signal, INFINITE);
 		SendMessage(defaultConductor.orchestrator.cMainDlg->m_hWnd, WM_CLOSE, NULL, NULL);
 		// defaultConductor.orchestrator.StopConcert();
 	}

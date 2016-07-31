@@ -59,6 +59,125 @@ int QBInfo::Reset() {
 	return 1;
 }
 
+int QBInfo::GetInfoFromQB() {
+	if (WaitForSingleObject(this->orchestrator->longPoll.goOfflineSignal, 0) == 0) {
+		return 1;
+	}
+	// std::lock_guard<std::mutex> guard(mutexQBInfo);
+	qbXMLRPWrapper qb;
+	
+	if (WaitForSingleObject(this->orchestrator->longPoll.goOfflineSignal, 0) == 0) {
+		return 1;
+	}
+	
+	qb.OpenCompanyFile(_T(""));
+	
+	if (WaitForSingleObject(this->orchestrator->longPoll.goOfflineSignal, 0) == 0) {
+		return 1;
+	}
+
+	CString result = qb.ProcessRequest(std::wstring(GET_COMPANY_TAG)).c_str();
+	CString originalUniqueId = GetUniqueID();
+
+	SetCompanyInfo(result);
+
+	if (WaitForSingleObject(this->orchestrator->longPoll.goOfflineSignal, 0) == 0) {
+		return 1;
+	}
+
+	result = qb.ProcessRequest(std::wstring(GET_TEMPLATES)).c_str();
+
+	if (WaitForSingleObject(this->orchestrator->longPoll.goOfflineSignal, 0) == 0) {
+		return 1;
+	}
+
+	SetCompanyTemplateInfo(result);
+
+	if (WaitForSingleObject(this->orchestrator->longPoll.goOfflineSignal, 0) == 0) {
+		return 1;
+	}
+
+	// SetQBInfo();
+
+	if (WaitForSingleObject(this->orchestrator->longPoll.goOfflineSignal, 0) == 0) {
+		return 1;
+	}
+
+	this->qbxmlVersions = qb.GetVersions();
+
+	if (WaitForSingleObject(this->orchestrator->longPoll.goOfflineSignal, 0) == 0) {
+		return 1;
+	}
+
+	CString versionResult = qb.ProcessRequest(std::wstring(_T("<?xml version=\"1.0\"?><?qbxml version=\"8.0\"?><QBXML><QBXMLMsgsRq onError=\"stopOnError\"><HostQueryRq></HostQueryRq></QBXMLMsgsRq></QBXML>"))).c_str();
+
+	if (WaitForSingleObject(this->orchestrator->longPoll.goOfflineSignal, 0) == 0) {
+		return 1;
+	}
+
+	MSXML2::IXMLDOMDocument* outputXMLDoc = InstantiateXMLDocWithString(versionResult);
+
+	if (outputXMLDoc) {
+		this->productName = GetValueFromNodeString(_T("ProductName"), outputXMLDoc);
+		this->country = GetValueFromNodeString(_T("Country"), outputXMLDoc);
+
+		outputXMLDoc->Release();
+		// return 1;
+	}
+
+	if ((originalUniqueId != GetUniqueID()) && (originalUniqueId != _T(","))) {
+		ResetEvent(this->readyForLongPollSignal);
+		Reset();
+		this->authToken = _T("");
+		this->hasRun = false;
+	}
+
+	LoadConfigYaml();
+	SaveConfigYaml();
+
+	SetEvent(this->readyForLongPollSignal);
+
+	return 1;
+}
+
+int QBInfo::SetQBInfo() {
+	qbXMLRPWrapper qb;
+
+	if (WaitForSingleObject(this->orchestrator->longPoll.threadHandle, 0) == 0) {
+		return 1;
+	}
+
+	qb.OpenCompanyFile(_T(""));
+
+	if (WaitForSingleObject(this->orchestrator->longPoll.threadHandle, 0) == 0) {
+		return 1;
+	}
+
+	this->qbxmlVersions = qb.GetVersions();
+
+	if (WaitForSingleObject(this->orchestrator->longPoll.threadHandle, 0) == 0) {
+		return 1;
+	}
+
+	CString versionResult = qb.ProcessRequest(std::wstring(_T("<?xml version=\"1.0\"?><?qbxml version=\"8.0\"?><QBXML><QBXMLMsgsRq onError=\"stopOnError\"><HostQueryRq></HostQueryRq></QBXMLMsgsRq></QBXML>"))).c_str();
+	
+	if (WaitForSingleObject(this->orchestrator->longPoll.threadHandle, 0) == 0) {
+		return 1;
+	}
+
+	MSXML2::IXMLDOMDocument* outputXMLDoc = InstantiateXMLDocWithString(versionResult);
+
+	if (outputXMLDoc) {
+		this->productName = GetValueFromNodeString(_T("ProductName"), outputXMLDoc);
+		this->country = GetValueFromNodeString(_T("Country"), outputXMLDoc);
+
+		outputXMLDoc->Release();
+		return 1;
+	}
+
+	return 0;
+}
+
 int QBInfo::RegisterConnector() {
 	ResetEvent(this->readyForLongPollSignal);
 

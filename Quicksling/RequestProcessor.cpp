@@ -183,6 +183,11 @@ int RequestProcessor::cmd_utctime(ResponseEnvelope* res) {
 }
 
 int RequestProcessor::cmd_qb(ResponseEnvelope* res) {
+	if (WaitForSingleObject(this->orchestrator->longPoll.goOfflineSignal, 0) == 0) {
+		res->reply = _T("SHUTDOWN");
+		return 1;
+	}
+
 	this->orchestrator->qbInfo.processedQBRequest = true;
 
 	if (res->body.Compare(_T("versions")) == 0) {

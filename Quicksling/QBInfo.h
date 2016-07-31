@@ -184,6 +184,7 @@ public:
 
 			if (session->GetHasError()) {
 				errorMsg.Format(_T("<QBError>%ls</QBError>"), session->GetErrorMsg().c_str());
+				delete session;
 				return errorMsg;
 			}
 		}
@@ -386,36 +387,7 @@ public:
 
 	int Reset();
 
-	int GetInfoFromQB() {
-		std::lock_guard<std::mutex> guard(mutexQBInfo);
-		qbXMLRPWrapper qb;
-
-		qb.OpenCompanyFile(_T(""));
-		
-		CString result = qb.ProcessRequest(std::wstring(GET_COMPANY_TAG)).c_str();
-		CString originalUniqueId = GetUniqueID();
-
-		SetCompanyInfo(result);
-
-		result = qb.ProcessRequest(std::wstring(GET_TEMPLATES)).c_str();
-		SetCompanyTemplateInfo(result);
-
-		SetQBInfo();
-
-		if ((originalUniqueId != GetUniqueID()) && (originalUniqueId != _T(","))) {
-			ResetEvent(this->readyForLongPollSignal);
-			Reset();
-			this->authToken = _T("");
-			this->hasRun = false;
-		}
-
-		LoadConfigYaml();
-		SaveConfigYaml();
-
-		SetEvent(this->readyForLongPollSignal);
-
-		return 1;
-	}
+	int GetInfoFromQB();
 
 	int SetupQuickslingWithQBData() {
 		qbXMLRPWrapper qb;
@@ -471,24 +443,7 @@ public:
 		return 0;
 	}
 
-	int SetQBInfo() {
-		qbXMLRPWrapper qb;
-		qb.OpenCompanyFile(_T(""));
-
-		this->qbxmlVersions = qb.GetVersions();
-		CString versionResult = qb.ProcessRequest(std::wstring(_T("<?xml version=\"1.0\"?><?qbxml version=\"8.0\"?><QBXML><QBXMLMsgsRq onError=\"stopOnError\"><HostQueryRq></HostQueryRq></QBXMLMsgsRq></QBXML>"))).c_str();
-		MSXML2::IXMLDOMDocument* outputXMLDoc = InstantiateXMLDocWithString(versionResult);
-
-		if (outputXMLDoc) {
-			this->productName = GetValueFromNodeString(_T("ProductName"), outputXMLDoc);
-			this->country = GetValueFromNodeString(_T("Country"), outputXMLDoc);
-
-			outputXMLDoc->Release();
-			return 1;
-		}
-
-		return 0;
-	}
+	int SetQBInfo();
 
 	void RemoveTagFromYaml() {
 		// map.mapPtr->map["companies"].mapPtr->map.erase(std::string(CW2A(this->companyTag, CP_UTF8)));
