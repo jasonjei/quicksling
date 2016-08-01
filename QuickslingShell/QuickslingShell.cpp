@@ -48,7 +48,6 @@ int Run(LPTSTR lpstrCmdLine = NULL, int nCmdShow = SW_SHOWDEFAULT)
 	auto l = spdlog::get("quicksling_shell");
 
 	defaultConductor.orchestrator.mainThreadID = GetCurrentThreadId();
-	l->info("Main thread started on {}", defaultConductor.orchestrator.mainThreadID);
 
 	CMessageLoop theLoop;
 	_Module.AddMessageLoop(&theLoop);
@@ -83,8 +82,7 @@ int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPTSTR lp
 
 	defaultConductor.orchestrator.spawnCanary.GetProductAndVersion(productName, productVersion);
 
-	l->info("Welcome to QuickslingShell (Version {})", CW2A(productVersion, CP_UTF8));
-	l->info("Process ID is {}", GetCurrentProcessId());
+	l->info("Welcome to QuickslingShell (Version {}, Process ID {}, Main Thread {})", CW2A(productVersion, CP_UTF8), GetCurrentProcessId(), GetCurrentThreadId());
 
 	HRESULT hRes = ::CoInitialize(NULL);
 // If you are running on NT 4.0 or higher you can use the following call instead to 
@@ -107,8 +105,9 @@ int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPTSTR lp
 	// Parse command line, register or unregister or run the server
 	int nRet = 0;
 	TCHAR szTokens[] = _T("-/");
-	bool bRun = false;
+	bool bRun = true;
 	bool bAutomation = false;
+	bool startedByQb = false;
 
 	LPCTSTR lpszToken = _Module.FindOneOf(::GetCommandLine(), szTokens);
 	while(lpszToken != NULL)
@@ -158,6 +157,7 @@ int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPTSTR lp
 		{
 			l->info("Started by COM automation/embedding");
 			bRun = true;
+			startedByQb = true;
 			// bAutomation = true;
 			break;
 		}
@@ -180,6 +180,23 @@ int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPTSTR lp
 		hRes = ::CoResumeClassObjects();
 		ATLASSERT(SUCCEEDED(hRes));
 
+		bool testQbInstalled = false;
+
+		if (startedByQb == false) {
+			qbXMLRPWrapper qb;
+			testQbInstalled = qb.TestQBInstalled();
+		}
+
+		if (testQbInstalled == false)
+		{
+			MessageBox(NULL, _T("You must have QuickBooks installed to use QuickSling."), _T("Why you have no QuickBooks?"), MB_OK);
+			return -1;
+		}
+
+		if (startedByQb == false) {
+			defaultOrchestrator->spawnCanary.StartThread();
+		}
+
 		defaultConductor.orchestrator.StartConcert();
 
 		if (bAutomation)
@@ -196,8 +213,8 @@ int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPTSTR lp
 		::Sleep(_Module.m_dwPause);
 	}
 	else {
-		l->alert("Not started by COM QuickBooks");
-		MessageBox(NULL, _T("Please start QuickBooks, open a company, and authorize QuickSling to start QuickSling"), _T("QuickBooks Must Start QuickSling"), MB_OK);
+		l->alert("Not starting bRun routine");
+		// MessageBox(NULL, _T("Please start QuickBooks, open a company, and authorize QuickSling to start QuickSling"), _T("QuickBooks Must Start QuickSling"), MB_OK);
 	}
 
 	l->info("Bye Bye!!! See you next time! (Process ID {})", GetCurrentProcessId());

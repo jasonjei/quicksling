@@ -53,11 +53,6 @@ int Run(LPTSTR /*lpstrCmdLine*/ = NULL, int nCmdShow = SW_SHOWDEFAULT)
 	// defaultConductor.orchestrator.qbInfo.authToken = settings.ClientKey;
 	// URLS::GOLIATH_SERVER = settings.URL;
 
-	if (!defaultConductor.orchestrator.qbInfo.TestQBWorks()) {
-		//TO FIX
-		return 0;
-	}
-
 	defaultConductor.orchestrator.qbInfo.GetInfoFromQB();
 
 	CMainDlg dlgMain;
@@ -69,10 +64,6 @@ int Run(LPTSTR /*lpstrCmdLine*/ = NULL, int nCmdShow = SW_SHOWDEFAULT)
 	}
 
 	// dlgMain.ShowWindow(nCmdShow);
-
-
-
-	SetEvent(defaultConductor.orchestrator.qbInfo.readyForLongPollSignal);
 	
 	defaultConductor.orchestrator.mainThreadID = GetCurrentThreadId();
 	defaultConductor.orchestrator.cMainDlg = &dlgMain;

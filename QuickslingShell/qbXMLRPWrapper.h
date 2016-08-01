@@ -58,6 +58,7 @@ public:
 	void CloseModal();
 	void HandleCOMError();
 	void qbXMLRPWrapper::SetupLevionUISubscriptions(WTL::CString qbxml);
+	bool TestQBInstalled();
 
 private:
 
@@ -75,7 +76,7 @@ private:
 	bool CloseCompanyFile();
 	bool OpenQBConnection();
 	bool CloseQBConnection();
-	
+
 	std::vector<HWND> GetThreadsForProcess(DWORD procId);
 };
 

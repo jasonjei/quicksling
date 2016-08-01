@@ -135,7 +135,10 @@ int QBInfo::GetInfoFromQB() {
 	LoadConfigYaml();
 	SaveConfigYaml();
 
-	SetEvent(this->readyForLongPollSignal);
+	if (GetUniqueID() != _T(","))
+		SetEvent(this->readyForLongPollSignal);
+	else
+		ResetEvent(this->readyForLongPollSignal);
 
 	return 1;
 }
