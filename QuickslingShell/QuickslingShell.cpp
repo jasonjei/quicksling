@@ -25,6 +25,7 @@
 
 #import "sdkevent.dll" no_namespace named_guids raw_interfaces_only
 #include "spdlog\spdlog.h"
+#include "CrashRpt.h"
 
 CServerAppModule _Module;
 
@@ -105,7 +106,7 @@ int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPTSTR lp
 	// Parse command line, register or unregister or run the server
 	int nRet = 0;
 	TCHAR szTokens[] = _T("-/");
-	bool bRun = true;
+	bool bRun = false;
 	bool bAutomation = false;
 	bool startedByQb = false;
 
@@ -180,23 +181,6 @@ int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPTSTR lp
 		hRes = ::CoResumeClassObjects();
 		ATLASSERT(SUCCEEDED(hRes));
 
-		bool testQbInstalled = false;
-
-		if (startedByQb == false) {
-			qbXMLRPWrapper qb;
-			testQbInstalled = qb.TestQBInstalled();
-		}
-
-		if (testQbInstalled == false)
-		{
-			MessageBox(NULL, _T("You must have QuickBooks installed to use QuickSling."), _T("Why you have no QuickBooks?"), MB_OK);
-			return -1;
-		}
-
-		if (startedByQb == false) {
-			defaultOrchestrator->spawnCanary.StartThread();
-		}
-
 		defaultConductor.orchestrator.StartConcert();
 
 		if (bAutomation)
@@ -213,8 +197,8 @@ int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPTSTR lp
 		::Sleep(_Module.m_dwPause);
 	}
 	else {
-		l->alert("Not starting bRun routine");
-		// MessageBox(NULL, _T("Please start QuickBooks, open a company, and authorize QuickSling to start QuickSling"), _T("QuickBooks Must Start QuickSling"), MB_OK);
+		l->alert("Not started by QuickBooks");
+		MessageBox(NULL, _T("Please start QuickBooks, open a company, and authorize QuickSling to start QuickSling"), _T("QuickBooks Must Start QuickSling"), MB_OK);
 	}
 
 	l->info("Bye Bye!!! See you next time! (Process ID {})", GetCurrentProcessId());
