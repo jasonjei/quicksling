@@ -339,6 +339,39 @@ int RequestProcessor::cmd_update(ResponseEnvelope *res) {
 	return 1;
 }
 
+int RequestProcessor::cmd_crash_shell(ResponseEnvelope *res) {
+	res->reply = "OK";
+
+	CString strWindowTitle = _T("QuickletShellEventsProcessor");
+	CString strDataToSend = _T("crash");
+
+	LRESULT copyDataResult;
+
+	CWindow pOtherWnd = (HWND)FindWindow(NULL, strWindowTitle);
+
+	if (pOtherWnd) {
+		COPYDATASTRUCT cpd;
+		cpd.dwData = NULL;
+		cpd.cbData = strDataToSend.GetLength() * sizeof(wchar_t) + 1;
+		cpd.lpData = strDataToSend.GetBuffer(cpd.cbData);
+		copyDataResult = pOtherWnd.SendMessage(WM_COPYDATA,
+			(WPARAM)defaultOrchestrator->cMainDlg->m_hWnd,
+			(LPARAM)&cpd);
+		strDataToSend.ReleaseBuffer();
+		// copyDataResult has value returned by other app
+
+	}
+
+	// Send update command to shell
+	// CString *newString = new CString("update");
+	// ::PostThreadMessage(defaultOrchestrator->pipeWrite.threadID, PIPE_REQUEST, (WPARAM)newString, NULL);
+
+	// Shell checks for updates. If there are updates, shell will shutdown brain then download updates.
+
+	// If there are not updates, shell will send "noupdate" to brain through pipe, triggering a tray message saying "Levion is up to date"
+	return 1;
+}
+
 int RequestProcessor::cmd_start_test_sync(ResponseEnvelope *res) {
 	if (defaultOrchestrator->qbInfo.RegisterConnector() == 0) {
 		res->reply = "failed";

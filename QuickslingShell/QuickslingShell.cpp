@@ -25,13 +25,15 @@
 
 #import "sdkevent.dll" no_namespace named_guids raw_interfaces_only
 #include "spdlog\spdlog.h"
-#include "CrashRpt.h"
+#include "BugSplat.h"
 
 CServerAppModule _Module;
 
 Conductor defaultConductor;
 Orchestrator *defaultOrchestrator = &defaultConductor.orchestrator;
 
+bool ExceptionCallback(UINT nCode, LPVOID lpVal1, LPVOID lpVal2);
+MiniDmpSender *mpSender;
 
 BEGIN_OBJECT_MAP(ObjectMap)
 	OBJECT_ENTRY(CLSID_QBSDKCallback, CQBSDKCallback)
@@ -75,6 +77,12 @@ int Run(LPTSTR lpstrCmdLine = NULL, int nCmdShow = SW_SHOWDEFAULT)
 
 int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPTSTR lpstrCmdLine, int nCmdShow)
 {
+	if (! IsDebuggerPresent())
+	{
+		mpSender = new MiniDmpSender(L"QuickslingShell1_1", L"QuickslingShell", QUICKSLING_SHELL_VER, NULL);
+		mpSender->setCallback(ExceptionCallback);
+	}
+
 	InitLogger();
 	auto l = spdlog::get("quicksling_shell");
 
@@ -207,4 +215,21 @@ int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPTSTR lp
 	::CoUninitialize();
 
 	return nRet;
+}
+
+bool ExceptionCallback(UINT nCode, LPVOID lpVal1, LPVOID lpVal2)
+{
+	auto l = spdlog::get("quicksling_shell");
+	l->flush();
+
+	CString fileName = defaultConductor.orchestrator.downloader.GetLevionUserAppDir(_T("quickslingshell_log.txt"));
+
+	struct _stat buffer;
+	int success = _wstat((LPCTSTR)fileName, &buffer);
+
+	if (success != -1) {
+		mpSender->sendAdditionalFile(fileName);
+	}
+
+	return false;
 }

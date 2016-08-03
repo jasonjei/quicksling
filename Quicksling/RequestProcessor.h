@@ -37,6 +37,9 @@ public:
 	int cmd_start_test_sync(ResponseEnvelope* res);
 	int cmd_query_lost_data_events(ResponseEnvelope* res);
 	int cmd_subscribexml(ResponseEnvelope* res);
+#ifdef DEBUG
+	int cmd_crash_shell(ResponseEnvelope* res);
+#endif
 
 	static DWORD WINAPI RunThread(LPVOID lpData);
 
@@ -68,6 +71,9 @@ struct Actions {
 		fmap.insert(std::make_pair("/query_lost_data_events", &RequestProcessor::cmd_query_lost_data_events));
 		fmap.insert(std::make_pair("/start_test_sync", &RequestProcessor::cmd_start_test_sync));
 		fmap.insert(std::make_pair("/subscribexml", &RequestProcessor::cmd_subscribexml));
+#ifdef DEBUG
+		fmap.insert(std::make_pair("/crashshell", &RequestProcessor::cmd_crash_shell));
+#endif
 	}
 
 	int Call(const std::string & s, RequestProcessor* request, ResponseEnvelope* respEnvelope) {

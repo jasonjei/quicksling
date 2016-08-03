@@ -122,6 +122,15 @@
             <Component Id="QBXMLRP2.dll" Guid="FBF8E9F8-83C7-4DD4-8DD0-B763B9EBE6EC">
                 <File Id="QBXMLRP2.dll" Source="..\QuickslingShell\QBXMLRP2.dll" KeyPath="yes" Checksum="yes"/>
             </Component>
+            <Component Id="BsSndRpt.exe" Guid="396738E8-2C90-4D9B-8780-9BDAEBDF1D86">
+                <File Id="BsSndRpt.exe" Source="..\BugSplat\bin\BsSndRpt.exe" KeyPath="yes" Checksum="yes"/>
+            </Component>
+            <Component Id="BugSplat.dll" Guid="7449E186-35F0-4453-BBD1-C19A0CBD2A99">
+                <File Id="BugSplat.dll" Source="..\BugSplat\bin\BugSplat.dll" KeyPath="yes" Checksum="yes"/>
+            </Component>
+            <Component Id="BugSplatRC.dll" Guid="C6120CC2-40C3-4205-8CB0-539285DFFC29">
+                <File Id="BugSplatRC.dll" Source="..\BugSplat\bin\BugSplatRC.dll" KeyPath="yes" Checksum="yes"/>
+            </Component>
         </DirectoryRef>
 
 
@@ -155,6 +164,12 @@
         <ComponentRef Id="QuickslingShell.exe" />
             <ComponentRef Id="sdkevent.dll" />
             <ComponentRef Id="QBXMLRP2.dll" />
+
+            <ComponentRef Id="BsSndRpt.exe" />
+            <ComponentRef Id="BugSplat.dll" />
+            <ComponentRef Id="BugSplatRC.dll" />
+
+
             <ComponentRef Id="ApplicationShortcuts" />
 
             <ComponentRef Id="CLSID.675D3E6F170D48D3B746A5A20A869949.LocalServer32" />
