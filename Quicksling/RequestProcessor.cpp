@@ -7,6 +7,7 @@
 #include "MainDlg.h"
 #include <regex>
 #include <time.h>
+#include <sstream>
 
 extern Orchestrator *defaultOrchestrator;
 extern std::mutex mutexDataEvents;
@@ -289,6 +290,23 @@ int RequestProcessor::cmd_browser(ResponseEnvelope *res) {
 	defaultOrchestrator->browser.browser->GetMainFrame()->LoadURL(url);
 	*/ 
 	res->reply = "OK";
+	return 1;
+}
+
+int RequestProcessor::cmd_crash_self(ResponseEnvelope *res) {
+	// CString *newString = new CString("shutdown");
+	// ::PostThreadMessage(defaultOrchestrator->pipeWrite.threadID, PIPE_REQUEST, (WPARAM)newString, NULL);
+
+	volatile int x, y, z;
+	x = 1;
+	y = 0;
+	z = x / y;
+
+	res->reply = "OK";
+	// Figure out a better way to quit so that a response is sent first
+	//PostMessage(defaultOrchestrator->cMainDlg->m_hWnd, WM_CLOSE, NULL, NULL);
+	//PostMessage(defaultOrchestrator->request.mainDlg->m_hWnd, WM_CLOSE, NULL, NULL);
+
 	return 1;
 }
 

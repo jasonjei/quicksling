@@ -17,6 +17,8 @@ static UINT LAUNCH_BROWSER = ::RegisterWindowMessage(_T("LAUNCH_BROWSER"));
 static const CString CLIENT_GUID = "{575D3E6F-170D-48D3-B746-A5A20A869949}";
 static const CString SUBSCRIBER_ID = "{50189E8B-938E-40B8-ABD3-18A9812ADEC0}";
 
+#define QUICKSLING_VER L"1.0.0.0"
+
 #ifdef DEBUG
 static const CString APP_NAME = "Quicklet";
 #else

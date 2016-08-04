@@ -19,14 +19,27 @@
 #include "simple_app.h"
 #include <mutex>
 
+#include "spdlog\spdlog.h"
+#include "BugSplat.h"
+
 CAppModule _Module;
 
 Conductor defaultConductor;
 Orchestrator *defaultOrchestrator = &defaultConductor.orchestrator;
 LongPoll* defaultPoll;
 
+bool ExceptionCallback(UINT nCode, LPVOID lpVal1, LPVOID lpVal2);
+MiniDmpSender *mpSender;
+
 std::mutex mutexDataEvents;
 std::mutex mutexQBInfo;
+
+void InitLogger() {
+	CString fileName = defaultConductor.orchestrator.qbInfo.GetLevionUserAppDir(_T("quicksling_log"));
+	defaultConductor.orchestrator.qbInfo.CreateLevionAppDir();
+
+	auto rotating_logger = spdlog::rotating_logger_mt("quicksling", (LPCTSTR)fileName, 1048576, 3);
+}
 
 class QuickslingMessageFilter : public CMessageFilter {
 public:
@@ -83,6 +96,17 @@ int Run(LPTSTR /*lpstrCmdLine*/ = NULL, int nCmdShow = SW_SHOWDEFAULT)
 
 int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPTSTR lpstrCmdLine, int nCmdShow)
 {
+	if (!IsDebuggerPresent())
+	{
+		mpSender = new MiniDmpSender(L"Quicksling1_0", L"Quicksling", QUICKSLING_VER, NULL);
+		mpSender->setCallback(ExceptionCallback);
+	}
+
+	InitLogger();
+	auto l = spdlog::get("quicksling");
+
+	l->info("Welcome to QuickslingShell (Version {}, Process ID {}, Main Thread {})", CW2A(defaultConductor.orchestrator.qbInfo.version, CP_UTF8), GetCurrentProcessId(), GetCurrentThreadId());
+
 	HRESULT hRes = ::CoInitialize(NULL);
 // If you are running on NT 4.0 or higher you can use the following call instead to 
 // make the EXE free threaded. This means that calls come in on a random RPC thread.
@@ -165,4 +189,21 @@ int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPTSTR lp
 	::CoUninitialize();
 
 	return nRet;
+}
+
+bool ExceptionCallback(UINT nCode, LPVOID lpVal1, LPVOID lpVal2)
+{
+	auto l = spdlog::get("quicksling");
+	l->flush();
+
+	CString fileName = defaultConductor.orchestrator.qbInfo.GetLevionUserAppDir(_T("quicksling_log.txt"));
+
+	struct _stat buffer;
+	int success = _wstat((LPCTSTR)fileName, &buffer);
+
+	if (success != -1) {
+		mpSender->sendAdditionalFile(fileName);
+	}
+
+	return false;
 }

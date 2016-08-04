@@ -139,7 +139,11 @@ int LongPoll::DoLongPoll() {
 	sURL += "&session_key=";
 	sURL += std::to_wstring(this->orchestrator->qbInfo.sequence).c_str();
 
-	int numDataEvents = 0; // defaultConductor.orchestrator.eventHandler.dataEvents.size();
+	int numDataEvents = defaultConductor.orchestrator.dataEvents.size(); // defaultConductor.orchestrator.eventHandler.dataEvents.size();
+
+	if (defaultConductor.orchestrator.lostDataEvents == true) {
+		sURL += "&data_events=-1";
+	}
 	if (numDataEvents > 0) {
 		CString numDataEventsStr;
 		numDataEventsStr.Format(_T("%i"), numDataEvents);
