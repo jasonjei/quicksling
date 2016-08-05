@@ -126,6 +126,7 @@
     <ClCompile Include="DownloaderCallbackHandler.cpp" />
     <ClCompile Include="DownloadProgressDlg.cpp" />
     <ClCompile Include="EventHandler.cpp" />
+    <ClCompile Include="exclusion.cpp" />
     <ClCompile Include="inifile.cpp" />
     <ClCompile Include="MainDlg.cpp" />
     <ClCompile Include="qbXMLRPWrapper.cpp" />
@@ -152,6 +153,7 @@
     <ClInclude Include="DownloaderCallbackHandler.h" />
     <ClInclude Include="DownloadProgressDlg.h" />
     <ClInclude Include="EventHandler.h" />
+    <ClInclude Include="exclusion.h" />
     <ClInclude Include="INet.h" />
     <ClInclude Include="info.h" />
     <ClInclude Include="inifile.h" />

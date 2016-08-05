@@ -1,6 +1,8 @@
 #include "stdafx.h"
 #include "exclusion.h"
-
+#include "atlapp.h"
+#include "atlmisc.h"
+
 /****************************************************************************
 *                             createExclusionName
 * Inputs:
@@ -92,7 +94,7 @@ CString createExclusionName(LPCTSTR GUID, UINT kind)
             return s;
            } /* trustee */
         default:
-            ASSERT(FALSE);
+            ATLASSERT(FALSE);
             break;
        } /* kind */
     return CString(GUID);

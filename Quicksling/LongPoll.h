@@ -16,6 +16,7 @@ public:
 	int ReceivedMessage(CString *text);
 	int DoLongPoll();
 	int GoOffline();
+	int GetBugsplatSettings();
 	DWORD StartThread();
 	int connected;
 

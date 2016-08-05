@@ -26,6 +26,7 @@
 #import "sdkevent.dll" no_namespace named_guids raw_interfaces_only
 #include "spdlog\spdlog.h"
 #include "BugSplat.h"
+#include "exclusion.h"
 
 CServerAppModule _Module;
 
@@ -77,21 +78,57 @@ int Run(LPTSTR lpstrCmdLine = NULL, int nCmdShow = SW_SHOWDEFAULT)
 
 int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPTSTR lpstrCmdLine, int nCmdShow)
 {
-	if (! IsDebuggerPresent())
-	{
-		mpSender = new MiniDmpSender(L"QuickslingShell1_1", L"QuickslingShell", QUICKSLING_SHELL_VER, NULL);
-		mpSender->setCallback(ExceptionCallback);
+	HANDLE hMutexOneInstance = ::CreateMutex(NULL, TRUE,
+		createExclusionName(_T("QuickslingShell_"), UNIQUE_TO_SESSION));
+
+	bool AlreadyRunning;
+	DWORD lastError = NULL;
+	lastError = GetLastError();
+
+	AlreadyRunning = (GetLastError() == ERROR_ALREADY_EXISTS);
+
+	if (AlreadyRunning) {
+		CString strWindowTitle = _T("QuickletCoreEventsProcessor");
+		LRESULT copyDataResult;
+		CWindow pOtherWnd = (HWND)FindWindow(NULL, strWindowTitle);
+
+		CString strMsg = _T("focus");
+
+		if (pOtherWnd) {
+			COPYDATASTRUCT cpd;
+			cpd.dwData = NULL;
+			cpd.cbData = strMsg.GetLength() * sizeof(wchar_t) + 1;
+			cpd.lpData = strMsg.GetBuffer(cpd.cbData);
+			copyDataResult = pOtherWnd.SendMessage(WM_COPYDATA,
+				(WPARAM) NULL,
+				(LPARAM)&cpd);
+			strMsg.ReleaseBuffer();
+		}
+
+		return 0;
 	}
 
 	InitLogger();
-	auto l = spdlog::get("quicksling_shell");
+
+	if (!IsDebuggerPresent())
+	{
+		CString version = QUICKSLING_SHELL_VER;
+#ifdef DEBUG
+		version += "D";
+#endif
+		mpSender = new MiniDmpSender(L"QuickslingShell1_1", L"QuickslingShell", (LPCTSTR)version, NULL);
+		mpSender->setCallback(ExceptionCallback);
+	}
 
 	CString productName;
 	CString productVersion;
 
 	defaultConductor.orchestrator.spawnCanary.GetProductAndVersion(productName, productVersion);
-
-	l->info("Welcome to QuickslingShell (Version {}, Process ID {}, Main Thread {})", CW2A(productVersion, CP_UTF8), GetCurrentProcessId(), GetCurrentThreadId());
+	{
+		auto l = spdlog::get("quicksling_shell");
+		if (l.get())
+			l->info("Welcome to QuickslingShell (Version {}, Process ID {}, Main Thread {})", CW2A(productVersion, CP_UTF8), GetCurrentProcessId(), GetCurrentThreadId());
+	}
 
 	HRESULT hRes = ::CoInitialize(NULL);
 // If you are running on NT 4.0 or higher you can use the following call instead to 
@@ -139,11 +176,19 @@ int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPTSTR lp
 		}
 		else if (lstrcmpi(lpszToken, _T("RegUIEvents")) == 0)
 		{
-			l->info("Registering UI Events");
+			{
+				auto l = spdlog::get("quicksling_shell");
+				if (l.get())
+					l->info("Registering UI Events");
+			}
 			int success = ShellUtilities::RegisterUICallbacks();
 
 			if (success != 1)
-				l->error("Couldn't register callback");
+			{
+				auto l = spdlog::get("quicksling_shell");
+				if (l.get())
+					l->error("Couldn't register callback");
+			}
 
 			bRun = false;
 			return (success == 1 ? 0 : 1);
@@ -151,12 +196,20 @@ int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPTSTR lp
 		}
 		else if (lstrcmpi(lpszToken, _T("UnregUIEvents")) == 0)
 		{
-			l->info("Unregistering UI Events");
+			{
+				auto l = spdlog::get("quicksling_shell");
+				if (l.get())
+					l->info("Unregistering UI Events");
+			}
 			int success = ShellUtilities::UnregisterUICallbacks();
 			bRun = false;
 
 			if (success != 1)
-				l->error("Couldn't unregister callback");
+			{
+				auto l = spdlog::get("quicksling_shell");
+				if (l.get())
+					l->error("Couldn't unregister callback");
+			}
 
 			return (success == 1 ? 0 : 1);
 			break;
@@ -164,7 +217,9 @@ int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPTSTR lp
 		else if((lstrcmpi(lpszToken, _T("Automation")) == 0) ||
 			(lstrcmpi(lpszToken, _T("Embedding")) == 0))
 		{
-			l->info("Started by COM automation/embedding");
+			auto l = spdlog::get("quicksling_shell");
+			if (l.get())
+				l->info("Started by COM automation/embedding");
 			bRun = true;
 			startedByQb = true;
 			// bAutomation = true;
@@ -205,14 +260,36 @@ int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPTSTR lp
 		::Sleep(_Module.m_dwPause);
 	}
 	else {
-		l->alert("Not started by QuickBooks");
+		if (hMutexOneInstance != NULL)
+		{
+			::ReleaseMutex(hMutexOneInstance);
+		}
+		
+		CloseHandle(hMutexOneInstance);
+
+		{
+			auto l = spdlog::get("quicksling_shell");
+			if (l.get())
+				l->alert("Not started by QuickBooks");
+		}
+		spdlog::drop_all();
 		MessageBox(NULL, _T("Please start QuickBooks, open a company, and authorize QuickSling to start QuickSling"), _T("QuickBooks Must Start QuickSling"), MB_OK);
+		return 0;
 	}
 
-	l->info("Bye Bye!!! See you next time! (Process ID {})", GetCurrentProcessId());
+	{
+		auto l = spdlog::get("quicksling_shell");
+		if (l.get())
+			l->info("Bye Bye!!! See you next time! (Process ID {})", GetCurrentProcessId());
+	}
 
 	_Module.Term();
 	::CoUninitialize();
+
+	if (hMutexOneInstance != NULL)
+	{
+		::ReleaseMutex(hMutexOneInstance);
+	}
 
 	return nRet;
 }
@@ -230,6 +307,8 @@ bool ExceptionCallback(UINT nCode, LPVOID lpVal1, LPVOID lpVal2)
 	if (success != -1) {
 		mpSender->sendAdditionalFile(fileName);
 	}
+
+	spdlog::drop_all();
 
 	return false;
 }

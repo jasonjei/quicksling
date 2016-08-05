@@ -1,3 +1,7 @@
+#include "stdafx.h"
+#include "atlapp.h"
+#include "atlmisc.h"
+
 #define UNIQUE_TO_SYSTEM  0
 #define UNIQUE_TO_DESKTOP 1
 #define UNIQUE_TO_SESSION 2

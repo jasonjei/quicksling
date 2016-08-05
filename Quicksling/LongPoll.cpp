@@ -51,6 +51,8 @@ DWORD WINAPI LongPoll::RunThread(LPVOID lpData) {
 
 	DWORD res = NULL;
 	CString sURL;
+	
+	poll->GetBugsplatSettings();
 
 	while (poll->timeToQuit != 1) {
 		// make a call to /clients/wait
@@ -118,6 +120,55 @@ int LongPoll::GoOffline() {
 	EndRequestNow();
 	SetEvent(this->orchestrator->qbInfo.readyForLongPollSignal);
 	return 1;
+}
+
+int LongPoll::GetBugsplatSettings() {
+	CIniFile configIni;
+	CString sURL = URLS::APP_SERVER + "client_settings/bugsplat?client=Quicksling&version=" + this->orchestrator->qbInfo.version;
+
+	CInternetSession Session(_T("Quicksling Downloader"));
+	WORD timeout = 10000;
+	DeleteUrlCacheEntry(sURL);
+
+	Session.SetOption(INTERNET_OPTION_RECEIVE_TIMEOUT, timeout);
+	Session.SetOption(INTERNET_OPTION_SEND_TIMEOUT, timeout);
+
+	CHttpFile* cHttpFile = NULL;
+	int fail = 0;
+
+
+	try {
+		cHttpFile = new CHttpFile(Session, sURL, NULL, 0, INTERNET_FLAG_DONT_CACHE);
+	}
+
+	catch (CInternetException& e) {
+		fail = 1;
+		delete cHttpFile;
+	}
+
+	if (!fail) {
+		WTL::CString pageSource;
+		CIniFile configIni;
+
+		CIniSectionW* settingsSec;
+
+		UINT bytes = (UINT)cHttpFile->GetLength();
+
+		char tChars[2048 + 1];
+		int bytesRead;
+
+		while ((bytesRead = cHttpFile->Read((LPVOID)tChars, 2048)) != 0) {
+			tChars[bytesRead] = '\0';
+			pageSource += CA2W((LPCSTR)tChars, CP_UTF8);
+		}
+
+		delete cHttpFile;
+
+		std::wistringstream downloadManifestStream((LPCTSTR)pageSource);
+		configIni.Load(downloadManifestStream, false);
+		settingsSec = configIni.GetSection(_T("settings"));
+	}
+
 }
 
 int LongPoll::DoLongPoll() {

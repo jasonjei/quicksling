@@ -52,6 +52,13 @@ public:
 
 int Run(LPTSTR /*lpstrCmdLine*/ = NULL, int nCmdShow = SW_SHOWDEFAULT)
 {
+	InitLogger();
+
+	{
+		auto l = spdlog::get("quicksling");
+		l->info("Welcome to QuickslingShell (Version {}, Process ID {}, Main Thread {})", CW2A(defaultConductor.orchestrator.qbInfo.version, CP_UTF8), GetCurrentProcessId(), GetCurrentThreadId());
+	}
+
 	CMessageLoop theLoop;
 	QuickslingMessageFilter quickslingMsgFilter;
 
@@ -102,11 +109,6 @@ int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPTSTR lp
 		mpSender->setCallback(ExceptionCallback);
 	}
 
-	InitLogger();
-	auto l = spdlog::get("quicksling");
-
-	l->info("Welcome to QuickslingShell (Version {}, Process ID {}, Main Thread {})", CW2A(defaultConductor.orchestrator.qbInfo.version, CP_UTF8), GetCurrentProcessId(), GetCurrentThreadId());
-
 	HRESULT hRes = ::CoInitialize(NULL);
 // If you are running on NT 4.0 or higher you can use the following call instead to 
 // make the EXE free threaded. This means that calls come in on a random RPC thread.
@@ -148,6 +150,56 @@ int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPTSTR lp
 		CefShutdown();
 	}
 	else {
+		if (! IsDebuggerPresent()) {
+			HANDLE snapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, NULL);
+
+			PROCESSENTRY32 selfEntry;
+			PROCESSENTRY32 parentEntry;
+
+			{
+				PROCESSENTRY32 entry;
+				entry.dwSize = sizeof(PROCESSENTRY32);
+
+				if (Process32First(snapshot, &entry) == TRUE) {
+					while (Process32Next(snapshot, &entry) == TRUE) {
+						CString procEntry(entry.szExeFile);
+
+						if (entry.th32ProcessID == GetCurrentProcessId()) {
+							selfEntry = entry;
+						}
+					}
+				}
+			}
+
+			{
+				PROCESSENTRY32 entry;
+				entry.dwSize = sizeof(PROCESSENTRY32);
+
+				if (Process32First(snapshot, &entry) == TRUE) {
+					while (Process32Next(snapshot, &entry) == TRUE) {
+						CString procEntry(entry.szExeFile);
+
+						if (entry.th32ProcessID == selfEntry.th32ParentProcessID) {
+							parentEntry = entry;
+						}
+					}
+				}
+
+			}
+
+			CString parentExe = parentEntry.szExeFile;
+			CloseHandle(snapshot);
+
+			parentExe.MakeLower();
+			parentExe.TrimLeft();
+			parentExe.TrimRight();
+
+			if (parentExe != "quickslingshell.exe") {
+				MessageBox(NULL, _T("QuickSling must be started by QuickBooks"), _T("Start QuickSling through QuickBooks"), MB_OK);
+				return 0;
+			}
+		}
+
 		TCHAR szTokens[] = _T("-/");
 		LPCTSTR lpszToken = _Module.FindOneOf(::GetCommandLine(), szTokens);
 		CString* currentToken = new CString(lpszToken);
@@ -207,3 +259,4 @@ bool ExceptionCallback(UINT nCode, LPVOID lpVal1, LPVOID lpVal2)
 
 	return false;
 }
+
