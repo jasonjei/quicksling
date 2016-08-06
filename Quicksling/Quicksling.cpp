@@ -105,7 +105,11 @@ int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPTSTR lp
 {
 	if (!IsDebuggerPresent())
 	{
-		mpSender = new MiniDmpSender(L"Quicksling1_0", L"Quicksling", QUICKSLING_VER, NULL);
+		CString version = QUICKSLING_VER;
+#ifdef DEBUG
+		version += "D";
+#endif
+		mpSender = new MiniDmpSender(BUGSPLAT_DB, BUGSPLAT_APP, version, NULL);
 		mpSender->setCallback(ExceptionCallback);
 	}
 

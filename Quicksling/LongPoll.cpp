@@ -7,9 +7,13 @@
 #include "LongPoll.h"
 #include <strsafe.h>
 #include <exception>
+#include "BugSplat.h"
 
 extern LongPoll* defaultPoll;
 extern Conductor defaultConductor;
+
+extern bool ExceptionCallback(UINT nCode, LPVOID lpVal1, LPVOID lpVal2);
+extern MiniDmpSender *mpSender;
 
 void __stdcall CallMaster(
 	HINTERNET hInternet,
@@ -167,6 +171,74 @@ int LongPoll::GetBugsplatSettings() {
 		std::wistringstream downloadManifestStream((LPCTSTR)pageSource);
 		configIni.Load(downloadManifestStream, false);
 		settingsSec = configIni.GetSection(_T("settings"));
+
+		if (settingsSec != NULL) {
+			CIniKeyW* databaseKey = settingsSec->GetKey(_T("database"));
+			
+			CString version = QUICKSLING_VER;
+#ifdef DEBUG
+			version += "D";
+#endif
+
+			CString databaseVal = BUGSPLAT_DB, appVal = BUGSPLAT_APP, versionVal = version;
+			bool noninteractive = false;
+
+			if (databaseKey != NULL) {
+				databaseVal = databaseKey->GetValue().c_str();
+				databaseVal.TrimLeft();
+				databaseVal.TrimRight();
+				
+				if (databaseVal.IsEmpty()) {
+					databaseVal = BUGSPLAT_DB;
+				}
+			}
+
+			CIniKeyW* appKey = settingsSec->GetKey(_T("app"));
+			if (appKey != NULL) {
+				appVal = appKey->GetValue().c_str();
+				appVal.TrimLeft();
+				appVal.TrimRight();
+
+				if (appVal.IsEmpty()) {
+					appVal = BUGSPLAT_APP;
+				}
+			}
+
+			CIniKeyW* versionKey = settingsSec->GetKey(_T("version"));
+			if (versionKey != NULL) {
+				versionVal = versionKey->GetValue().c_str();
+				versionVal.TrimLeft();
+				versionVal.TrimRight();
+
+				if (versionVal.IsEmpty()) {
+					versionVal = version;
+				}
+			}
+
+			CIniKeyW* noninteractiveKey = settingsSec->GetKey(_T("noninteractive"));
+			if (noninteractiveKey != NULL) {
+				CString noninteractiveVal = noninteractiveKey->GetValue().c_str();
+				noninteractiveVal.TrimLeft();
+				noninteractiveVal.TrimRight();
+				noninteractiveVal.MakeLower();
+				
+				if (noninteractiveVal == "true" || noninteractiveVal == "1") {
+					noninteractive = true;
+				}
+			}
+
+			if (!IsDebuggerPresent())
+			{
+				delete mpSender;
+				mpSender = new MiniDmpSender(databaseVal, appVal, versionVal, NULL);
+				mpSender->setCallback(ExceptionCallback);
+
+				if (noninteractive == true) {
+					mpSender->setFlags(MDSF_NONINTERACTIVE | mpSender->getFlags());
+				}
+			}
+
+		}
 	}
 
 }
