@@ -125,3 +125,5 @@ cef_binary*/Release/*
 *.msi
 *.wixobj
 *.wixpdb
+
+tools/quicklet.pfx

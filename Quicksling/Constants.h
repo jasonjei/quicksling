@@ -20,6 +20,7 @@ static const CString SUBSCRIBER_ID = "{50189E8B-938E-40B8-ABD3-18A9812ADEC0}";
 #define QUICKSLING_VER L"1.0.0.0"
 #define BUGSPLAT_DB L"Quicksling1_0"
 #define BUGSPLAT_APP L"Quicksling"
+#define QUICKSLING_DISABLE_MESSAGE L"Quicksling must be updated for Quicklet to work."
 
 #ifdef DEBUG
 static const CString APP_NAME = "Quicklet";

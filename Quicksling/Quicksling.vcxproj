@@ -76,6 +76,11 @@
       <TypeLibraryName>$(IntDir)/Quicksling.tlb</TypeLibraryName>
       <DllDataFileName />
     </Midl>
+    <PostBuildEvent>
+      <Command>if exist "$(SolutionDir)\tools\quicklet.pfx" (
+"$(SolutionDir)\tools\SignTool.exe" sign /f "$(SolutionDir)\tools\quicklet.pfx" /tr http://tsa.starfieldtech.com /td SHA256 "$(OutputPath)$(TargetFileName)"
+)</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -109,6 +114,11 @@
       <TypeLibraryName>$(IntDir)/Quicksling.tlb</TypeLibraryName>
       <DllDataFileName />
     </Midl>
+    <PostBuildEvent>
+      <Command>if exist "$(SolutionDir)\tools\quicklet.pfx" (
+"$(SolutionDir)\tools\SignTool.exe" sign /f "$(SolutionDir)\tools\quicklet.pfx" /tr http://tsa.starfieldtech.com /td SHA256 $(TargetFileName)
+)</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="BrowserHandler.cpp" />

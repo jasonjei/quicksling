@@ -4,8 +4,12 @@
 #include "SpawnCanary.h"
 #include "Conductor.h"
 #include <string>
+#include "BugSplat.h"
 
 extern Conductor defaultConductor;
+
+extern bool ExceptionCallback(UINT nCode, LPVOID lpVal1, LPVOID lpVal2);
+extern MiniDmpSender *mpSender;
 
 SpawnCanary::SpawnCanary(void) {
 }
@@ -24,6 +28,11 @@ DWORD SpawnCanary::StartThread() {
 DWORD WINAPI SpawnCanary::RunThread(LPVOID lpData) {
 	auto l = spdlog::get("quicksling_shell");
 
+	int result = defaultConductor.orchestrator.spawnCanary.GetClientSettings();
+	if (result == 0) {
+		l->error("Couldn't start Quicksling because version is disabled remotely.");
+		return 0;
+	}
 	defaultConductor.orchestrator.downloader.DoDownload();
 
 	if (defaultConductor.orchestrator.spawnCanary.StartBrainProcess() == false) {
@@ -198,3 +207,155 @@ void SpawnCanary::StopBrainProcess() {
 	}
 }
 
+int SpawnCanary::GetClientSettings() {
+	CIniFile configIni;
+
+	CString version = QUICKSLING_SHELL_VER;
+#ifdef DEBUG
+	version += "D";
+#endif
+	CString sURL = URLS::APP_SERVER + "client/settings?client=QuickslingShell&version=" + version;
+
+	CInternetSession Session(_T("Quicksling Downloader"));
+	WORD timeout = 10000;
+	DeleteUrlCacheEntry(sURL);
+
+	Session.SetOption(INTERNET_OPTION_RECEIVE_TIMEOUT, timeout);
+	Session.SetOption(INTERNET_OPTION_SEND_TIMEOUT, timeout);
+
+	CHttpFile* cHttpFile = NULL;
+	int fail = 0;
+
+
+	try {
+		cHttpFile = new CHttpFile(Session, sURL, NULL, 0, INTERNET_FLAG_DONT_CACHE);
+	}
+
+	catch (CInternetException& e) {
+		fail = 1;
+		delete cHttpFile;
+	}
+
+	if (!fail) {
+		WTL::CString pageSource;
+		CIniFile configIni;
+
+		CIniSectionW* settingsSec;
+
+		UINT bytes = (UINT)cHttpFile->GetLength();
+
+		char tChars[2048 + 1];
+		int bytesRead;
+
+		while ((bytesRead = cHttpFile->Read((LPVOID)tChars, 2048)) != 0) {
+			tChars[bytesRead] = '\0';
+			pageSource += CA2W((LPCSTR)tChars, CP_UTF8);
+		}
+
+		delete cHttpFile;
+
+		std::wistringstream downloadManifestStream((LPCTSTR)pageSource);
+		configIni.Load(downloadManifestStream, false);
+		settingsSec = configIni.GetSection(_T("settings"));
+
+		if (settingsSec != NULL) {
+			CIniKeyW* databaseKey = settingsSec->GetKey(_T("database"));
+
+			CString version = QUICKSLING_SHELL_VER;
+#ifdef DEBUG
+			version += "D";
+#endif
+
+			CString databaseVal = BUGSPLAT_DB, appVal = BUGSPLAT_APP, versionVal = version, disableMsgVal = QUICKSLING_DISABLE_MESSAGE;
+			bool noninteractive = false, disable = false;
+
+			if (databaseKey != NULL) {
+				databaseVal = databaseKey->GetValue().c_str();
+				databaseVal.TrimLeft();
+				databaseVal.TrimRight();
+
+				if (databaseVal.IsEmpty()) {
+					databaseVal = BUGSPLAT_DB;
+				}
+			}
+
+			CIniKeyW* appKey = settingsSec->GetKey(_T("app"));
+			if (appKey != NULL) {
+				appVal = appKey->GetValue().c_str();
+				appVal.TrimLeft();
+				appVal.TrimRight();
+
+				if (appVal.IsEmpty()) {
+					appVal = BUGSPLAT_APP;
+				}
+			}
+
+			CIniKeyW* versionKey = settingsSec->GetKey(_T("version"));
+			if (versionKey != NULL) {
+				versionVal = versionKey->GetValue().c_str();
+				versionVal.TrimLeft();
+				versionVal.TrimRight();
+
+				if (versionVal.IsEmpty()) {
+					versionVal = version;
+				}
+			}
+
+			CIniKeyW* noninteractiveKey = settingsSec->GetKey(_T("noninteractive"));
+			if (noninteractiveKey != NULL) {
+				CString noninteractiveVal = noninteractiveKey->GetValue().c_str();
+				noninteractiveVal.TrimLeft();
+				noninteractiveVal.TrimRight();
+				noninteractiveVal.MakeLower();
+
+				if (noninteractiveVal == "true" || noninteractiveVal == "1") {
+					noninteractive = true;
+				}
+			}
+
+			CIniKeyW* disableKey = settingsSec->GetKey(_T("disable"));
+			if (disableKey != NULL) {
+				CString disableVal = disableKey->GetValue().c_str();
+				disableVal.TrimLeft();
+				disableVal.TrimRight();
+				disableVal.MakeLower();
+
+				if (disableVal == "true" || disableVal == "1") {
+					disable = true;
+				}
+			}
+
+			CIniKeyW* disableMsgKey = settingsSec->GetKey(_T("disable_message"));
+			if (disableMsgKey != NULL) {
+				disableMsgVal = disableMsgKey->GetValue().c_str();
+				disableMsgVal.TrimLeft();
+				disableMsgVal.TrimRight();
+
+				if (disableMsgVal.IsEmpty()) {
+					disableMsgVal = QUICKSLING_DISABLE_MESSAGE;
+				}
+			}
+
+			if (disable == true) {
+				MessageBox(NULL, disableMsgVal, _T("This version of QuickSling is disabled"), MB_OK);
+
+				SetEvent(defaultConductor.orchestrator.goOfflineSignal);
+				PostMessage(defaultConductor.orchestrator.cMainDlg->m_hWnd, WM_CLOSE, NULL, NULL);
+				return 0;
+			}
+
+			if (!IsDebuggerPresent())
+			{
+				delete mpSender;
+				mpSender = new MiniDmpSender(databaseVal, appVal, versionVal, NULL);
+				mpSender->setCallback(ExceptionCallback);
+
+				if (noninteractive == true) {
+					mpSender->setFlags(MDSF_NONINTERACTIVE | mpSender->getFlags());
+				}
+			}
+
+			return 1;
+		}
+	}
+}

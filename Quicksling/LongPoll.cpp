@@ -56,7 +56,7 @@ DWORD WINAPI LongPoll::RunThread(LPVOID lpData) {
 	DWORD res = NULL;
 	CString sURL;
 	
-	poll->GetBugsplatSettings();
+	poll->GetClientSettings();
 
 	while (poll->timeToQuit != 1) {
 		// make a call to /clients/wait
@@ -126,9 +126,9 @@ int LongPoll::GoOffline() {
 	return 1;
 }
 
-int LongPoll::GetBugsplatSettings() {
+int LongPoll::GetClientSettings() {
 	CIniFile configIni;
-	CString sURL = URLS::APP_SERVER + "client_settings/bugsplat?client=Quicksling&version=" + this->orchestrator->qbInfo.version;
+	CString sURL = URLS::APP_SERVER + "client/settings?client=Quicksling&version=" + this->orchestrator->qbInfo.version;
 
 	CInternetSession Session(_T("Quicksling Downloader"));
 	WORD timeout = 10000;
@@ -180,8 +180,8 @@ int LongPoll::GetBugsplatSettings() {
 			version += "D";
 #endif
 
-			CString databaseVal = BUGSPLAT_DB, appVal = BUGSPLAT_APP, versionVal = version;
-			bool noninteractive = false;
+			CString databaseVal = BUGSPLAT_DB, appVal = BUGSPLAT_APP, versionVal = version, disableMsgVal = QUICKSLING_DISABLE_MESSAGE;
+			bool noninteractive = false, disable = false;
 
 			if (databaseKey != NULL) {
 				databaseVal = databaseKey->GetValue().c_str();
@@ -227,6 +227,35 @@ int LongPoll::GetBugsplatSettings() {
 				}
 			}
 
+			CIniKeyW* disableKey = settingsSec->GetKey(_T("disable"));
+			if (disableKey != NULL) {
+				CString disableVal = disableKey->GetValue().c_str();
+				disableVal.TrimLeft();
+				disableVal.TrimRight();
+				disableVal.MakeLower();
+
+				if (disableVal == "true" || disableVal == "1") {
+					disable = true;
+				}
+			}
+
+			CIniKeyW* disableMsgKey = settingsSec->GetKey(_T("disable_message"));
+			if (disableMsgKey != NULL) {
+				disableMsgVal = disableMsgKey->GetValue().c_str();
+				disableMsgVal.TrimLeft();
+				disableMsgVal.TrimRight();
+
+				if (disableMsgVal.IsEmpty()) {
+					disableMsgVal = QUICKSLING_DISABLE_MESSAGE;
+				}
+			}
+
+
+			if (disable == true) {
+				MessageBox(NULL, disableMsgVal, _T("This version of QuickSling is disabled"), MB_OK);
+				PostMessage(defaultOrchestrator->cMainDlg->m_hWnd, WM_CLOSE, NULL, NULL);
+			}
+
 			if (!IsDebuggerPresent())
 			{
 				delete mpSender;
@@ -240,7 +269,6 @@ int LongPoll::GetBugsplatSettings() {
 
 		}
 	}
-
 }
 
 int LongPoll::DoLongPoll() {

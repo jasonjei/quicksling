@@ -3,3 +3,5 @@ LIBRARY "VerifyQBInstalled"
 EXPORTS
 
 CustomAction1
+
+CustomAction2

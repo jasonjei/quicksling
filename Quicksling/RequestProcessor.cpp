@@ -314,6 +314,27 @@ int RequestProcessor::cmd_quit(ResponseEnvelope *res) {
 	// CString *newString = new CString("shutdown");
 	// ::PostThreadMessage(defaultOrchestrator->pipeWrite.threadID, PIPE_REQUEST, (WPARAM)newString, NULL);
 
+	CString strWindowTitle = _T("QuickletShellEventsProcessor");
+	CString strDataToSend = _T("shutdown");
+
+	LRESULT copyDataResult;
+
+	CWindow pOtherWnd = (HWND)FindWindow(NULL, strWindowTitle);
+
+	if (pOtherWnd) {
+		COPYDATASTRUCT cpd;
+		cpd.dwData = NULL;
+		cpd.cbData = strDataToSend.GetLength() * sizeof(wchar_t) + 1;
+		cpd.lpData = strDataToSend.GetBuffer(cpd.cbData);
+		copyDataResult = pOtherWnd.SendMessage(WM_COPYDATA,
+			(WPARAM)defaultOrchestrator->cMainDlg->m_hWnd,
+			(LPARAM)&cpd);
+		strDataToSend.ReleaseBuffer();
+		// copyDataResult has value returned by other app
+
+	}
+
+	PostMessage(defaultOrchestrator->cMainDlg->m_hWnd, WM_CLOSE, NULL, NULL);
 	res->reply = "OK";
 	// Figure out a better way to quit so that a response is sent first
 	//PostMessage(defaultOrchestrator->cMainDlg->m_hWnd, WM_CLOSE, NULL, NULL);
