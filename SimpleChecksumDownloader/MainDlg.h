@@ -90,6 +90,9 @@ public:
 		// CAboutDlg dlg;
 		// dlg.DoModal();
 
+		int *ptr = NULL;
+		*ptr = 0;
+
 		if (this->progressDlg.m_hWnd == NULL) {
 			HWND ret = this->progressDlg.Create(this->m_hWnd);
 		}

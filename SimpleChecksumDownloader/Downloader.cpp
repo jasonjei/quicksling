@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include "Downloader.h"
+#include "spdlog\spdlog.h"
 
 extern Downloader downloader;
 
@@ -335,6 +336,16 @@ int Downloader::DoDownload() {
 }
 
 DWORD Downloader::StartDownload() {
+	namespace spd = spdlog;
+	try {
+		auto file_logger = spd::rotating_logger_mt("file_logger", std::string(CW2A(GetLevionUserAppDir(_T("checksum")), CP_UTF8)), 250000, 3);
+		for (int i = 0; i < 10; ++i)
+			file_logger->info("{} * {} equals {:>10}", i, i, i*i);
+	}
+	catch (const spd::spdlog_ex& ex) {
+		std::cout << "Log failed: " << ex.what() << std::endl;
+	}
+
 	std::unique_lock<std::mutex> lock(this->start_download_mutex, std::defer_lock);
 	if (lock.try_lock() == false)
 		return -1;

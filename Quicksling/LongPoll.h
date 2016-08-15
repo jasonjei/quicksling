@@ -15,7 +15,8 @@ public:
 	int EndRequestNow();
 	int ReceivedMessage(CString *text);
 	int DoLongPoll();
-	int GoOffline();
+	int GoOffline(bool change_auth_key = false);
+	int GetClientSettings();
 	DWORD StartThread();
 	int connected;
 

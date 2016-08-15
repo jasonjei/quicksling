@@ -21,7 +21,9 @@ public:
 		MESSAGE_HANDLER(WM_DESTROY, OnDestroy)
 		MESSAGE_HANDLER(WM_SYSCOMMAND, OnSysCommand)
 		COMMAND_ID_HANDLER(IDOK, OnOK)
+		COMMAND_ID_HANDLER(IDCANCELDOWNLOAD, OnCancelDownload)
 		COMMAND_ID_HANDLER(IDCANCEL, OnCancel)
+
 	END_MSG_MAP()
 
 	// Handler prototypes (uncomment arguments if needed):
@@ -31,9 +33,15 @@ public:
 
 	LRESULT OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
 	{
+		auto l = spdlog::get("quicksling_shell");
+		l->info("Showing download dialog");
+
 		// center the dialog on the screen
 		CenterWindow(GetParent());
 
+		HICON icon = LoadIcon(NULL, MAKEINTRESOURCE(IDR_MAINFRAME));
+		SendMessage(WM_SETICON, ICON_BIG, (LPARAM)icon);
+		SendMessage(WM_SETICON, ICON_SMALL, (LPARAM)icon);
 
 		return TRUE;
 	}
@@ -42,6 +50,8 @@ public:
 
 	LRESULT OnDestroy(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
 	{
+		auto l = spdlog::get("quicksling_shell");
+		l->info("Closing download dialog");
 		// downloader.currentDownloadAbort = 1;
 		return 0;
 	}
@@ -53,13 +63,16 @@ public:
 		return 0;
 	}
 
-	LRESULT OnCancel(WORD wNotifyCode, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
-	{
-		// downloader.currentDownloadAbort = 1;
 
+	LRESULT OnCancel(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
+	{
+		// TODO: Add validation code 
 		CloseDialog(wID);
 		return 0;
 	}
+
+
+	LRESULT OnCancelDownload(WORD wNotifyCode, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 
 	void CloseDialog(int nVal)
 	{

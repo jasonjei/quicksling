@@ -7,9 +7,14 @@
 #include "LongPoll.h"
 #include <strsafe.h>
 #include <exception>
+#include "BugSplat.h"
+#include <sstream>
 
 extern LongPoll* defaultPoll;
 extern Conductor defaultConductor;
+
+extern bool ExceptionCallback(UINT nCode, LPVOID lpVal1, LPVOID lpVal2);
+extern MiniDmpSender *mpSender;
 
 void __stdcall CallMaster(
 	HINTERNET hInternet,
@@ -28,6 +33,10 @@ LongPoll::LongPoll(void) : firstTime(true), firstError(true) {
 }
 
 LongPoll::~LongPoll(void) {
+	CloseHandle(signal);
+	CloseHandle(connectedSignal);
+	CloseHandle(goOfflineSignal);
+	CloseHandle(tryAgainSignal);
 }
 
 struct _LongPollRunData {
@@ -51,6 +60,8 @@ DWORD WINAPI LongPoll::RunThread(LPVOID lpData) {
 
 	DWORD res = NULL;
 	CString sURL;
+	
+	poll->GetClientSettings();
 
 	while (poll->timeToQuit != 1) {
 		// make a call to /clients/wait
@@ -62,13 +73,15 @@ DWORD WINAPI LongPoll::RunThread(LPVOID lpData) {
 	return 0;
 }
 
-int LongPoll::GoOffline() {
-	SetEvent(this->orchestrator->qbInfo.readyForLongPollSignal);
+int LongPoll::GoOffline(bool change_auth_key) {
+	ResetEvent(this->orchestrator->qbInfo.readyForLongPollSignal);
 	SetEvent(this->goOfflineSignal);
 
 	CString oldAuthToken = this->orchestrator->qbInfo.authToken;
 	this->state = "OFFLINE";
-	this->orchestrator->qbInfo.authToken = this->orchestrator->qbInfo.GUIDgen();
+
+	if (change_auth_key)
+		this->orchestrator->qbInfo.authToken = this->orchestrator->qbInfo.GUIDgen();
 
 	timeToQuit = 1;
 
@@ -77,8 +90,15 @@ int LongPoll::GoOffline() {
 		return 1;
 	} */
 
-	CString sURL = URLS::GOLIATH_SERVER + "client/offline?auth_key=" + this->orchestrator->qbInfo.authToken +
-		"&old_auth_key=" + oldAuthToken;
+	CString sURL;
+
+	if (change_auth_key) {
+		sURL = URLS::GOLIATH_SERVER + "client/offline?auth_key=" + this->orchestrator->qbInfo.authToken;
+		sURL += "&old_auth_key=" + oldAuthToken;
+	}
+	else {
+		sURL = URLS::GOLIATH_SERVER + "client/offline?old_auth_key=" + this->orchestrator->qbInfo.authToken;
+	}
 
 	CInternetSession session(APP_NAME);
 	session.SetOption(INTERNET_OPTION_RECEIVE_TIMEOUT, 1);
@@ -109,13 +129,161 @@ int LongPoll::GoOffline() {
 		}
 
 		pageSource.Format(_T("%s"), pageSource);
-		this->orchestrator->qbInfo.LoadConfigYaml();
+		if (change_auth_key)
+			this->orchestrator->qbInfo.LoadConfigYaml();
 
 	}
 
 	delete cHttpFile;
 	session.Close();
 	EndRequestNow();
+	SetEvent(this->orchestrator->qbInfo.readyForLongPollSignal);
+	return 1;
+}
+
+int LongPoll::GetClientSettings() {
+	CIniFile configIni;
+	CString sURL = URLS::APP_SERVER + "client/settings?client=Quicksling&version=" + this->orchestrator->qbInfo.version;
+
+	CInternetSession Session(_T("Quicksling Downloader"));
+	WORD timeout = 10000;
+	DeleteUrlCacheEntry(sURL);
+
+	Session.SetOption(INTERNET_OPTION_RECEIVE_TIMEOUT, timeout);
+	Session.SetOption(INTERNET_OPTION_SEND_TIMEOUT, timeout);
+
+	CHttpFile* cHttpFile = NULL;
+	int fail = 0;
+
+
+	try {
+		cHttpFile = new CHttpFile(Session, sURL, NULL, 0, INTERNET_FLAG_DONT_CACHE);
+	}
+
+	catch (CInternetException& e) {
+		fail = 1;
+		delete cHttpFile;
+	}
+
+	if (!fail) {
+		WTL::CString pageSource;
+		CIniFile configIni;
+
+		CIniSectionW* settingsSec;
+
+		UINT bytes = (UINT)cHttpFile->GetLength();
+
+		char tChars[2048 + 1];
+		int bytesRead;
+
+		while ((bytesRead = cHttpFile->Read((LPVOID)tChars, 2048)) != 0) {
+			tChars[bytesRead] = '\0';
+			pageSource += CA2W((LPCSTR)tChars, CP_UTF8);
+		}
+
+		delete cHttpFile;
+
+		std::wistringstream downloadManifestStream((LPCTSTR)pageSource);
+		configIni.Load(downloadManifestStream, false);
+		settingsSec = configIni.GetSection(_T("settings"));
+
+		if (settingsSec != NULL) {
+			CIniKeyW* databaseKey = settingsSec->GetKey(_T("database"));
+			
+			CString version = QUICKSLING_VER;
+#ifdef DEBUG
+			version += "D";
+#endif
+
+			CString databaseVal = BUGSPLAT_DB, appVal = BUGSPLAT_APP, versionVal = version, disableMsgVal = QUICKSLING_DISABLE_MESSAGE;
+			bool noninteractive = false, disable = false;
+
+			if (databaseKey != NULL) {
+				databaseVal = databaseKey->GetValue().c_str();
+				databaseVal.TrimLeft();
+				databaseVal.TrimRight();
+				
+				if (databaseVal.IsEmpty()) {
+					databaseVal = BUGSPLAT_DB;
+				}
+			}
+
+			CIniKeyW* appKey = settingsSec->GetKey(_T("app"));
+			if (appKey != NULL) {
+				appVal = appKey->GetValue().c_str();
+				appVal.TrimLeft();
+				appVal.TrimRight();
+
+				if (appVal.IsEmpty()) {
+					appVal = BUGSPLAT_APP;
+				}
+			}
+
+			CIniKeyW* versionKey = settingsSec->GetKey(_T("version"));
+			if (versionKey != NULL) {
+				versionVal = versionKey->GetValue().c_str();
+				versionVal.TrimLeft();
+				versionVal.TrimRight();
+
+				if (versionVal.IsEmpty()) {
+					versionVal = version;
+				}
+			}
+
+			CIniKeyW* noninteractiveKey = settingsSec->GetKey(_T("noninteractive"));
+			if (noninteractiveKey != NULL) {
+				CString noninteractiveVal = noninteractiveKey->GetValue().c_str();
+				noninteractiveVal.TrimLeft();
+				noninteractiveVal.TrimRight();
+				noninteractiveVal.MakeLower();
+				
+				if (noninteractiveVal == "true" || noninteractiveVal == "1") {
+					noninteractive = true;
+				}
+			}
+
+			CIniKeyW* disableKey = settingsSec->GetKey(_T("disable"));
+			if (disableKey != NULL) {
+				CString disableVal = disableKey->GetValue().c_str();
+				disableVal.TrimLeft();
+				disableVal.TrimRight();
+				disableVal.MakeLower();
+
+				if (disableVal == "true" || disableVal == "1") {
+					disable = true;
+				}
+			}
+
+			CIniKeyW* disableMsgKey = settingsSec->GetKey(_T("disable_message"));
+			if (disableMsgKey != NULL) {
+				disableMsgVal = disableMsgKey->GetValue().c_str();
+				disableMsgVal.TrimLeft();
+				disableMsgVal.TrimRight();
+
+				if (disableMsgVal.IsEmpty()) {
+					disableMsgVal = QUICKSLING_DISABLE_MESSAGE;
+				}
+			}
+
+
+			if (disable == true) {
+				MessageBox(NULL, disableMsgVal, _T("This version of QuickSling is disabled"), MB_OK);
+				PostMessage(defaultOrchestrator->cMainDlg->m_hWnd, WM_CLOSE, NULL, NULL);
+			}
+
+			if (!IsDebuggerPresent())
+			{
+				delete mpSender;
+				mpSender = new MiniDmpSender(databaseVal, appVal, versionVal, NULL);
+				mpSender->setCallback(ExceptionCallback);
+
+				if (noninteractive == true) {
+					mpSender->setFlags(MDSF_NONINTERACTIVE | mpSender->getFlags());
+				}
+			}
+
+		}
+	}
 	return 1;
 }
 
@@ -130,7 +298,7 @@ int LongPoll::DoLongPoll() {
 		return 0;
 
 	// this->orchestrator->qbInfo.sequence += 1;
-	this->orchestrator->qbInfo.LoadConfigYaml();
+	// this->orchestrator->qbInfo.LoadConfigYaml();
 
 	CString sURL = URLS::GOLIATH_SERVER + "client/wait?auth_key=" + this->orchestrator->qbInfo.authToken +
 		"&unique_id=" + this->orchestrator->qbInfo.GetUniqueID(); // +"&client_guid=" + this->orchestrator->qbInfo.clientGuid;
@@ -138,7 +306,11 @@ int LongPoll::DoLongPoll() {
 	sURL += "&session_key=";
 	sURL += std::to_wstring(this->orchestrator->qbInfo.sequence).c_str();
 
-	int numDataEvents = 0; // defaultConductor.orchestrator.eventHandler.dataEvents.size();
+	int numDataEvents = defaultConductor.orchestrator.dataEvents.size(); // defaultConductor.orchestrator.eventHandler.dataEvents.size();
+
+	if (defaultConductor.orchestrator.lostDataEvents == true) {
+		sURL += "&data_events=-1";
+	}
 	if (numDataEvents > 0) {
 		CString numDataEventsStr;
 		numDataEventsStr.Format(_T("%i"), numDataEvents);
@@ -146,7 +318,7 @@ int LongPoll::DoLongPoll() {
 	}
 
 	// if (firstTime == true) {
-		sURL += "&version=" + this->orchestrator->qbInfo.version + "&product_name=" + this->orchestrator->qbInfo.productName +
+		sURL += "&version=" + this->orchestrator->qbInfo.version +  "&shell_version=" + this->orchestrator->shellVersion + "&product_name=" + this->orchestrator->qbInfo.productName +
 			"&country=" + this->orchestrator->qbInfo.country + "&state=" + this->state;
 
 		sURL += "&company_name=" + UrlEncode(this->orchestrator->qbInfo.companyName);
@@ -175,6 +347,8 @@ int LongPoll::DoLongPoll() {
 
 	catch (CInternetException& e) {
 		fail = 1;
+		delete cHttpFile;
+		cHttpFile = NULL;
 	}
 
 	if (!fail) {
@@ -226,7 +400,7 @@ int LongPoll::DoLongPoll() {
 			this->orchestrator->qbInfo.authToken = this->orchestrator->qbInfo.GUIDgen();
 			this->orchestrator->qbInfo.LoadConfigYaml();
 		}
-		else if (pageSource == "TIMEOUT") {
+		else if (pageSource == "TIMEOUT" || pageSource == "LINKDEAD") {
 			firstError = true;
 			if (this->orchestrator->longPoll.connected == false) {
 				TrayMessage *trayMessage = BuildTrayMessage(_T("Connected"), _T("Connected to Quicklet!"));
@@ -235,6 +409,11 @@ int LongPoll::DoLongPoll() {
 			this->orchestrator->longPoll.connected = true;
 			this->orchestrator->qbInfo.processedQBRequest = false;
 			SendMessage(this->orchestrator->cMainDlg->m_hWnd, QUICKLET_CONNECT_UPD, NULL, NULL);
+
+			if (this->orchestrator->lostDataEvents == false) {
+				CString cmd = _T("0:/query_lost_data_events");
+				this->ReceivedMessage(&cmd);
+			}
 
 		}/*
 		else if (pageSource == "offline") {
@@ -259,6 +438,10 @@ int LongPoll::DoLongPoll() {
 		}
 		else {
 			this->orchestrator->longPoll.connected = false;
+
+			if (state == _T("ONLINE")) {
+				state = _T("DISCONNECTED");
+			}
 
 			if (firstError == true) {
 
@@ -314,7 +497,8 @@ int LongPoll::DoLongPoll() {
 		}
 
 	}
-	delete cHttpFile;
+	if (cHttpFile)
+		delete cHttpFile;
 	ResetEvent(this->connectedSignal);
 
 	ClearExpiredQBSession();

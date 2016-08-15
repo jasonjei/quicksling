@@ -64,7 +64,7 @@ public:
 
 	LRESULT OnCancel(WORD wNotifyCode, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 	{
-		// downloader.currentDownloadAbort = 1;
+		downloader.currentDownloadAbort = 1;
 
 		CloseDialog(wID);
 		return 0;

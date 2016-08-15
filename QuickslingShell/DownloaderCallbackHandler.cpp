@@ -29,7 +29,8 @@ LPCWSTR /*szStatusText*/) {
 		// tcout << _T("Cache filename available") << endl;
 		break;
 	case BINDSTATUS_BEGINDOWNLOADDATA:
-		SendMessage(defaultConductor.orchestrator.cMainDlg->m_hWnd, SHOW_DOWNLOAD_PROGRESS, NULL, NULL);
+		if (defaultConductor.orchestrator.cMainDlg && defaultConductor.orchestrator.cMainDlg->m_hWnd)
+			SendMessage(defaultConductor.orchestrator.cMainDlg->m_hWnd, SHOW_DOWNLOAD_PROGRESS, NULL, NULL);
 		// tcout << _T("Begin download") << endl;
 		break;
 	case BINDSTATUS_DOWNLOADINGDATA:
@@ -62,8 +63,10 @@ LPCWSTR /*szStatusText*/) {
 
 			lastBytes = ulProgress;
 			lastTime = nowTime;
-			if (defaultConductor.orchestrator.downloader.currentDownloadAbort == 0)
-				PostMessage(defaultConductor.orchestrator.cMainDlg->m_hWnd, SHOW_DOWNLOAD_PROGRESS, NULL, NULL);
+			if (defaultConductor.orchestrator.downloader.currentDownloadAbort == 0) {
+				if (defaultConductor.orchestrator.cMainDlg && defaultConductor.orchestrator.cMainDlg->m_hWnd)
+					PostMessage(defaultConductor.orchestrator.cMainDlg->m_hWnd, SHOW_DOWNLOAD_PROGRESS, NULL, NULL);
+			}
 			defaultConductor.orchestrator.downloader.currentProgress = percent;
 			// LoadBar(percent, 100);
 			m_percentLast = percent;
@@ -71,7 +74,8 @@ LPCWSTR /*szStatusText*/) {
 		if (ulStatusCode == BINDSTATUS_ENDDOWNLOADDATA)
 		{
 			// tcout << endl << _T("End download") << endl;
-			SendMessage(defaultConductor.orchestrator.cMainDlg->m_hWnd, HIDE_DOWNLOAD_PROGRESS, NULL, NULL);
+			if (defaultConductor.orchestrator.cMainDlg && defaultConductor.orchestrator.cMainDlg->m_hWnd)
+				SendMessage(defaultConductor.orchestrator.cMainDlg->m_hWnd, HIDE_DOWNLOAD_PROGRESS, NULL, NULL);
 
 		}
 	}

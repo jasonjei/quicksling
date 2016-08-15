@@ -38,7 +38,7 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <PostBuildEventUseInBuild>false</PostBuildEventUseInBuild>
+    <PostBuildEventUseInBuild>true</PostBuildEventUseInBuild>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
@@ -52,14 +52,14 @@
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>WIN32;_WINDOWS;STRICT;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(SolutionDir)wtl</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;STRICT;_DEBUG;SPDLOG_WHCAR_FILENAMES;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(SolutionDir)wtl;$(SolutionDir)spdlog\include;$(SolutionDir)BugSplat\inc</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <TargetMachine>MachineX86</TargetMachine>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>urlmon.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>urlmon.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;version.lib;..\BugSplat\lib\BugSplat.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <ResourceCompile>
       <Culture>0x0409</Culture>
@@ -79,7 +79,9 @@
     </Midl>
     <PostBuildEvent>
       <Message>Performing registration...</Message>
-      <Command>"$(TargetPath)" /RegServer</Command>
+      <Command>if exist "$(SolutionDir)\tools\quicklet.pfx" (
+"$(SolutionDir)\tools\SignTool.exe" sign /f "$(SolutionDir)\tools\quicklet.pfx" /tr http://tsa.starfieldtech.com /td SHA256 "$(OutputPath)$(TargetFileName)"
+)</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -88,16 +90,19 @@
       <WarningLevel>Level3</WarningLevel>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <ExceptionHandling />
-      <DebugInformationFormat />
-      <PreprocessorDefinitions>WIN32;_WINDOWS;STRICT;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;STRICT;SPDLOG_WHCAR_FILENAMES;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(SolutionDir)wtl;$(SolutionDir)spdlog\include;$(SolutionDir)BugSplat\inc</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <TargetMachine>MachineX86</TargetMachine>
+      <AdditionalDependencies>urlmon.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;version.lib;..\BugSplat\lib\BugSplat.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <ResourceCompile>
       <Culture>0x0409</Culture>
-      <AdditionalIncludeDirectories>$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(IntDir);%(AdditionalIncludeDirectories);$(SolutionDir)wtl</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ResourceCompile>
     <Midl>
@@ -113,7 +118,9 @@
     </Midl>
     <PostBuildEvent>
       <Message>Performing registration...</Message>
-      <Command>"$(TargetPath)" /RegServer</Command>
+      <Command>if exist "$(SolutionDir)\tools\quicklet.pfx" (
+"$(SolutionDir)\tools\SignTool.exe" sign /f "$(SolutionDir)\tools\quicklet.pfx" /tr http://tsa.starfieldtech.com /td SHA256 "$(OutputPath)$(TargetFileName)"
+)</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -123,6 +130,7 @@
     <ClCompile Include="DownloaderCallbackHandler.cpp" />
     <ClCompile Include="DownloadProgressDlg.cpp" />
     <ClCompile Include="EventHandler.cpp" />
+    <ClCompile Include="exclusion.cpp" />
     <ClCompile Include="inifile.cpp" />
     <ClCompile Include="MainDlg.cpp" />
     <ClCompile Include="qbXMLRPWrapper.cpp" />
@@ -149,6 +157,7 @@
     <ClInclude Include="DownloaderCallbackHandler.h" />
     <ClInclude Include="DownloadProgressDlg.h" />
     <ClInclude Include="EventHandler.h" />
+    <ClInclude Include="exclusion.h" />
     <ClInclude Include="INet.h" />
     <ClInclude Include="info.h" />
     <ClInclude Include="inifile.h" />

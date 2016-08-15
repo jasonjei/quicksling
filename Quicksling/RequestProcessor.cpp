@@ -7,8 +7,10 @@
 #include "MainDlg.h"
 #include <regex>
 #include <time.h>
+#include <sstream>
 
 extern Orchestrator *defaultOrchestrator;
+extern std::mutex mutexDataEvents;
 
 class RequestProcessorMessageIdler : public CIdleHandler {
 public:
@@ -52,9 +54,19 @@ public:
 			const std::string str(CT2A(envelope->message, CP_UTF8));
 
 			actions.Call(str, request, envelope);
-			
+
 			WaitForSingleObject(request->orchestrator->response.signal, INFINITE);
-			PostThreadMessage(request->orchestrator->response.threadID, LEVION_RESPONSE, (WPARAM)envelope, NULL);
+
+			if (envelope->responseKey == _T("0")) {
+				envelope->doNotReply = true;
+			}
+
+			if (envelope->doNotReply == false) {
+				PostThreadMessage(request->orchestrator->response.threadID, LEVION_RESPONSE, (WPARAM)envelope, NULL);
+			}
+			else {
+				delete envelope;
+			}
 
 			delete ((CString*)pMsg->wParam);
 		}
@@ -72,6 +84,7 @@ RequestProcessor::RequestProcessor(void) {
 }
 
 RequestProcessor::~RequestProcessor(void) {
+	CloseHandle(signal);
 }
 
 struct _RunData {
@@ -141,6 +154,15 @@ int RequestProcessor::cmd_show_message(ResponseEnvelope* res) {
 	return 1;
 }
 
+
+int RequestProcessor::cmd_subscribexml(ResponseEnvelope* res) {
+	// TrayMessage *trayMessage = BuildTrayMessage(_T("Levion"), res->body);
+	//SendMessage(this->orchestrator->cMainDlg->m_hWnd, LEVION_MESSAGE_BOX, (WPARAM)trayMessage, NULL);
+	qbXMLRPWrapper qbWrapper;
+	res->reply = qbWrapper.ProcessSubscription((LPCTSTR)res->body).c_str();
+	return 1;
+}
+
 /* This is a catch-all command if we can't find a proper routing */
 int RequestProcessor::cmd_misunderestimate(ResponseEnvelope* res) {
 	res->reply = _T("MISUNDERESTIMATE_MSG_OK");
@@ -163,11 +185,16 @@ int RequestProcessor::cmd_utctime(ResponseEnvelope* res) {
 }
 
 int RequestProcessor::cmd_qb(ResponseEnvelope* res) {
+	if (WaitForSingleObject(this->orchestrator->longPoll.goOfflineSignal, 0) == 0) {
+		res->reply = _T("SHUTDOWN");
+		return 1;
+	}
+
 	this->orchestrator->qbInfo.processedQBRequest = true;
 
 	if (res->body.Compare(_T("versions")) == 0) {
-		if (this->orchestrator->qbInfo.qbxmlVersions.Compare(_T("")) == 0)
-			this->orchestrator->qbInfo.GetInfoFromQB();
+		// if (this->orchestrator->qbInfo.qbxmlVersions.Compare(_T("")) == 0)
+		this->orchestrator->qbInfo.GetInfoFromQB();
 		res->reply = this->orchestrator->qbInfo.qbxmlVersions;
 	}
 	else if (res->body.Compare(_T("startsession")) == 0) {
@@ -183,6 +210,10 @@ int RequestProcessor::cmd_qb(ResponseEnvelope* res) {
 	}
 	else if (res->body.Compare(_T("clear_lost_data_events")) == 0) {
 
+		this->orchestrator->lostDataEvents = false;
+		res->reply = this->orchestrator->qbInfo.ProcessQBXMLRequest(DATA_EVENT_RECOVERY_DELETE);
+		this->orchestrator->dataEvents.clear();
+		this->orchestrator->newDataEvents.clear();
 	}
 	else {
 		res->reply = this->orchestrator->qbInfo.ProcessQBXMLRequest(res->body);
@@ -200,6 +231,7 @@ int RequestProcessor::cmd_utcoffset(ResponseEnvelope *res) {
 int RequestProcessor::cmd_closemodal(ResponseEnvelope *res) {
 	qbXMLRPWrapper qbWrapper;
 	qbWrapper.CloseModal();
+	res->reply = _T("OK");
 	return 1;
 }
 
@@ -226,32 +258,85 @@ int RequestProcessor::cmd_debug_timeout(ResponseEnvelope *res) {
 }
 
 int RequestProcessor::cmd_get_events(ResponseEnvelope *res) {
-	/*
-	CString data_events;
-	for (std::vector<CString>::iterator it = defaultOrchestrator->eventHandler.dataEvents.begin(); it != defaultOrchestrator->eventHandler.dataEvents.end(); ++it) {
-		if (it != defaultOrchestrator->eventHandler.dataEvents.begin())
-			data_events += _T("|-|");
-		data_events += *it;
+	// We clear new data events to differentiate from the events being 
+	// sent to the server now versus events to be sent to the app server
+	// for later.  In essence, this is the start of a new queue.
+	{
+		std::lock_guard<std::mutex> guard(mutexDataEvents);
+		defaultOrchestrator->newDataEvents.clear();
+
+		std::wstringstream ss;
+		for (size_t i = 0; i < defaultOrchestrator->dataEvents.size(); ++i)
+		{
+			if (i != 0)
+				ss << "|-|";
+			ss << (LPCTSTR)defaultOrchestrator->dataEvents[i];
+		}
+		std::wstring s = ss.str();
+
+		res->reply = s.c_str(); // data_events;
 	}
-	defaultOrchestrator->eventHandler.ClearDataEvents();
-	*/
-	res->reply = ""; // data_events;
-	
 	return 1;
 }
 
 int RequestProcessor::cmd_browser(ResponseEnvelope *res) {
-	std::string url(CW2A(res->body, CP_UTF8));
+	// std::string url(CW2A(res->body, CP_UTF8));
+	CString *url = new CString(res->body);
 
-	/* 
-	
+	/*
+
 	if (defaultOrchestrator->browser.browser == NULL)
-		defaultOrchestrator->browser.StartThread();
+	defaultOrchestrator->browser.StartThread();
 	WaitForSingleObject(defaultOrchestrator->browser.browserOpenSignal, INFINITE);
 
 	defaultOrchestrator->browser.browser->GetMainFrame()->LoadURL(url);
-	*/ 
+	*/
+
+	SendMessage(this->orchestrator->cMainDlg->m_hWnd, LAUNCH_BROWSER, (WPARAM)url, NULL);
+
 	res->reply = "OK";
+	return 1;
+}
+
+int RequestProcessor::cmd_create_process(ResponseEnvelope *res) {
+	// std::string url(CW2A(res->body, CP_UTF8));
+
+	STARTUPINFO si;
+	ZeroMemory(&si, sizeof(si));
+	si.cb = sizeof(si);
+
+	PROCESS_INFORMATION pi;
+	ZeroMemory(&pi, sizeof(pi));
+
+	BOOL successful = CreateProcess(NULL, res->body.GetBuffer(0), NULL, NULL, TRUE, CREATE_BREAKAWAY_FROM_JOB, NULL, NULL, &si, &pi);
+
+	CloseHandle(pi.hProcess);
+	CloseHandle(pi.hThread);
+
+	CloseHandle(si.hStdError);
+	CloseHandle(si.hStdInput);
+	CloseHandle(si.hStdOutput);
+
+	//int nRet = (int)ShellExecute(0, L"open", res->body, 0, 0, SW_SHOWNORMAL);
+
+	res->reply = "OK";
+	return 1;
+}
+
+int RequestProcessor::cmd_crash_self(ResponseEnvelope *res) {
+	// CString *newString = new CString("shutdown");
+	// ::PostThreadMessage(defaultOrchestrator->pipeWrite.threadID, PIPE_REQUEST, (WPARAM)newString, NULL);
+
+	volatile int x, y, z;
+	x = 1;
+	y = 0;
+	z = x / y;
+
+	res->reply = "OK";
+	// Figure out a better way to quit so that a response is sent first
+	//PostMessage(defaultOrchestrator->cMainDlg->m_hWnd, WM_CLOSE, NULL, NULL);
+	//PostMessage(defaultOrchestrator->request.mainDlg->m_hWnd, WM_CLOSE, NULL, NULL);
+
 	return 1;
 }
 
@@ -259,6 +344,27 @@ int RequestProcessor::cmd_quit(ResponseEnvelope *res) {
 	// CString *newString = new CString("shutdown");
 	// ::PostThreadMessage(defaultOrchestrator->pipeWrite.threadID, PIPE_REQUEST, (WPARAM)newString, NULL);
 
+	CString strWindowTitle = _T("QuickletShellEventsProcessor");
+	CString strDataToSend = _T("shutdown");
+
+	LRESULT copyDataResult;
+
+	CWindow pOtherWnd = (HWND)FindWindow(NULL, strWindowTitle);
+
+	if (pOtherWnd) {
+		COPYDATASTRUCT cpd;
+		cpd.dwData = NULL;
+		cpd.cbData = strDataToSend.GetLength() * sizeof(wchar_t) + 1;
+		cpd.lpData = strDataToSend.GetBuffer(cpd.cbData);
+		copyDataResult = pOtherWnd.SendMessage(WM_COPYDATA,
+			(WPARAM)defaultOrchestrator->cMainDlg->m_hWnd,
+			(LPARAM)&cpd);
+		strDataToSend.ReleaseBuffer();
+		// copyDataResult has value returned by other app
+
+	}
+
+	PostMessage(defaultOrchestrator->cMainDlg->m_hWnd, WM_CLOSE, NULL, NULL);
 	res->reply = "OK";
 	// Figure out a better way to quit so that a response is sent first
 	//PostMessage(defaultOrchestrator->cMainDlg->m_hWnd, WM_CLOSE, NULL, NULL);
@@ -269,6 +375,61 @@ int RequestProcessor::cmd_quit(ResponseEnvelope *res) {
 
 int RequestProcessor::cmd_update(ResponseEnvelope *res) {
 	res->reply = "OK";
+
+	CString strWindowTitle = _T("QuickletShellEventsProcessor");
+	CString strDataToSend = _T("update_requested");
+
+	LRESULT copyDataResult;
+
+	CWindow pOtherWnd = (HWND)FindWindow(NULL, strWindowTitle);
+
+	if (pOtherWnd) {
+		COPYDATASTRUCT cpd;
+		cpd.dwData = NULL;
+		cpd.cbData = strDataToSend.GetLength() * sizeof(wchar_t) + 1;
+		cpd.lpData = strDataToSend.GetBuffer(cpd.cbData);
+		copyDataResult = pOtherWnd.SendMessage(WM_COPYDATA,
+			(WPARAM)defaultOrchestrator->cMainDlg->m_hWnd,
+			(LPARAM)&cpd);
+		strDataToSend.ReleaseBuffer();
+		// copyDataResult has value returned by other app
+
+	}
+
+	PostMessage(defaultOrchestrator->cMainDlg->m_hWnd, WM_CLOSE, NULL, NULL);
+
+	// Send update command to shell
+	// CString *newString = new CString("update");
+	// ::PostThreadMessage(defaultOrchestrator->pipeWrite.threadID, PIPE_REQUEST, (WPARAM)newString, NULL);
+
+	// Shell checks for updates. If there are updates, shell will shutdown brain then download updates.
+
+	// If there are not updates, shell will send "noupdate" to brain through pipe, triggering a tray message saying "Levion is up to date"
+	return 1;
+}
+
+int RequestProcessor::cmd_crash_shell(ResponseEnvelope *res) {
+	res->reply = "OK";
+
+	CString strWindowTitle = _T("QuickletShellEventsProcessor");
+	CString strDataToSend = _T("crash");
+
+	LRESULT copyDataResult;
+
+	CWindow pOtherWnd = (HWND)FindWindow(NULL, strWindowTitle);
+
+	if (pOtherWnd) {
+		COPYDATASTRUCT cpd;
+		cpd.dwData = NULL;
+		cpd.cbData = strDataToSend.GetLength() * sizeof(wchar_t) + 1;
+		cpd.lpData = strDataToSend.GetBuffer(cpd.cbData);
+		copyDataResult = pOtherWnd.SendMessage(WM_COPYDATA,
+			(WPARAM)defaultOrchestrator->cMainDlg->m_hWnd,
+			(LPARAM)&cpd);
+		strDataToSend.ReleaseBuffer();
+		// copyDataResult has value returned by other app
+
+	}
 
 	// Send update command to shell
 	// CString *newString = new CString("update");
@@ -293,11 +454,29 @@ int RequestProcessor::cmd_start_test_sync(ResponseEnvelope *res) {
 int RequestProcessor::cmd_clear_events(ResponseEnvelope *res) {
 	// EventHandler eh;
 	// eh.ClearDataEvents();
+	{
+		std::lock_guard<std::mutex> guard(mutexDataEvents);
+		defaultOrchestrator->dataEvents.clear();
+		defaultOrchestrator->dataEvents.insert(std::end(defaultOrchestrator->dataEvents), std::begin(defaultOrchestrator->newDataEvents), std::end(defaultOrchestrator->newDataEvents));
+	}
 	res->reply = "OK";
 	return 1;
 }
 
 int RequestProcessor::cmd_ping(ResponseEnvelope *res) {
 	res->reply = "pong";
+	return 1;
+}
+
+int RequestProcessor::cmd_query_lost_data_events(ResponseEnvelope* res) {
+	res->doNotReply = true;
+	CString result = this->orchestrator->qbInfo.ProcessQBXMLRequest(DATA_EVENT_RECOVERY_QUERY);
+
+	if (result.Find(_T("DataEventRecoveryTime")) >= 0)
+		this->orchestrator->lostDataEvents = true;
+	else {
+		this->orchestrator->lostDataEvents = false;
+	}
+
 	return 1;
 }

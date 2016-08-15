@@ -1,0 +1,219 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+    <Product Id="*" UpgradeCode="1CC4A5CA-5753-4605-B28A-7CA8E27F0F32" Version="1.1.0.0" Language="1033" Name="Quicksling" Manufacturer="Quicklet">
+        <Package InstallerVersion="300" Compressed="yes"/>
+        <UIRef Id="QuickletWixUI_Minimal" />
+
+        <Property Id="PREVIOUSVERSIONSINSTALLED" Secure="yes" />
+        <Upgrade Id="1CC4A5CA-5753-4605-B28A-7CA8E27F0F32">  
+           <UpgradeVersion
+              Minimum="0.9.0.0" Maximum="1.1.0.0"
+              Property="PREVIOUSVERSIONSINSTALLED"
+              IncludeMinimum="yes" IncludeMaximum="yes" />
+        </Upgrade> 
+
+        <Media Id="1" Cabinet="product.cab" EmbedCab="yes" />
+        <Icon Id="ProductIcon" SourceFile="..\QuickslingShell\res\QuickslingShell.ico"/>
+        <Property Id="ARPPRODUCTICON" Value="ProductIcon"/>
+        <Property Id="ARPHELPLINK" Value="http://www.quicklet.io"/>
+        <Property Id="ARPURLINFOABOUT" Value="http://www.quicklet.io"/>
+        <Property Id="ARPNOREPAIR" Value="1"/>
+
+        <Property Id="TESTQBINSTALLED" Value="YES"/>
+        <Property Id="WIXUI_EXITDIALOGOPTIONALTEXT" Value="Thank you for installing Quicksling. To get started with Quicklet, start up QuickBooks, open your company, and allow Quicksling access to QuickBooks." />
+
+        <WixVariable Id="WixUILicenseRtf" Value="license.rtf" />
+        <WixVariable Id="WixUIDialogBmp" Value="WixUIDialog.bmp" />
+        <WixVariable Id="WixUIBannerBmp" Value="WixUIBanner.bmp" />
+
+        <SetProperty Id="URL" Value="http://app.quicklet.io/" Sequence="execute"  Before="CreateShortcuts" />
+<?if $(var.Configuration) = "Debug" ?>
+        <Property Id="Configuration" Value=" $(var.Configuration)" />
+<?endif ?>
+        <Binary Id="CAVerifyQBInstalled"
+          SourceFile="..\VerifyQBInstalled\bin\$(var.Configuration)\VerifyQBInstalled.dll" />
+
+        <CustomAction Id="VerifyQBInstalled" BinaryKey="CAVerifyQBInstalled"
+          DllEntry="CustomAction1" Execute="firstSequence" Return="check" />
+        <CustomAction Id="CheckAllowInstall" BinaryKey="CAVerifyQBInstalled"
+            DllEntry="CustomAction2" Execute="firstSequence" Return="check" />
+
+        <!-- Step 1: Define the directory structure -->
+        <Directory Id="TARGETDIR" Name="SourceDir">
+            <Merge Id="VCRedist" SourceFile="C:\Program Files (x86)\Common Files\Merge Modules\Microsoft_VC120_CRT_x86.msm" DiskId="1" Language="0"/>
+            <Directory Id="ProgramFilesFolder">
+                <Directory Id="APPLICATIONROOTDIRECTORY" Name="Quicksling"/>
+            </Directory>
+            <Directory Id="ProgramMenuFolder">
+               <Directory Id="ProgramMenuSubfolder" Name="Quicklet">
+                  <Component Id="ApplicationShortcuts" Guid="DAD7AF53-4559-400F-A2DA-BFE66DAFFE8A">
+                     <Shortcut Id="WebShortcut" Name="Quicklet" Description="Quicklet" Target="[URL]" Icon="IconDesktop">
+                         <Icon Id="IconDesktop" SourceFile="..\QuickslingShell\res\QuickslingShell.ico" />
+                     </Shortcut>
+                     <RegistryValue Root="HKCU" Key="Software\Quicklet\Quicksling" 
+                               Name="installed" Type="integer" Value="1" KeyPath="yes"/>
+                     <RemoveFolder Id="ProgramMenuSubfolder" On="uninstall"/>
+                  </Component>
+               </Directory>
+            </Directory>
+            <Component Id="CLSID.675D3E6F170D48D3B746A5A20A869949.LocalServer32" Guid="03559DB4-1874-4179-A0AC-9BDC6C86BC3E" KeyPath="yes">
+                <RegistryKey Key="CLSID\{675D3E6F-170D-48D3-B746-A5A20A869949}\LocalServer32" Root="HKCR">
+                    <RegistryValue Value="&quot;[#QuickslingShell.exe]&quot;" Type="string" />
+                </RegistryKey>
+            </Component>
+            <Component Id="CLSID.675D3E6F170D48D3B746A5A20A869949.ProgID" Guid="FB0D420D-EA8F-4491-AAE6-7BFC6AF21664" KeyPath="yes">
+                <RegistryKey Key="CLSID\{675D3E6F-170D-48D3-B746-A5A20A869949}\ProgID" Root="HKCR">
+                    <RegistryValue Value="QuickslingShell.QBSDKCallback.1" Type="string" />
+                </RegistryKey>
+            </Component>
+            <Component Id="QuickslingShell.QBSDKCallback.1.CLSID" Guid="9B482890-CF66-4706-A0C0-CD798F509EE8" KeyPath="yes">
+                <RegistryKey Key="QuickslingShell.QBSDKCallback.1\CLSID" Root="HKCR">
+                    <RegistryValue Value="{675D3E6F-170D-48D3-B746-A5A20A869949}" Type="string" />
+                </RegistryKey>
+            </Component>
+            <Component Id="QuickslingShell.QBSDKCallback.CLSID" Guid="0FDE25FF-113B-4F1C-93F1-38A307256036" KeyPath="yes">
+                <RegistryKey Key="QuickslingShell.QBSDKCallback\CLSID" Root="HKCR">
+                    <RegistryValue Value="{675D3E6F-170D-48D3-B746-A5A20A869949}" Type="string" />
+                </RegistryKey>
+            </Component>
+            <Component Id="QuickslingShell.QBSDKCallback" Guid="6D6F43B2-0352-49B1-8C47-A7ECD9C952A8" KeyPath="yes">
+                <RegistryKey Key="QuickslingShell.QBSDKCallback" Root="HKCR">
+                    <RegistryValue Value="QBSDKCallback Class" Type="string" />
+                </RegistryKey>
+            </Component>
+            <Component Id="AppID" Guid="88DED694-23AF-418C-819F-D527F2ED5874" KeyPath="yes">
+                <RegistryKey ForceCreateOnInstall="yes" Key="AppID" Root="HKCR" />
+            </Component>
+            <Component Id="AppID.QuickslingShell.EXE" Guid="7500E022-5A68-48CC-83DC-2937862F2F41" KeyPath="yes">
+                <RegistryKey Key="AppID\QuickslingShell.EXE" Root="HKCR">
+                    <RegistryValue Name="AppID" Value="{F03D3448-EF4F-4C4A-B60F-72675483ED3C}" Type="string" />
+                </RegistryKey>
+            </Component>
+            <Component Id="AppID.F03D3448EF4F4C4AB60F72675483ED3C." Guid="F40C08C7-3D7D-46A4-8C6C-19A1E5877A9E" KeyPath="yes">
+                <RegistryKey Key="AppID\{F03D3448-EF4F-4C4A-B60F-72675483ED3C}" Root="HKCR">
+                    <RegistryValue Value="QuickslingShell" Type="string" />
+                </RegistryKey>
+            </Component>
+            <Component Id="QuickslingShell.QBSDKCallback.1" Guid="56BCE55C-6FA4-4DD0-97B3-7D9586AB8119" KeyPath="yes">
+                <RegistryKey Key="QuickslingShell.QBSDKCallback.1" Root="HKCR">
+                    <RegistryValue Value="QBSDKCallback Class" Type="string" />
+                </RegistryKey>
+            </Component>
+            <Component Id="CLSID.675D3E6F170D48D3B746A5A20A869949.VersionIndependentProgID" Guid="FAE4386E-1110-4BD5-92E6-CC8AC78EED83" KeyPath="yes">
+                <RegistryKey Key="CLSID\{675D3E6F-170D-48D3-B746-A5A20A869949}\VersionIndependentProgID" Root="HKCR">
+                    <RegistryValue Value="QuickslingShell.QBSDKCallback" Type="string" />
+                </RegistryKey>
+            </Component>
+            <Component Id="CLSID.675D3E6F170D48D3B746A5A20A869949." Guid="FD5FE221-0C7D-4EFC-8C31-ADB57507D1CC" KeyPath="yes">
+                <RegistryKey Key="CLSID\{675D3E6F-170D-48D3-B746-A5A20A869949}" Root="HKCR">
+                    <RegistryValue Value="QBSDKCallback Class" Type="string" />
+                    <RegistryValue Name="AppID" Value="{F03D3448-EF4F-4C4A-B60F-72675483ED3C}" Type="string" />
+                </RegistryKey>
+            </Component>
+            <Component Id="CLSID" Guid="0694C61C-51C4-4B79-93FE-E8ED0DEED53F" KeyPath="yes">
+                <RegistryKey ForceCreateOnInstall="yes" Key="CLSID" Root="HKCR" />
+            </Component>
+        </Directory>
+
+        <!-- Step 2: Add files to your installer package -->
+        <DirectoryRef Id="APPLICATIONROOTDIRECTORY">
+            <Component Id="QuickslingShell.exe" Guid="38AC8E66-D608-4695-A482-6B600E2CFBED">
+                <File Id="QuickslingShell.exe" Source="..\$(var.Configuration)\QuickslingShell.exe" KeyPath="yes" Checksum="yes"/>
+            </Component>
+            <Component Id="sdkevent.dll" Guid="BED6BDFF-8993-4A1D-8268-41C65A0D77A5">
+                <File Id="sdkevent.dll" Source="..\QuickslingShell\sdkevent.dll" KeyPath="yes" Checksum="yes"/>
+            </Component>
+            <Component Id="QBXMLRP2.dll" Guid="FBF8E9F8-83C7-4DD4-8DD0-B763B9EBE6EC">
+                <File Id="QBXMLRP2.dll" Source="..\QuickslingShell\QBXMLRP2.dll" KeyPath="yes" Checksum="yes"/>
+            </Component>
+            <Component Id="BsSndRpt.exe" Guid="396738E8-2C90-4D9B-8780-9BDAEBDF1D86">
+                <File Id="BsSndRpt.exe" Source="..\BugSplat\bin\BsSndRpt.exe" KeyPath="yes" Checksum="yes"/>
+            </Component>
+            <Component Id="BugSplat.dll" Guid="7449E186-35F0-4453-BBD1-C19A0CBD2A99">
+                <File Id="BugSplat.dll" Source="..\BugSplat\bin\BugSplat.dll" KeyPath="yes" Checksum="yes"/>
+            </Component>
+            <Component Id="BugSplatRC.dll" Guid="C6120CC2-40C3-4205-8CB0-539285DFFC29">
+                <File Id="BugSplatRC.dll" Source="..\BugSplat\bin\BugSplatRC.dll" KeyPath="yes" Checksum="yes"/>
+            </Component>
+        </DirectoryRef>
+
+
+
+        <InstallUISequence>
+              <Custom Action="VerifyQBInstalled" Before="LaunchConditions">NOT Installed</Custom>
+              <Custom Action="CheckAllowInstall" Before="LaunchConditions">NOT Installed</Custom>
+        </InstallUISequence>
+
+      <InstallExecuteSequence>
+        <Custom Action="VerifyQBInstalled" Before="LaunchConditions">NOT Installed</Custom>
+        <Custom Action="CheckAllowInstall" Before="LaunchConditions">NOT Installed</Custom>
+      </InstallExecuteSequence>
+
+
+        <InstallExecuteSequence>
+           <RemoveExistingProducts Before="InstallInitialize"/>
+        </InstallExecuteSequence>
+
+
+      <Condition Message="This application is only supported on Windows XP Service Pack 3, Windows Server 2003 Service Pack 2, or higher.">
+        <![CDATA[Installed OR (VersionNT = 501 AND ServicePackLevel = 3) OR (VersionNT = 502 AND ServicePackLevel = 2) OR (VersionNT >= 600)]]>
+      </Condition>
+      
+      <Condition Message="You must have QuickBooks to use Quicklet.">
+        <![CDATA[Installed OR (TESTQBINSTALLED = "YES")]]>
+      </Condition>
+
+      <Condition Message="This Quicksling installer is too old! Please use the latest version available at http://quicklet.io/">
+        <![CDATA[Installed OR (ALLOWINSTALL = "YES")]]>
+      </Condition>
+
+      <!-- Step 3: Tell WiX to install the files -->
+      <Feature Id="MainApplication" Title="Main Application" Level="1">
+
+
+        <ComponentRef Id="QuickslingShell.exe" />
+            <ComponentRef Id="sdkevent.dll" />
+            <ComponentRef Id="QBXMLRP2.dll" />
+
+            <ComponentRef Id="BsSndRpt.exe" />
+            <ComponentRef Id="BugSplat.dll" />
+            <ComponentRef Id="BugSplatRC.dll" />
+
+
+            <ComponentRef Id="ApplicationShortcuts" />
+
+            <ComponentRef Id="CLSID.675D3E6F170D48D3B746A5A20A869949.LocalServer32" />
+            <ComponentRef Id="CLSID.675D3E6F170D48D3B746A5A20A869949.ProgID" />
+            <ComponentRef Id="QuickslingShell.QBSDKCallback.1.CLSID" />
+            <ComponentRef Id="QuickslingShell.QBSDKCallback.CLSID" />
+            <ComponentRef Id="QuickslingShell.QBSDKCallback" />
+            <ComponentRef Id="AppID" />
+            <ComponentRef Id="AppID.QuickslingShell.EXE" />
+            <ComponentRef Id="AppID.F03D3448EF4F4C4AB60F72675483ED3C." />
+            <ComponentRef Id="QuickslingShell.QBSDKCallback.1" />
+            <ComponentRef Id="CLSID.675D3E6F170D48D3B746A5A20A869949.VersionIndependentProgID" />
+            <ComponentRef Id="CLSID.675D3E6F170D48D3B746A5A20A869949." />
+            <ComponentRef Id="CLSID" />
+        </Feature>
+
+        <Feature Id="VCRedist" Title="Visual C++ 12.0 Runtime" AllowAdvertise="no" Display="hidden" Level="1">
+            <MergeRef Id="VCRedist" />
+        </Feature>
+
+        <CustomAction Id='ExecRegUIEvents' Directory='TARGETDIR' Execute='immediate' ExeCommand='[#QuickslingShell.exe] /RegUIEvents' Return='check'/>
+
+        <CustomAction Id='ExecDownload' Directory='TARGETDIR' Execute='immediate' ExeCommand='[#QuickslingShell.exe] /Download' Return='check'/>
+
+        <CustomAction Id='ExecUnregUIEvents' Directory='TARGETDIR' Execute='immediate' ExeCommand='[#QuickslingShell.exe] /UnregUIEvents' Return='check'/>
+
+
+        <InstallExecuteSequence>
+            <Custom Action='ExecRegUIEvents' After='InstallFinalize'>NOT Installed</Custom>
+            <Custom Action='ExecDownload' After='InstallFinalize'>NOT Installed</Custom>
+            <Custom Action='ExecUnregUIEvents' After="RemoveFiles">
+                    (NOT UPGRADINGPRODUCTCODE) AND (REMOVE="ALL")</Custom>
+        </InstallExecuteSequence>
+        
+
+    </Product>
+</Wix>

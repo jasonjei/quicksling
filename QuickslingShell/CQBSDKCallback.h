@@ -8,6 +8,7 @@
 #include "atlcom.h"
 #include "Orchestrator.h"
 #include "Conductor.h"
+#include "spdlog\spdlog.h"
 
 extern Conductor defaultConductor;
 CString firstMsg;
@@ -28,12 +29,20 @@ DECLARE_REGISTRY_RESOURCEID(IDR_QUICKSLINGSHELL)
 
 	STDMETHOD(inform) (/*[in]*/ BSTR eventXML) {
 		// MessageBox(NULL, eventXML, _T("TEST---------FROM SHELL"), MB_OK);
+		auto l = spdlog::get("quicksling_shell");
+
 		if (firstMsg.Compare(_T("")) == 0) 
 			firstMsg = eventXML;
 
 		CString toSendMsg(eventXML);
 		defaultConductor.orchestrator.eventHandler.ProcessEvent(toSendMsg);
+#ifdef DEBUG
 		ATLTRACE2(atlTraceUI, 0, TEXT("Received event from QB, %s\n"), toSendMsg);
+#endif
+		CString logMsg = toSendMsg;
+		logMsg.Replace(_T("\n"), _T(""));
+		l->info("QB Event Message: {}", CW2A(logMsg, CP_UTF8));
+
 		return 1;
 	};
 

@@ -59,6 +59,7 @@ EventHandler::EventHandler(void) {
 }
 
 EventHandler::~EventHandler(void) {
+	CloseHandle(signal);
 }
 
 struct _RunData {

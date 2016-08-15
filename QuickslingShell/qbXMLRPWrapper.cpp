@@ -493,5 +493,24 @@ string &qbXMLRPWrapper::ProcessSubscription(string requestXML)
 	return m_ResponseXML;
 }
 
+bool qbXMLRPWrapper::TestQBInstalled() {
+	HRESULT hr;
+	hr = CoCreateInstance(CLSID_RequestProcessor3,
+		NULL,
+		CLSCTX_INPROC_SERVER,
+		IID_IRequestProcessor3,
+		reinterpret_cast<void**>(&m_pReqProc));
+	if (FAILED(hr) || (m_pReqProc == NULL)) {
+		TCHAR tmpMsg[1024];
+		// sprintf ((char*) tmpMsg, "Failed to instantiate the qbXML Request Processor.  Error: 0x%lx.  Perhaps qbxmlrp2.dll is missing?", hr);
+		// swprintf_s(tmpMsg, sizeof(tmpMsg), _T("Failed to instantiate the qbXML Request Processor.  Error: 0x%lx.  Perhaps qbxmlrp2.dll is missing?"), hr);
+		CString errorStr;
+		errorStr.Format(_T("Failed to instantiate the qbXML Request Processor.  Error: 0x%lx.  Perhaps qbxmlrp2.dll is missing?  Did you remember to install QuickBooks?"), hr);
+		m_ErrorMsg = errorStr;
+		m_HasError = true;
+		return false;
+	}
+	return true;
+}
 
 #undef string

@@ -62,6 +62,7 @@ ResponseDispatcher::ResponseDispatcher(void) {
 }
 
 ResponseDispatcher::~ResponseDispatcher(void) {
+	CloseHandle(signal);
 }
 
 struct _RunData {

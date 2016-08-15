@@ -11,6 +11,179 @@
 #include "Conductor.h"
 #include "MainDlg.h"
 
+VOID CALLBACK ShowWindowDelayed(HWND hwnd, UINT uMsg, UINT_PTR idEvent, DWORD dwTime);
+void SetForegroundWindowInternal(HWND hWnd);
+extern Conductor defaultConductor;
+HWND GetRootHwnd(CefRefPtr<CefBrowser> browser);
+
+int QBInfo::Reset() {
+	SetEvent(readyForLongPollSignal);
+
+	CString oldAuthToken = authToken;
+	this->state = "LINKDEAD";
+
+	CString sURL = URLS::GOLIATH_SERVER + "client/linkdead?auth_key=" + oldAuthToken +
+		"&old_auth_key=" + oldAuthToken;
+
+	CInternetSession session(APP_NAME);
+	session.SetOption(INTERNET_OPTION_RECEIVE_TIMEOUT, 1);
+	session.SetOption(INTERNET_OPTION_SEND_TIMEOUT, 1);
+	CHttpFile *cHttpFile = NULL;
+
+	int fail = 0;
+
+	try {
+		cHttpFile = new CHttpFile(session, sURL, NULL, 0, INTERNET_FLAG_DONT_CACHE);
+	}
+
+	catch (CInternetException&) {
+		fail = 1;
+	}
+
+	if (!fail) {
+		WTL::CString pageSource;
+
+		UINT bytes = (UINT)cHttpFile->GetLength();
+
+		char tChars[2048 + 1];
+		int bytesRead;
+
+		while ((bytesRead = cHttpFile->Read((LPVOID)tChars, 2048)) != 0) {
+			tChars[bytesRead] = '\0';
+			pageSource += tChars;
+		}
+
+		pageSource.Format(_T("%s"), pageSource);
+
+	}
+
+	delete cHttpFile;
+	session.Close();
+	return 1;
+}
+
+int QBInfo::GetInfoFromQB() {
+	if (WaitForSingleObject(this->orchestrator->longPoll.goOfflineSignal, 0) == 0) {
+		return 1;
+	}
+	// std::lock_guard<std::mutex> guard(mutexQBInfo);
+	qbXMLRPWrapper qb;
+	
+	if (WaitForSingleObject(this->orchestrator->longPoll.goOfflineSignal, 0) == 0) {
+		return 1;
+	}
+	
+	qb.OpenCompanyFile(_T(""));
+	
+	if (WaitForSingleObject(this->orchestrator->longPoll.goOfflineSignal, 0) == 0) {
+		return 1;
+	}
+
+	CString result = qb.ProcessRequest(std::wstring(GET_COMPANY_TAG)).c_str();
+	CString originalUniqueId = GetUniqueID();
+
+	SetCompanyInfo(result);
+
+	if (WaitForSingleObject(this->orchestrator->longPoll.goOfflineSignal, 0) == 0) {
+		return 1;
+	}
+
+	result = qb.ProcessRequest(std::wstring(GET_TEMPLATES)).c_str();
+
+	if (WaitForSingleObject(this->orchestrator->longPoll.goOfflineSignal, 0) == 0) {
+		return 1;
+	}
+
+	SetCompanyTemplateInfo(result);
+
+	if (WaitForSingleObject(this->orchestrator->longPoll.goOfflineSignal, 0) == 0) {
+		return 1;
+	}
+
+	// SetQBInfo();
+
+	if (WaitForSingleObject(this->orchestrator->longPoll.goOfflineSignal, 0) == 0) {
+		return 1;
+	}
+
+	this->qbxmlVersions = qb.GetVersions();
+
+	if (WaitForSingleObject(this->orchestrator->longPoll.goOfflineSignal, 0) == 0) {
+		return 1;
+	}
+
+	CString versionResult = qb.ProcessRequest(std::wstring(_T("<?xml version=\"1.0\"?><?qbxml version=\"8.0\"?><QBXML><QBXMLMsgsRq onError=\"stopOnError\"><HostQueryRq></HostQueryRq></QBXMLMsgsRq></QBXML>"))).c_str();
+
+	if (WaitForSingleObject(this->orchestrator->longPoll.goOfflineSignal, 0) == 0) {
+		return 1;
+	}
+
+	MSXML2::IXMLDOMDocument* outputXMLDoc = InstantiateXMLDocWithString(versionResult);
+
+	if (outputXMLDoc) {
+		this->productName = GetValueFromNodeString(_T("ProductName"), outputXMLDoc);
+		this->country = GetValueFromNodeString(_T("Country"), outputXMLDoc);
+
+		outputXMLDoc->Release();
+		// return 1;
+	}
+
+	if ((originalUniqueId != GetUniqueID()) && (originalUniqueId != _T(","))) {
+		ResetEvent(this->readyForLongPollSignal);
+		Reset();
+		this->authToken = _T("");
+		this->hasRun = false;
+	}
+
+	LoadConfigYaml();
+	SaveConfigYaml();
+
+	if (GetUniqueID() != _T(","))
+		SetEvent(this->readyForLongPollSignal);
+	else
+		ResetEvent(this->readyForLongPollSignal);
+
+	return 1;
+}
+
+int QBInfo::SetQBInfo() {
+	qbXMLRPWrapper qb;
+
+	if (WaitForSingleObject(this->orchestrator->longPoll.threadHandle, 0) == 0) {
+		return 1;
+	}
+
+	qb.OpenCompanyFile(_T(""));
+
+	if (WaitForSingleObject(this->orchestrator->longPoll.threadHandle, 0) == 0) {
+		return 1;
+	}
+
+	this->qbxmlVersions = qb.GetVersions();
+
+	if (WaitForSingleObject(this->orchestrator->longPoll.threadHandle, 0) == 0) {
+		return 1;
+	}
+
+	CString versionResult = qb.ProcessRequest(std::wstring(_T("<?xml version=\"1.0\"?><?qbxml version=\"8.0\"?><QBXML><QBXMLMsgsRq onError=\"stopOnError\"><HostQueryRq></HostQueryRq></QBXMLMsgsRq></QBXML>"))).c_str();
+	
+	if (WaitForSingleObject(this->orchestrator->longPoll.threadHandle, 0) == 0) {
+		return 1;
+	}
+
+	MSXML2::IXMLDOMDocument* outputXMLDoc = InstantiateXMLDocWithString(versionResult);
+
+	if (outputXMLDoc) {
+		this->productName = GetValueFromNodeString(_T("ProductName"), outputXMLDoc);
+		this->country = GetValueFromNodeString(_T("Country"), outputXMLDoc);
+
+		outputXMLDoc->Release();
+		return 1;
+	}
+
+	return 0;
+}
+
 int QBInfo::RegisterConnector() {
 	ResetEvent(this->readyForLongPollSignal);
 
@@ -103,9 +276,52 @@ void QBInfo::LaunchBrowser(CString url) {
 
 		CefBrowserHost::CreateBrowserSync(window_info, this->orchestrator->browser.simpleHandler, ansiUrl,
 			browser_settings, NULL);
+		::ShowWindow(GetRootHwnd(this->orchestrator->browser.simpleHandler->GetBrowser()), SW_RESTORE);
+
+		SetForegroundWindowInternal(GetRootHwnd(this->orchestrator->browser.simpleHandler->GetBrowser()));
+		// SetTimer(GetRootHwnd(this->orchestrator->browser.simpleHandler->GetBrowser()), NULL, 1000, (TIMERPROC)ShowWindowDelayed);
 	}
 	else {
 		this->orchestrator->browser.simpleHandler->GetBrowser()->GetMainFrame()->LoadURL(ansiUrl);
+		::ShowWindow(GetRootHwnd(this->orchestrator->browser.simpleHandler->GetBrowser()), SW_RESTORE);
+
+		SetForegroundWindowInternal(GetRootHwnd(this->orchestrator->browser.simpleHandler->GetBrowser()));
+		// SetTimer(GetRootHwnd(this->orchestrator->browser.simpleHandler->GetBrowser()), NULL, 1000, (TIMERPROC)ShowWindowDelayed);
 	}
 
+}
+
+HWND GetRootHwnd(CefRefPtr<CefBrowser> browser) {
+	return ::GetAncestor(browser->GetHost()->GetWindowHandle(), GA_ROOT);
+}
+
+void SetForegroundWindowInternal(HWND hWnd)
+{
+	if (!::IsWindow(hWnd)) return;
+
+	BYTE keyState[256] = { 0 };
+	//to unlock SetForegroundWindow we need to imitate Alt pressing
+	if (::GetKeyboardState((LPBYTE)&keyState))
+	{
+		if (!(keyState[VK_MENU] & 0x80))
+		{
+			::keybd_event(VK_MENU, 0, KEYEVENTF_EXTENDEDKEY | 0, 0);
+		}
+	}
+
+	::SetForegroundWindow(hWnd);
+
+	if (::GetKeyboardState((LPBYTE)&keyState))
+	{
+		if (!(keyState[VK_MENU] & 0x80))
+		{
+			::keybd_event(VK_MENU, 0, KEYEVENTF_EXTENDEDKEY | KEYEVENTF_KEYUP, 0);
+		}
+	}
+}
+
+VOID CALLBACK ShowWindowDelayed(HWND hwnd, UINT uMsg, UINT_PTR idEvent, DWORD dwTime) {
+	if (defaultConductor.orchestrator.browser.simpleHandler->GetBrowser())
+		::ShowWindow(GetRootHwnd(defaultConductor.orchestrator.browser.simpleHandler->GetBrowser()), SW_RESTORE);
+	KillTimer(hwnd, idEvent);
 }

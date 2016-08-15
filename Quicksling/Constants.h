@@ -17,6 +17,11 @@ static UINT LAUNCH_BROWSER = ::RegisterWindowMessage(_T("LAUNCH_BROWSER"));
 static const CString CLIENT_GUID = "{575D3E6F-170D-48D3-B746-A5A20A869949}";
 static const CString SUBSCRIBER_ID = "{50189E8B-938E-40B8-ABD3-18A9812ADEC0}";
 
+#define QUICKSLING_VER L"1.0.0.0"
+#define BUGSPLAT_DB L"Quicksling1_0"
+#define BUGSPLAT_APP L"Quicksling"
+#define QUICKSLING_DISABLE_MESSAGE L"Quicksling must be updated for Quicklet to work."
+
 #ifdef DEBUG
 static const CString APP_NAME = "Quicklet";
 #else
@@ -159,6 +164,23 @@ static const CString GET_TEMPLATES = "<?xml version=\"1.0\"?>" \
 "</TemplateQueryRq>" \
 "</QBXMLMsgsRq>" \
 "</QBXML>";
+
+
+static const CString DATA_EVENT_RECOVERY_QUERY = "<?xml version=\"1.0\"?>" \
+"<?qbxml version=\"8.0\"?>" \
+"<QBXML><QBXMLMsgsRq onError=\"stopOnError\">" \
+"<DataEventRecoveryInfoQueryRq>" \
+"<SubscriberID>" + SUBSCRIBER_ID + "</SubscriberID>" \
+"</DataEventRecoveryInfoQueryRq>" \
+"</QBXMLMsgsRq></QBXML>";
+
+static const CString DATA_EVENT_RECOVERY_DELETE = "<?xml version=\"1.0\"?>" \
+"<?qbxml version=\"8.0\"?>" \
+"<QBXML><QBXMLMsgsRq onError=\"stopOnError\">" \
+"<DataEventRecoveryInfoDelRq>" \
+"<SubscriberID>" + SUBSCRIBER_ID +  "</SubscriberID>" \
+"</DataEventRecoveryInfoDelRq>" \
+"</QBXMLMsgsRq></QBXML>";
 
 static class URLS {
 public:

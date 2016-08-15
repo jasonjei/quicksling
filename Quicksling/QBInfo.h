@@ -9,7 +9,7 @@
 #include "INet.h"
 #include "inifile.h"
 #include <atlconv.h>
-
+#include <mutex>
 
 #pragma comment(lib, "userenv.lib")
 
@@ -21,6 +21,7 @@ void __stdcall CallMaster(
 	DWORD dwStatusInformationLength);
 
 class Orchestrator;
+extern std::mutex mutexQBInfo;
 
 class QBInfo {
 public:
@@ -45,13 +46,78 @@ public:
 
 	QBInfo(void) : persistentQBXMLWrapper(NULL) {
 		this->readyForLongPollSignal = CreateEvent(NULL, TRUE, FALSE, NULL);
-		this->version = LEVION_CLIENT_VER;
+		// this->version = LEVION_CLIENT_VER;
+		GetAndSetCoreVersion();
 		this->hasRun = false;
 		this->sequence = 0;
 	}
 
 	~QBInfo(void) {
 		EndSession();
+		CloseHandle(this->readyForLongPollSignal);
+	}
+
+	void GetAndSetCoreVersion() {
+		CString productName;
+		CString productVersion;
+		GetProductAndVersion(productName, productVersion);
+		this->version = productVersion;
+#ifdef DEBUG
+		this->version += _T("D");
+#endif
+	}
+
+	bool GetProductAndVersion(CString & strProductName, CString & strProductVersion) {
+		// get the filename of the executable containing the version resource
+		TCHAR szFilename[MAX_PATH + 1] = { 0 };
+		if (GetModuleFileName(NULL, szFilename, MAX_PATH) == 0)
+		{
+			// TRACE("GetModuleFileName failed with error %d\n", GetLastError());
+			return false;
+		}
+
+		// allocate a block of memory for the version info
+		DWORD dummy;
+		DWORD dwSize = GetFileVersionInfoSize(szFilename, &dummy);
+		if (dwSize == 0)
+		{
+			// TRACE("GetFileVersionInfoSize failed with error %d\n", GetLastError());
+			return false;
+		}
+		std::vector<BYTE> data(dwSize);
+
+		// load the version info
+		if (!GetFileVersionInfo(szFilename, NULL, dwSize, &data[0]))
+		{
+			// TRACE("GetFileVersionInfo failed with error %d\n", GetLastError());
+			return false;
+		}
+
+		// get the name and version strings
+		LPVOID pvProductName = NULL;
+		unsigned int iProductNameLen = 0;
+		LPVOID pvProductVersion = NULL;
+		unsigned int iProductVersionLen = 0;
+
+		// replace "040904e4" with the language ID of your resources
+		UINT                uiVerLen = 0;
+		VS_FIXEDFILEINFO*   pFixedInfo = 0;     // pointer to fixed file info structure
+		// get the fixed file info (language-independend) 
+		if (VerQueryValue(&data[0], TEXT("\\"), (void**)&pFixedInfo, (UINT *)&uiVerLen) == 0)
+		{
+			return false;
+		}
+
+		strProductVersion.Format(_T("%u.%u.%u.%u"),
+			HIWORD(pFixedInfo->dwProductVersionMS),
+			LOWORD(pFixedInfo->dwProductVersionMS),
+			HIWORD(pFixedInfo->dwProductVersionLS),
+			LOWORD(pFixedInfo->dwProductVersionLS));
+
+		// strProductName.SetString((LPCSTR)pvProductName, iProductNameLen);
+		// strProductVersion.SetString((LPCSTR)pvProductVersion, iProductVersionLen);
+
+		return true;
 	}
 
 	CString GetLevionUserAppDir() {
@@ -119,6 +185,7 @@ public:
 
 			if (session->GetHasError()) {
 				errorMsg.Format(_T("<QBError>%ls</QBError>"), session->GetErrorMsg().c_str());
+				delete session;
 				return errorMsg;
 			}
 		}
@@ -319,26 +386,9 @@ public:
 		return 1;
 	}
 
-	int GetInfoFromQB() {
-		qbXMLRPWrapper qb;
+	int Reset();
 
-		qb.OpenCompanyFile(_T(""));
-		CString result = qb.ProcessRequest(std::wstring(GET_COMPANY_TAG)).c_str();
-		SetCompanyInfo(result);
-
-		result = qb.ProcessRequest(std::wstring(GET_TEMPLATES)).c_str();
-		SetCompanyTemplateInfo(result);
-
-		SetQBInfo();
-
-		LoadConfigYaml();
-		LoadAuthToken();
-		SaveConfigYaml();
-
-		SetEvent(this->readyForLongPollSignal);
-
-		return 1;
-	}
+	int GetInfoFromQB();
 
 	int SetupQuickslingWithQBData() {
 		qbXMLRPWrapper qb;
@@ -394,24 +444,7 @@ public:
 		return 0;
 	}
 
-	int SetQBInfo() {
-		qbXMLRPWrapper qb;
-		qb.OpenCompanyFile(_T(""));
-
-		this->qbxmlVersions = qb.GetVersions();
-		CString versionResult = qb.ProcessRequest(std::wstring(_T("<?xml version=\"1.0\"?><?qbxml version=\"8.0\"?><QBXML><QBXMLMsgsRq onError=\"stopOnError\"><HostQueryRq></HostQueryRq></QBXMLMsgsRq></QBXML>"))).c_str();
-		MSXML2::IXMLDOMDocument* outputXMLDoc = InstantiateXMLDocWithString(versionResult);
-
-		if (outputXMLDoc) {
-			this->productName = GetValueFromNodeString(_T("ProductName"), outputXMLDoc);
-			this->country = GetValueFromNodeString(_T("Country"), outputXMLDoc);
-
-			outputXMLDoc->Release();
-			return 1;
-		}
-
-		return 0;
-	}
+	int SetQBInfo();
 
 	void RemoveTagFromYaml() {
 		// map.mapPtr->map["companies"].mapPtr->map.erase(std::string(CW2A(this->companyTag, CP_UTF8)));

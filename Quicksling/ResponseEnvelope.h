@@ -5,7 +5,7 @@
 
 class ResponseEnvelope {
 public:
-	ResponseEnvelope() {
+	ResponseEnvelope() : doNotReply(false) {
 		qbMessage = 0;
 	}
 
@@ -14,4 +14,5 @@ public:
 	CString body;
 	CString reply;
 	int qbMessage;
+	bool doNotReply;
 };

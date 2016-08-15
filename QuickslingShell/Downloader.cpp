@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include "Downloader.h"
+#include "spdlog\spdlog.h"
 
 extern Downloader downloader;
 
@@ -42,6 +43,9 @@ DWORD Downloader::GetFile(CString url) {
 	callbackHandler.QueryInterface(IID_IBindStatusCallback,
 		reinterpret_cast<void**>(&pBindStatusCallback));
 	
+	auto l = spdlog::get("quicksling_shell");
+	l->info("Downloader: Downloading file: {} to {}", CW2A(url, CP_UTF8), CW2A(filePath, CP_UTF8));
+
 	CString logEntry;
 	logEntry.Format(_T("Downloading file: %s to %s"), url, filePath);
 	AddToLogs(logEntry);
@@ -66,6 +70,8 @@ DWORD Downloader::GetFile(CString url) {
 	if (hr == S_OK)
 		return 1;
 
+	l->error("Downloader: Couldn't download file to {} to {}", CW2A(url, CP_UTF8), CW2A(filePath, CP_UTF8));
+
 	logEntry.Format(_T("Couldn't download file %s to %s"), url, filePath);
 	AddToLogs(logEntry);
 
@@ -73,6 +79,8 @@ DWORD Downloader::GetFile(CString url) {
 }
 
 CString Downloader::GetDownloadManifest() {
+	auto l = spdlog::get("quicksling_shell");
+
 	CIniFile configIni;
 	CIniSectionW* devSec;
 	CString sURL = _T("http://download.quicklet.io/download.ini");
@@ -98,6 +106,8 @@ CString Downloader::GetDownloadManifest() {
 	CHttpFile* cHttpFile = NULL;
 	int fail = 0;
 
+	l->info("Downloader: Downloading file manifest from {}", CW2A(sURL, CP_UTF8));
+
 	try {
 		cHttpFile = new CHttpFile(Session, sURL, NULL, 0, INTERNET_FLAG_DONT_CACHE);
 	}
@@ -121,12 +131,16 @@ CString Downloader::GetDownloadManifest() {
 
 		delete cHttpFile;
 
+		l->info("Downloader: Downloaded file manifest from {}", CW2A(sURL, CP_UTF8));
+
 		CString logEntry;
 		logEntry.Format(_T("Downloaded file manifest from %s"), sURL);
 		AddToLogs(logEntry);
 
 		return pageSource;
 	}
+
+	l->error("Downloader: Couldn't download manifest from {}", CW2A(sURL, CP_UTF8));
 
 	CString logEntry;
 	logEntry.Format(_T("Couldn't download file manifest from %s"), sURL);
@@ -137,21 +151,32 @@ CString Downloader::GetDownloadManifest() {
 }
 
 DWORD Downloader::GetSectionDownload(CIniKeyW* key) {
+	auto l = spdlog::get("quicksling_shell");
+	CString fileToDownloadCheckHash = ini.GetSection(_T("checksums"))->GetKey(key->GetKeyName())->GetValue().c_str();
+
+	if (ValidateCrcFile(GetLevionUserAppDir(GuessFileNameFromURL(key->GetValue().c_str())), fileToDownloadCheckHash) == 1) {
+		l->info("Downloader: No need to redownload - same archive for {}", CW2A(key->GetValue().c_str(), CP_UTF8));
+		return 1;
+	}
+
 	GetFile(key->GetValue().c_str());
 
 	if (ini.GetSection(_T("checksums")) == NULL) {
+		l->error("Downloader: No checksum for {}", CW2A(key->GetValue().c_str(), CP_UTF8));
+
 		CString logEntry;
 		logEntry.Format(_T("No checksum for %s"), key->GetValue().c_str());
 		AddToLogs(logEntry);
 
 		if (showErrors)
-			MessageBox(NULL, _T("No checksum provided for file to download"), _T("Quicklet File Download Error"), MB_OK);
+			MessageBox(NULL, _T("No checksum provided for file to download"), _T("Quicklet File Download Error"), MB_OK | MB_SYSTEMMODAL);
 		return -1;
 	}
 
-	CString fileToDownloadCheckHash = ini.GetSection(_T("checksums"))->GetKey(key->GetKeyName())->GetValue().c_str();
 	if (ValidateCrcFile(GetLevionUserAppDir( GuessFileNameFromURL(key->GetValue().c_str()) ), fileToDownloadCheckHash) == 1)
 		return 1;
+
+	l->error("Downloader: Checksum mismatched for {}", CW2A(key->GetValue().c_str(), CP_UTF8));
 
 	CString logEntry;
 	logEntry.Format(_T("Checksum mismatched for %s"), key->GetValue().c_str());
@@ -167,6 +192,8 @@ void Downloader::AddToLogs(CString logEntry) {
 }
 
 DWORD Downloader::ValidateCrcFile(CString filePath, CString hexCrc) {
+	auto l = spdlog::get("quicksling_shell");
+
 	DWORD dwCrc32 = NO_ERROR;
 	DWORD dwErrorCode = NO_ERROR;
 
@@ -177,11 +204,15 @@ DWORD Downloader::ValidateCrcFile(CString filePath, CString hexCrc) {
 
 	if (dwCrc32 == goodCrc) {
 		CString logEntry;
+		l->info("Downloader: {} validated for checksum {}", CW2A(filePath, CP_UTF8), CW2A(hexCrc, CP_UTF8));
+
 		logEntry.Format(_T("%s validated for checksum %s"), filePath, hexCrc);
 		AddToLogs(logEntry);
 
 		return 1;
 	}
+
+	l->error("Downloader: {} DID NOT VALIDATE for checksum {}", CW2A(filePath, CP_UTF8), CW2A(hexCrc, CP_UTF8));
 
 	CString logEntry;
 	logEntry.Format(_T("NO VALIDATION: %s DIDN'T VALIDATE for checksum %s"), filePath, hexCrc);
@@ -206,10 +237,24 @@ CString Downloader::GetLevionUserAppDir(CString File) {
 }
 
 int Downloader::CreateLevionAppDir() {
+	auto l = spdlog::get("quicksling_shell");
+
 	int success = CreateDirectory(GetLevionUserAppDir(), NULL);
-	if (success)
+	if (success) {
+		if (l.get())
+			l->info("Created directory {}", CW2A(GetLevionUserAppDir(), CP_UTF8));
 		return 1;
+	}
 	else {
+		if (PathIsDirectory(GetLevionUserAppDir())) {
+			if (l.get())
+				l->info("Directory {} already exists", CW2A(GetLevionUserAppDir(), CP_UTF8));
+		}
+		else {
+			if (l.get())
+				l->error("Directory {} doesn't exist", CW2A(GetLevionUserAppDir(), CP_UTF8));
+
+		}
 		return PathIsDirectory(GetLevionUserAppDir());
 	}
 }
@@ -218,6 +263,8 @@ int Downloader::DoDownload() {
 	std::unique_lock<std::mutex> lock(this->download_mutex, std::defer_lock);
 	if (lock.try_lock() == false)
 		return -1; 
+
+	auto l = spdlog::get("quicksling_shell");
 
 	CIniFile configIni;
 	CIniSectionW* devSec;
@@ -242,6 +289,7 @@ int Downloader::DoDownload() {
 	}
 
 	if (disableCheck == 1) {
+		l->warn("Downloader: Download check is disabled");
 		lock.unlock();
 		cvThreadFinished.notify_one();
 		return 1;
@@ -251,8 +299,9 @@ int Downloader::DoDownload() {
 
 	CString downloadManifest = GetDownloadManifest();
 	if (downloadManifest.IsEmpty()) {
+		l->error("Downloader: Couldn't download package manifest");
 		if (showErrors)
-			MessageBox(NULL, _T("Couldn't download Quicklet file manifest"), _T("Quicklet File Download Error"), MB_OK);
+			MessageBox(NULL, _T("Couldn't download Quicklet file manifest"), _T("Quicklet File Download Error"), MB_OK | MB_SYSTEMMODAL);
 		return -1;
 	}
 
@@ -262,12 +311,14 @@ int Downloader::DoDownload() {
 	CIniSectionW* downloads = ini.GetSection(_T("downloads"));
 
 	if (downloads == NULL) {
+		l->error("Downloader: No files to download in manifest");
+
 		CString logEntry;
 		logEntry.Format(_T("No files to download in manifest"));
 		AddToLogs(logEntry);
 
 		if (showErrors)
-			MessageBox(NULL, _T("Quicklet file manifest doesn't contain files to download"), _T("Quicklet File Download Error"), MB_OK);
+			MessageBox(NULL, _T("Quicklet file manifest doesn't contain files to download"), _T("Quicklet File Download Error"), MB_OK | MB_SYSTEMMODAL);
 		return -2;
 	}
 
@@ -277,7 +328,7 @@ int Downloader::DoDownload() {
 		AddToLogs(logEntry);
 
 		if (showErrors)
-			MessageBox(NULL, logEntry, _T("Quicklet Setup Error"), MB_OK);
+			MessageBox(NULL, logEntry, _T("Quicklet Setup Error"), MB_OK | MB_SYSTEMMODAL);
 		return -6; // No Quicksling folder in AppData/Local
 	}
 
@@ -286,6 +337,8 @@ int Downloader::DoDownload() {
 
 		CString sectionName = (*kitr)->GetKeyName().c_str();
 		CIniSectionW* section = ini.GetSection((LPCTSTR) sectionName);
+
+		l->info("Downloader: Checking download section for {}", CW2A(sectionName, CP_UTF8));
 
 		CString logEntry;
 		logEntry.Format(_T("== SECTION CHECKING TO BEGIN: %s =="), sectionName);
@@ -301,6 +354,7 @@ int Downloader::DoDownload() {
 			int success = _wstat((LPCTSTR) filePath, &buffer);
 
 			if (success == -1) {
+				l->info("Downloader: Download required: {} doesn't exist in {}", CW2A((*inner_kitr)->GetKeyName().c_str(), CP_UTF8), CW2A(filePath, CP_UTF8));
 				logEntry.Format(_T("DOWNLOAD REQUIRED: %s DOESN'T EXIST in %s"), (*inner_kitr)->GetKeyName().c_str(), filePath);
 				AddToLogs(logEntry);
 			}
@@ -328,6 +382,7 @@ int Downloader::DoDownload() {
 				for (int i=0; i<numitems; i++){ 
 					GetZipItem(hz,i,&ze);
 
+					l->info("Downloader: Unzipping file: {}", CW2A(ze.name, CP_UTF8));
 					logEntry.Format(_T("Unzipping file: %s"), ze.name);
 					AddToLogs(logEntry);
 
@@ -341,16 +396,19 @@ int Downloader::DoDownload() {
 				break;
 			}
 		}
+		l->info("Downloader: Section checking complete for {}", CW2A(sectionName, CP_UTF8));
 		logEntry.Format(_T("== SECTION CHECKING COMPLETED: %s =="), sectionName);
 		AddToLogs(logEntry);
 	}
 
 	if (filesMismatched) {
+		l->info("Downloader: Files were mismatched");
 		CString logEntry;
 		logEntry.Format(_T("== FILES WERE MISMATCHED =="));
 		AddToLogs(logEntry);
 	}
 	else {
+		l->info("Downloader: No files changed");
 		CString logEntry;
 		logEntry.Format(_T("== NO FILES WERE CHANGED =="));
 		AddToLogs(logEntry);

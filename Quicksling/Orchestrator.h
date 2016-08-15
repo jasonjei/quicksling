@@ -6,6 +6,7 @@
 #include "QBInfo.h"
 #include "BrowserHandler.h"
 #include "NetAware.h"
+#include <mutex>
 
 class CMainDlg;
 class QBInfo;
@@ -19,7 +20,10 @@ public:
 	QBInfo qbInfo;
 	BrowserHandler browser;
 	CMainDlg* cMainDlg;
-
+	CString shellVersion;
+	bool lostDataEvents;
+	std::vector<CString> dataEvents;
+	std::vector<CString> newDataEvents;
 	int started;
 	bool brainRequestShutdown;
 	CString shellPID;
@@ -31,6 +35,7 @@ public:
 		longPoll.orchestrator = this;
 		response.orchestrator = this;
 		request.orchestrator = this;
+		lostDataEvents = false;
 	}
 
 	int SetDlgMain(CMainDlg *mainDlg) {
@@ -60,8 +65,12 @@ public:
 		longPoll.GoOffline();
 		::PostThreadMessage(this->longPoll.threadID, WM_QUIT, NULL, NULL);
 		WaitForSingleObject(this->longPoll.threadHandle, INFINITE);
+		CloseHandle(this->longPoll.threadHandle);
+		longPoll.GoOffline(true);
+
 		::PostThreadMessage(this->request.threadID, WM_QUIT, NULL, NULL);
 		WaitForSingleObject(this->request.threadHandle, INFINITE);
+		CloseHandle(this->request.threadHandle);
 
 		if (this->qbInfo.persistentQBXMLWrapper != NULL) {
 			delete this->qbInfo.persistentQBXMLWrapper;
@@ -70,6 +79,7 @@ public:
 
 		::PostThreadMessage(this->response.threadID, WM_QUIT, NULL, NULL);
 		WaitForSingleObject(this->response.threadHandle, INFINITE);
+		CloseHandle(this->response.threadHandle);
 
 		ATLTRACE2(atlTraceUI, 0, _T("::And audience applauds...\n"));
 

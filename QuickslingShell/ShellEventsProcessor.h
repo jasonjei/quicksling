@@ -9,6 +9,7 @@
 #include "atlframe.h"
 #include "atlmisc.h"
 #include "resource.h"
+#include "spdlog\spdlog.h"
 
 class Conductor;
 
@@ -30,6 +31,8 @@ public:
 	LRESULT OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
 	{
 		SetWindowText(_T("QuickletShellEventsProcessor"));
+		auto l = spdlog::get("quicksling_shell");
+		l->info("Initialized QuickletShellEventsProcessor");
 		return TRUE;
 	}
 
@@ -39,5 +42,5 @@ public:
 	//	threadHandle = ::CreateThread(NULL, 0, CoreEventsProcessor::RunThread, NULL, 0, &threadID);
 	//	return threadID;
 	//}
-
+	bool GetProductAndVersion(CString &strProductName, CString &strProductVersion);
 };

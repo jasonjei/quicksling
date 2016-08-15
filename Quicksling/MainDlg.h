@@ -63,6 +63,7 @@ public:
 		if (defaultOrchestrator->browser.simpleHandler.get() && ! defaultOrchestrator->browser.simpleHandler->IsClosing()) {
 			defaultOrchestrator->browser.simpleHandler->CloseBrowserAndQuit();
 		}
+		defaultOrchestrator->browser.simpleHandler->CloseAllBrowsers(true);
 		bHandled = FALSE;
 		return 1;
 	}
@@ -90,7 +91,7 @@ public:
 		}
 
 		if (url.IsEmpty())
-			url =  URLS::APP_SERVER + "/companies/client_landing?auth_key=" + defaultOrchestrator->qbInfo.authToken;
+			url =  URLS::APP_SERVER + "/companies/client_landing?auth_key=" + defaultOrchestrator->qbInfo.authToken + "&unique_id=" + defaultOrchestrator->qbInfo.GetUniqueID();
 
 		defaultOrchestrator->qbInfo.LaunchBrowser(url);
 		return 1;
@@ -121,6 +122,7 @@ public:
 
 		HWND ret = this->cep.Create(this->m_hWnd);
 
+		GetShellVersion();
 		return TRUE;
 	}
 
@@ -162,6 +164,29 @@ public:
 		return 0;
 	}
 
+	bool GetShellVersion() {
+		CString strWindowTitle = _T("QuickletShellEventsProcessor");
+		CString strDataToSend = _T("version");
+
+		LRESULT copyDataResult;
+
+		CWindow pOtherWnd = (HWND)FindWindow(NULL, strWindowTitle);
+
+		if (pOtherWnd) {
+			COPYDATASTRUCT cpd;
+			cpd.dwData = NULL;
+			cpd.cbData = strDataToSend.GetLength() * sizeof(wchar_t) + 1;
+			cpd.lpData = strDataToSend.GetBuffer(cpd.cbData);
+			copyDataResult = pOtherWnd.SendMessage(WM_COPYDATA,
+				(WPARAM) this->m_hWnd,
+				(LPARAM)&cpd);
+			strDataToSend.ReleaseBuffer();
+			// copyDataResult has value returned by other app
+
+		}
+		return true;
+	}
+
 	LRESULT OnAppAbout(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 	{
 		CAboutDlg dlg;
@@ -171,7 +196,7 @@ public:
 
 
 	LRESULT OnLaunchBrowserDashboard(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled) {
-		CString url = URLS::APP_SERVER + "companies/client_landing?auth_key=" + defaultOrchestrator->qbInfo.authToken;
+		CString url = URLS::APP_SERVER + "companies/client_landing?auth_key=" + defaultOrchestrator->qbInfo.authToken + "&unique_id=" + defaultOrchestrator->qbInfo.GetUniqueID();
 
 		defaultOrchestrator->qbInfo.LaunchBrowser(url);
 		return 1;
@@ -268,7 +293,6 @@ public:
 		cep.DestroyWindow();
 
 		DestroyWindow();
-
 
 		defaultOrchestrator->StopConcert();
 		::PostQuitMessage(nVal);

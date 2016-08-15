@@ -227,8 +227,8 @@ void qbXMLRPWrapper::CloseModal() {
 			if (match) {  
 				HANDLE hProcess = OpenProcess(PROCESS_ALL_ACCESS, FALSE, entry.th32ProcessID);
 
-				handles = GetThreadsForProcess(entry.th32ProcessID);
-				// Do stuff..
+				std::vector<HWND> newHandles = GetThreadsForProcess(entry.th32ProcessID);
+				handles.insert(handles.end(), newHandles.begin(), newHandles.end());
 
 				CloseHandle(hProcess);
 			}
@@ -242,6 +242,9 @@ void qbXMLRPWrapper::CloseModal() {
 		GetClassName(hWnd, className.GetBufferSetLength(100), 100);
 		className.ReleaseBuffer();
 		if (className.Compare(_T("MauiForm")) == 0) {
+			SendMessage(hWnd, WM_SYSCOMMAND, SC_CLOSE, NULL);
+		}
+		else if (className.Compare(_T("MauuiMessage")) == 0) {
 			SendMessage(hWnd, WM_SYSCOMMAND, SC_CLOSE, NULL);
 		}
 	});
