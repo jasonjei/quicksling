@@ -194,6 +194,22 @@ int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPTSTR lp
 			return (success == 1 ? 0 : 1);
 			break;
 		}
+		else if (lstrcmpi(lpszToken, _T("Download")) == 0)
+		{
+			{
+				auto l = spdlog::get("quicksling_shell");
+				if (l.get())
+					l->info("Downloading requested");
+			}
+
+			Downloader d;
+			d.showErrors = false;
+			d.DoDownload();
+
+			bRun = false;
+			return 0;
+			break;
+		}
 		else if (lstrcmpi(lpszToken, _T("UnregUIEvents")) == 0)
 		{
 			{
@@ -270,10 +286,10 @@ int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPTSTR lp
 		{
 			auto l = spdlog::get("quicksling_shell");
 			if (l.get())
-				l->alert("Not started by QuickBooks");
+				l->alert("Exiting... Not started by QuickBooks");
 		}
 		spdlog::drop_all();
-		MessageBox(NULL, _T("Please start QuickBooks, open a company, and authorize QuickSling to start QuickSling"), _T("QuickBooks Must Start QuickSling"), MB_OK);
+		MessageBox(NULL, _T("Please start QuickBooks, open a company, and authorize QuickSling to start QuickSling"), _T("QuickBooks Must Start QuickSling"), MB_OK | MB_SYSTEMMODAL);
 		return 0;
 	}
 

@@ -17,6 +17,7 @@ EventHandler::EventHandler(void) {
 }
 
 EventHandler::~EventHandler(void) {
+	CloseHandle(signal);
 }
 
 int EventHandler::ClearDataEvents() {
@@ -103,6 +104,8 @@ int EventHandler::ProcessEvent(CString strMsg) {
 			SetEvent(defaultOrchestrator->goOfflineSignal);
 			defaultOrchestrator->spawnCanary.StopBrainProcess();
 			defaultOrchestrator->StopConcert();
+			WaitForSingleObject(defaultOrchestrator->spawnCanary.threadHandle, INFINITE);
+			CloseHandle(defaultOrchestrator->spawnCanary.threadHandle);
 
 			PostQuitMessage(0);
 			//PostMessage(defaultConductor.orchestrator.request.mainDlg->m_hWnd, WM_CLOSE, NULL, NULL);

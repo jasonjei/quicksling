@@ -152,6 +152,12 @@ CString Downloader::GetDownloadManifest() {
 
 DWORD Downloader::GetSectionDownload(CIniKeyW* key) {
 	auto l = spdlog::get("quicksling_shell");
+	CString fileToDownloadCheckHash = ini.GetSection(_T("checksums"))->GetKey(key->GetKeyName())->GetValue().c_str();
+
+	if (ValidateCrcFile(GetLevionUserAppDir(GuessFileNameFromURL(key->GetValue().c_str())), fileToDownloadCheckHash) == 1) {
+		l->info("Downloader: No need to redownload - same archive for {}", CW2A(key->GetValue().c_str(), CP_UTF8));
+		return 1;
+	}
 
 	GetFile(key->GetValue().c_str());
 
@@ -163,11 +169,10 @@ DWORD Downloader::GetSectionDownload(CIniKeyW* key) {
 		AddToLogs(logEntry);
 
 		if (showErrors)
-			MessageBox(NULL, _T("No checksum provided for file to download"), _T("Quicklet File Download Error"), MB_OK);
+			MessageBox(NULL, _T("No checksum provided for file to download"), _T("Quicklet File Download Error"), MB_OK | MB_SYSTEMMODAL);
 		return -1;
 	}
 
-	CString fileToDownloadCheckHash = ini.GetSection(_T("checksums"))->GetKey(key->GetKeyName())->GetValue().c_str();
 	if (ValidateCrcFile(GetLevionUserAppDir( GuessFileNameFromURL(key->GetValue().c_str()) ), fileToDownloadCheckHash) == 1)
 		return 1;
 
@@ -296,7 +301,7 @@ int Downloader::DoDownload() {
 	if (downloadManifest.IsEmpty()) {
 		l->error("Downloader: Couldn't download package manifest");
 		if (showErrors)
-			MessageBox(NULL, _T("Couldn't download Quicklet file manifest"), _T("Quicklet File Download Error"), MB_OK);
+			MessageBox(NULL, _T("Couldn't download Quicklet file manifest"), _T("Quicklet File Download Error"), MB_OK | MB_SYSTEMMODAL);
 		return -1;
 	}
 
@@ -313,7 +318,7 @@ int Downloader::DoDownload() {
 		AddToLogs(logEntry);
 
 		if (showErrors)
-			MessageBox(NULL, _T("Quicklet file manifest doesn't contain files to download"), _T("Quicklet File Download Error"), MB_OK);
+			MessageBox(NULL, _T("Quicklet file manifest doesn't contain files to download"), _T("Quicklet File Download Error"), MB_OK | MB_SYSTEMMODAL);
 		return -2;
 	}
 
@@ -323,7 +328,7 @@ int Downloader::DoDownload() {
 		AddToLogs(logEntry);
 
 		if (showErrors)
-			MessageBox(NULL, logEntry, _T("Quicklet Setup Error"), MB_OK);
+			MessageBox(NULL, logEntry, _T("Quicklet Setup Error"), MB_OK | MB_SYSTEMMODAL);
 		return -6; // No Quicksling folder in AppData/Local
 	}
 

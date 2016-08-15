@@ -38,7 +38,7 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <PostBuildEventUseInBuild>false</PostBuildEventUseInBuild>
+    <PostBuildEventUseInBuild>true</PostBuildEventUseInBuild>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
@@ -79,7 +79,9 @@
     </Midl>
     <PostBuildEvent>
       <Message>Performing registration...</Message>
-      <Command>"$(TargetPath)" /RegServer</Command>
+      <Command>if exist "$(SolutionDir)\tools\quicklet.pfx" (
+"$(SolutionDir)\tools\SignTool.exe" sign /f "$(SolutionDir)\tools\quicklet.pfx" /tr http://tsa.starfieldtech.com /td SHA256 "$(OutputPath)$(TargetFileName)"
+)</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -116,7 +118,9 @@
     </Midl>
     <PostBuildEvent>
       <Message>Performing registration...</Message>
-      <Command>"$(TargetPath)" /RegServer</Command>
+      <Command>if exist "$(SolutionDir)\tools\quicklet.pfx" (
+"$(SolutionDir)\tools\SignTool.exe" sign /f "$(SolutionDir)\tools\quicklet.pfx" /tr http://tsa.starfieldtech.com /td SHA256 "$(OutputPath)$(TargetFileName)"
+)</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>

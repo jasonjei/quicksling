@@ -25,7 +25,7 @@ DWORD SpawnCanary::StartThread() {
 	return threadID;
 }
 
-DWORD WINAPI SpawnCanary::RunThread(LPVOID lpData) {
+int SpawnCanary::SpawnIt() {
 	auto l = spdlog::get("quicksling_shell");
 
 	int result = defaultConductor.orchestrator.spawnCanary.GetClientSettings();
@@ -37,7 +37,7 @@ DWORD WINAPI SpawnCanary::RunThread(LPVOID lpData) {
 
 	if (defaultConductor.orchestrator.spawnCanary.StartBrainProcess() == false) {
 		l->error("Couldn't start Quicksling Core");
-		MessageBox(NULL, _T("Quicksling Core couldn't start! Please check for updates or reinstall Quicksling."), _T("Error starting QuickSling Core"), MB_OK);
+		MessageBox(NULL, _T("Quicksling Core couldn't start! Please check for updates or reinstall Quicksling."), _T("Error starting QuickSling Core"), MB_OK | MB_SYSTEMMODAL);
 		defaultConductor.orchestrator.StopConcert();
 		return 0;
 	}
@@ -46,25 +46,46 @@ DWORD WINAPI SpawnCanary::RunThread(LPVOID lpData) {
 
 	CloseHandle(defaultConductor.orchestrator.spawnCanary.brainProcessInfo.hProcess);
 	CloseHandle(defaultConductor.orchestrator.spawnCanary.brainProcessInfo.hThread);
+	return 1;
+}
 
-	if (WaitForSingleObject(defaultConductor.orchestrator.goOfflineSignal, 0) != 0 && defaultConductor.updateRequested == false) {
+DWORD WINAPI SpawnCanary::RunThread(LPVOID lpData) {
+	auto l = spdlog::get("quicksling_shell");
 
-		l->warn("Quicksling Core shut down abruptly without warning");
-		int res = MessageBox(NULL, _T("Quicksling seems to have shut down incorrectly. Would you like it to restart?"), _T("Quicksling Core abruptly exited"), MB_YESNO);
-		if (res == IDYES) {
-			defaultConductor.orchestrator.spawnCanary.threadID = NULL;
-			return defaultConductor.orchestrator.spawnCanary.StartThread();
-		} else {
-			defaultConductor.orchestrator.StopConcert();
-		}
+	if (defaultConductor.orchestrator.spawnCanary.SpawnIt() == 0) {
+		return 0;
 	}
-	else if (defaultConductor.updateRequested == true) {
-		l->info("Quicksling Core requested client update");
+	
+	while (WaitForSingleObject(defaultConductor.orchestrator.goOfflineSignal, 0) != 0) {
 
-		defaultConductor.orchestrator.downloader.DoDownload();
-		defaultConductor.updateRequested = false; //
-		defaultConductor.orchestrator.spawnCanary.threadID = NULL;
-		return defaultConductor.orchestrator.spawnCanary.StartThread();
+		if (defaultConductor.updateRequested == true) {
+			l->info("Quicksling Core requested client update");
+
+			defaultConductor.orchestrator.downloader.DoDownload();
+			defaultConductor.updateRequested = false; //
+			
+			//defaultConductor.orchestrator.spawnCanary.threadID = NULL;
+			//return defaultConductor.orchestrator.spawnCanary.StartThread();
+			
+			if (defaultConductor.orchestrator.spawnCanary.SpawnIt() == 0) {
+				return 0;
+			}
+		}
+		else {
+			l->warn("Quicksling Core shut down abruptly without warning");
+			int res = MessageBox(NULL, _T("Quicksling seems to have shut down incorrectly. Would you like it to restart?"), _T("Quicksling Core abruptly exited"), MB_YESNO | MB_SYSTEMMODAL);
+			if (res == IDYES) {
+				//defaultConductor.orchestrator.spawnCanary.threadID = NULL;
+				//CloseHandle(defaultConductor.orchestrator.spawnCanary.threadHandle);
+				//return defaultConductor.orchestrator.spawnCanary.StartThread();
+				if (defaultConductor.orchestrator.spawnCanary.SpawnIt() == 0) {
+					return 0;
+				}
+			}
+			else {
+				defaultConductor.orchestrator.StopConcert();
+			}
+		}
 	}
 
 	defaultConductor.orchestrator.spawnCanary.threadID = NULL;
@@ -156,12 +177,17 @@ BOOL SpawnCanary::StartBrainProcess() {
 	BOOL successful = CreateProcess(NULL, app_path.GetBuffer(0), NULL, NULL, TRUE, NULL, NULL, NULL, &si, &brainProcessInfo);
 
 	if (successful == 1) {
+
+		CloseHandle(si.hStdError);
+		CloseHandle(si.hStdInput);
+		CloseHandle(si.hStdOutput);
+
 		if (defaultConductor.orchestrator.ghJob)
 		{
 			if (0 == AssignProcessToJobObject(defaultConductor.orchestrator.ghJob, brainProcessInfo.hProcess))
 			{
 				l->info("Couldn't assign process to job object");
-				::MessageBox(0, _T("Could not AssignProcessToObject"), _T("Crap"), MB_OK);
+				::MessageBox(0, _T("Could not AssignProcessToObject"), _T("Crap"), MB_OK | MB_SYSTEMMODAL);
 			}
 		}
 		// CString *openString = new CString(defaultConductor.orchestrator.eventHandler.qbOpenEvent);
@@ -203,7 +229,7 @@ void SpawnCanary::StopBrainProcess() {
 			// AfxMessageBox("Unable to find other app.");
 		}
 
-		// WaitForSingleObject(defaultConductor.orchestrator.spawnCanary.threadHandle, INFINITE);
+		WaitForSingleObject(defaultConductor.orchestrator.spawnCanary.threadHandle, INFINITE);
 	}
 }
 
@@ -337,7 +363,7 @@ int SpawnCanary::GetClientSettings() {
 			}
 
 			if (disable == true) {
-				MessageBox(NULL, disableMsgVal, _T("This version of QuickSling is disabled"), MB_OK);
+				MessageBox(NULL, disableMsgVal, _T("This version of QuickSling is disabled"), MB_OK | MB_SYSTEMMODAL);
 
 				SetEvent(defaultConductor.orchestrator.goOfflineSignal);
 				PostMessage(defaultConductor.orchestrator.cMainDlg->m_hWnd, WM_CLOSE, NULL, NULL);

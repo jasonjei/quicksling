@@ -199,7 +199,7 @@ int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPTSTR lp
 			parentExe.TrimRight();
 
 			if (parentExe != "quickslingshell.exe") {
-				MessageBox(NULL, _T("QuickSling must be started by QuickBooks"), _T("Start QuickSling through QuickBooks"), MB_OK);
+				MessageBox(NULL, _T("QuickSling must be started by QuickBooks"), _T("Start QuickSling through QuickBooks"), MB_OK | MB_SYSTEMMODAL);
 				return 0;
 			}
 		}

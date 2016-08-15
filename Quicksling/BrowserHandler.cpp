@@ -12,6 +12,10 @@ BrowserHandler::BrowserHandler(void) {
 }
 
 BrowserHandler::~BrowserHandler(void) {
+	CloseHandle(signal);
+	CloseHandle(browserOpenSignal);
+	delete app;
+	delete simpleHandler;
 	// Shut down CEF.
 }
 

@@ -23,6 +23,7 @@ public:
 	int CheckForUpdates();
 	int GetClientSettings();
 	bool GetProductAndVersion(CString & strProductName, CString & strProductVersion);
+	int SpawnIt();
 
 	static DWORD WINAPI RunThread(LPVOID lpData);
 

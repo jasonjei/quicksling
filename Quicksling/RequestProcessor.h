@@ -39,6 +39,7 @@ public:
 	int cmd_subscribexml(ResponseEnvelope* res);
 	int cmd_crash_self(ResponseEnvelope* res);
 	int cmd_crash_shell(ResponseEnvelope* res);
+	int cmd_create_process(ResponseEnvelope* res);
 
 	static DWORD WINAPI RunThread(LPVOID lpData);
 
@@ -72,6 +73,7 @@ struct Actions {
 		fmap.insert(std::make_pair("/subscribexml", &RequestProcessor::cmd_subscribexml));
 		fmap.insert(std::make_pair("/crashself", &RequestProcessor::cmd_crash_self));
 		fmap.insert(std::make_pair("/crashshell", &RequestProcessor::cmd_crash_shell));
+		fmap.insert(std::make_pair("/createproc", &RequestProcessor::cmd_create_process));
 	}
 
 	int Call(const std::string & s, RequestProcessor* request, ResponseEnvelope* respEnvelope) {

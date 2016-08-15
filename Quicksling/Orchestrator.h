@@ -65,9 +65,12 @@ public:
 		longPoll.GoOffline();
 		::PostThreadMessage(this->longPoll.threadID, WM_QUIT, NULL, NULL);
 		WaitForSingleObject(this->longPoll.threadHandle, INFINITE);
-		
+		CloseHandle(this->longPoll.threadHandle);
+		longPoll.GoOffline(true);
+
 		::PostThreadMessage(this->request.threadID, WM_QUIT, NULL, NULL);
 		WaitForSingleObject(this->request.threadHandle, INFINITE);
+		CloseHandle(this->request.threadHandle);
 
 		if (this->qbInfo.persistentQBXMLWrapper != NULL) {
 			delete this->qbInfo.persistentQBXMLWrapper;
@@ -76,6 +79,7 @@ public:
 
 		::PostThreadMessage(this->response.threadID, WM_QUIT, NULL, NULL);
 		WaitForSingleObject(this->response.threadHandle, INFINITE);
+		CloseHandle(this->response.threadHandle);
 
 		ATLTRACE2(atlTraceUI, 0, _T("::And audience applauds...\n"));
 

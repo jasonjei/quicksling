@@ -28,6 +28,11 @@
     <Compile Include="WixUI_Minimal.wxs" />
   </ItemGroup>
   <Import Project="$(WixTargetsPath)" />
+  <PropertyGroup>
+    <PostBuildEvent>if exist "$(SolutionDir)\tools\quicklet.pfx" (
+"$(SolutionDir)\tools\SignTool.exe" sign /f "$(SolutionDir)\tools\quicklet.pfx" /tr http://tsa.starfieldtech.com /td SHA256 "$(TargetDir)$(TargetFileName)"
+)</PostBuildEvent>
+  </PropertyGroup>
   <!--
 	To modify your build process, add your task inside one of the targets below and uncomment it.
 	Other similar extension points exist, see Wix.targets.

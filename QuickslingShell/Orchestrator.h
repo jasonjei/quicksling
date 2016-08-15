@@ -32,12 +32,17 @@ public:
 		JOBOBJECT_EXTENDED_LIMIT_INFORMATION jeli = { 0 };
 
 		// Configure all child processes associated with the job to terminate when the
-		jeli.BasicLimitInformation.LimitFlags = JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE;
+		jeli.BasicLimitInformation.LimitFlags = JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE | JOB_OBJECT_LIMIT_BREAKAWAY_OK;
 		if (0 == SetInformationJobObject(ghJob, JobObjectExtendedLimitInformation, &jeli, sizeof(jeli)))
 		{
 			l->error("Couldn't set job object");
-			::MessageBox(0, _T("Could not SetInformationJobObject"), _T("TEST"), MB_OK);
+			::MessageBox(0, _T("Could not SetInformationJobObject"), _T("Critical Error"), MB_OK | MB_SYSTEMMODAL);
 		}
+	}
+
+	~Orchestrator() {
+		CloseHandle(goOfflineSignal);
+		CloseHandle(ghJob);
 	}
 
 	int StartConcert() {
@@ -48,7 +53,7 @@ public:
 	int StopConcert() {
 		ATLTRACE2(atlTraceUI, 0, _T("::And audience applauds...\n"));
 		PostMessage(this->cMainDlg->m_hWnd, WM_CLOSE, NULL, NULL);
-		WaitForSingleObject(this->spawnCanary.threadHandle, INFINITE);
+		// WaitForSingleObject(this->spawnCanary.threadHandle, INFINITE);
 		// PostThreadMessage(this->mainThreadID, WM_DESTROY, NULL, NULL);
 		return 1;
 	}

@@ -32,4 +32,5 @@ public:
 	std::vector<CString> dataEvents;
 	std::vector<CString> newDataEvents;
 	CString qbOpenEvent;
+	CString lastEvent;
 };

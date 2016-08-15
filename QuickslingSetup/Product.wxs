@@ -20,6 +20,7 @@
         <Property Id="ARPNOREPAIR" Value="1"/>
 
         <Property Id="TESTQBINSTALLED" Value="YES"/>
+        <Property Id="WIXUI_EXITDIALOGOPTIONALTEXT" Value="Thank you for installing Quicksling. To get started with Quicklet, start up QuickBooks, open your company, and allow Quicksling access to QuickBooks." />
 
         <WixVariable Id="WixUILicenseRtf" Value="license.rtf" />
         <WixVariable Id="WixUIDialogBmp" Value="WixUIDialog.bmp" />
@@ -30,7 +31,7 @@
         <Property Id="Configuration" Value=" $(var.Configuration)" />
 <?endif ?>
         <Binary Id="CAVerifyQBInstalled"
-          SourceFile="..\VerifyQBInstalled\bin\debug\VerifyQBInstalled.dll" />
+          SourceFile="..\VerifyQBInstalled\bin\$(var.Configuration)\VerifyQBInstalled.dll" />
 
         <CustomAction Id="VerifyQBInstalled" BinaryKey="CAVerifyQBInstalled"
           DllEntry="CustomAction1" Execute="firstSequence" Return="check" />
@@ -201,11 +202,14 @@
 
         <CustomAction Id='ExecRegUIEvents' Directory='TARGETDIR' Execute='immediate' ExeCommand='[#QuickslingShell.exe] /RegUIEvents' Return='check'/>
 
+        <CustomAction Id='ExecDownload' Directory='TARGETDIR' Execute='immediate' ExeCommand='[#QuickslingShell.exe] /Download' Return='check'/>
+
         <CustomAction Id='ExecUnregUIEvents' Directory='TARGETDIR' Execute='immediate' ExeCommand='[#QuickslingShell.exe] /UnregUIEvents' Return='check'/>
 
 
         <InstallExecuteSequence>
             <Custom Action='ExecRegUIEvents' After='InstallFinalize'>NOT Installed</Custom>
+            <Custom Action='ExecDownload' After='InstallFinalize'>NOT Installed</Custom>
             <Custom Action='ExecUnregUIEvents' After="RemoveFiles">
                     (NOT UPGRADINGPRODUCTCODE) AND (REMOVE="ALL")</Custom>
         </InstallExecuteSequence>

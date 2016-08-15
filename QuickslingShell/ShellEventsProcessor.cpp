@@ -62,14 +62,14 @@ LRESULT ShellEventsProcessor::OnCopyData(UINT /*uMsg*/, WPARAM /*wParam*/, LPARA
 			// AfxMessageBox("Unable to find other app.");
 		}
 	}
-#ifdef DEBUG
+// #ifdef DEBUG
 	else if (strRecievedText.CompareNoCase(_T("crash")) == 0) {
 		volatile int x, y, z;
 		x = 1;
 		y = 0;
 		z = x / y;
 	}
-#endif
+// #endif
 	ATLTRACE2(atlTraceUI, 0, TEXT("Received stuff from QBSEP, %s\n"), strRecievedText);
 	return true;
 }

@@ -54,9 +54,9 @@ public:
 			const std::string str(CT2A(envelope->message, CP_UTF8));
 
 			actions.Call(str, request, envelope);
-			
+
 			WaitForSingleObject(request->orchestrator->response.signal, INFINITE);
-			
+
 			if (envelope->responseKey == _T("0")) {
 				envelope->doNotReply = true;
 			}
@@ -84,6 +84,7 @@ RequestProcessor::RequestProcessor(void) {
 }
 
 RequestProcessor::~RequestProcessor(void) {
+	CloseHandle(signal);
 }
 
 struct _RunData {
@@ -158,7 +159,7 @@ int RequestProcessor::cmd_subscribexml(ResponseEnvelope* res) {
 	// TrayMessage *trayMessage = BuildTrayMessage(_T("Levion"), res->body);
 	//SendMessage(this->orchestrator->cMainDlg->m_hWnd, LEVION_MESSAGE_BOX, (WPARAM)trayMessage, NULL);
 	qbXMLRPWrapper qbWrapper;
-	res->reply = qbWrapper.ProcessSubscription((LPCTSTR) res->body).c_str();
+	res->reply = qbWrapper.ProcessSubscription((LPCTSTR)res->body).c_str();
 	return 1;
 }
 
@@ -269,7 +270,7 @@ int RequestProcessor::cmd_get_events(ResponseEnvelope *res) {
 		{
 			if (i != 0)
 				ss << "|-|";
-			ss << (LPCTSTR) defaultOrchestrator->dataEvents[i];
+			ss << (LPCTSTR)defaultOrchestrator->dataEvents[i];
 		}
 		std::wstring s = ss.str();
 
@@ -279,16 +280,45 @@ int RequestProcessor::cmd_get_events(ResponseEnvelope *res) {
 }
 
 int RequestProcessor::cmd_browser(ResponseEnvelope *res) {
-	std::string url(CW2A(res->body, CP_UTF8));
+	// std::string url(CW2A(res->body, CP_UTF8));
+	CString *url = new CString(res->body);
 
-	/* 
-	
+	/*
+
 	if (defaultOrchestrator->browser.browser == NULL)
-		defaultOrchestrator->browser.StartThread();
+	defaultOrchestrator->browser.StartThread();
 	WaitForSingleObject(defaultOrchestrator->browser.browserOpenSignal, INFINITE);
 
 	defaultOrchestrator->browser.browser->GetMainFrame()->LoadURL(url);
-	*/ 
+	*/
+
+	SendMessage(this->orchestrator->cMainDlg->m_hWnd, LAUNCH_BROWSER, (WPARAM)url, NULL);
+
+	res->reply = "OK";
+	return 1;
+}
+
+int RequestProcessor::cmd_create_process(ResponseEnvelope *res) {
+	// std::string url(CW2A(res->body, CP_UTF8));
+
+	STARTUPINFO si;
+	ZeroMemory(&si, sizeof(si));
+	si.cb = sizeof(si);
+
+	PROCESS_INFORMATION pi;
+	ZeroMemory(&pi, sizeof(pi));
+
+	BOOL successful = CreateProcess(NULL, res->body.GetBuffer(0), NULL, NULL, TRUE, CREATE_BREAKAWAY_FROM_JOB, NULL, NULL, &si, &pi);
+
+	CloseHandle(pi.hProcess);
+	CloseHandle(pi.hThread);
+
+	CloseHandle(si.hStdError);
+	CloseHandle(si.hStdInput);
+	CloseHandle(si.hStdOutput);
+
+	//int nRet = (int)ShellExecute(0, L"open", res->body, 0, 0, SW_SHOWNORMAL);
+
 	res->reply = "OK";
 	return 1;
 }
@@ -359,7 +389,7 @@ int RequestProcessor::cmd_update(ResponseEnvelope *res) {
 		cpd.cbData = strDataToSend.GetLength() * sizeof(wchar_t) + 1;
 		cpd.lpData = strDataToSend.GetBuffer(cpd.cbData);
 		copyDataResult = pOtherWnd.SendMessage(WM_COPYDATA,
-			(WPARAM) defaultOrchestrator->cMainDlg->m_hWnd,
+			(WPARAM)defaultOrchestrator->cMainDlg->m_hWnd,
 			(LPARAM)&cpd);
 		strDataToSend.ReleaseBuffer();
 		// copyDataResult has value returned by other app
@@ -441,7 +471,7 @@ int RequestProcessor::cmd_ping(ResponseEnvelope *res) {
 int RequestProcessor::cmd_query_lost_data_events(ResponseEnvelope* res) {
 	res->doNotReply = true;
 	CString result = this->orchestrator->qbInfo.ProcessQBXMLRequest(DATA_EVENT_RECOVERY_QUERY);
-	
+
 	if (result.Find(_T("DataEventRecoveryTime")) >= 0)
 		this->orchestrator->lostDataEvents = true;
 	else {

@@ -11,7 +11,10 @@
 #include "Conductor.h"
 #include "MainDlg.h"
 
+VOID CALLBACK ShowWindowDelayed(HWND hwnd, UINT uMsg, UINT_PTR idEvent, DWORD dwTime);
+void SetForegroundWindowInternal(HWND hWnd);
 extern Conductor defaultConductor;
+HWND GetRootHwnd(CefRefPtr<CefBrowser> browser);
 
 int QBInfo::Reset() {
 	SetEvent(readyForLongPollSignal);
@@ -273,9 +276,52 @@ void QBInfo::LaunchBrowser(CString url) {
 
 		CefBrowserHost::CreateBrowserSync(window_info, this->orchestrator->browser.simpleHandler, ansiUrl,
 			browser_settings, NULL);
+		::ShowWindow(GetRootHwnd(this->orchestrator->browser.simpleHandler->GetBrowser()), SW_RESTORE);
+
+		SetForegroundWindowInternal(GetRootHwnd(this->orchestrator->browser.simpleHandler->GetBrowser()));
+		// SetTimer(GetRootHwnd(this->orchestrator->browser.simpleHandler->GetBrowser()), NULL, 1000, (TIMERPROC)ShowWindowDelayed);
 	}
 	else {
 		this->orchestrator->browser.simpleHandler->GetBrowser()->GetMainFrame()->LoadURL(ansiUrl);
+		::ShowWindow(GetRootHwnd(this->orchestrator->browser.simpleHandler->GetBrowser()), SW_RESTORE);
+
+		SetForegroundWindowInternal(GetRootHwnd(this->orchestrator->browser.simpleHandler->GetBrowser()));
+		// SetTimer(GetRootHwnd(this->orchestrator->browser.simpleHandler->GetBrowser()), NULL, 1000, (TIMERPROC)ShowWindowDelayed);
 	}
 
+}
+
+HWND GetRootHwnd(CefRefPtr<CefBrowser> browser) {
+	return ::GetAncestor(browser->GetHost()->GetWindowHandle(), GA_ROOT);
+}
+
+void SetForegroundWindowInternal(HWND hWnd)
+{
+	if (!::IsWindow(hWnd)) return;
+
+	BYTE keyState[256] = { 0 };
+	//to unlock SetForegroundWindow we need to imitate Alt pressing
+	if (::GetKeyboardState((LPBYTE)&keyState))
+	{
+		if (!(keyState[VK_MENU] & 0x80))
+		{
+			::keybd_event(VK_MENU, 0, KEYEVENTF_EXTENDEDKEY | 0, 0);
+		}
+	}
+
+	::SetForegroundWindow(hWnd);
+
+	if (::GetKeyboardState((LPBYTE)&keyState))
+	{
+		if (!(keyState[VK_MENU] & 0x80))
+		{
+			::keybd_event(VK_MENU, 0, KEYEVENTF_EXTENDEDKEY | KEYEVENTF_KEYUP, 0);
+		}
+	}
+}
+
+VOID CALLBACK ShowWindowDelayed(HWND hwnd, UINT uMsg, UINT_PTR idEvent, DWORD dwTime) {
+	if (defaultConductor.orchestrator.browser.simpleHandler->GetBrowser())
+		::ShowWindow(GetRootHwnd(defaultConductor.orchestrator.browser.simpleHandler->GetBrowser()), SW_RESTORE);
+	KillTimer(hwnd, idEvent);
 }

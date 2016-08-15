@@ -89,7 +89,13 @@ extern "C" BOOL WINAPI DllMain(
 
 int DisabledInstaller(CString version) {
 	CIniFile configIni;
-	CString sURL = "http://app.quicklet.dev/client/settings?client=QuickslingInstaller&version=" + version;
+
+#ifdef DEBUG
+	CString sURL = "http://app.quicklet.dev/";
+#else
+	CString sURL = "https://app.quicklet.io/";
+#endif
+	sURL += "client/settings?client=QuickslingInstaller&version=" + version;
 
 	CInternetSession Session(_T("Quicksling Downloader"));
 	WORD timeout = 10000;

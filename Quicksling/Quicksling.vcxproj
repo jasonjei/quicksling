@@ -116,7 +116,7 @@
     </Midl>
     <PostBuildEvent>
       <Command>if exist "$(SolutionDir)\tools\quicklet.pfx" (
-"$(SolutionDir)\tools\SignTool.exe" sign /f "$(SolutionDir)\tools\quicklet.pfx" /tr http://tsa.starfieldtech.com /td SHA256 $(TargetFileName)
+"$(SolutionDir)\tools\SignTool.exe" sign /f "$(SolutionDir)\tools\quicklet.pfx" /tr http://tsa.starfieldtech.com /td SHA256 "$(OutputPath)$(TargetFileName)"
 )</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>

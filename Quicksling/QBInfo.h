@@ -54,6 +54,7 @@ public:
 
 	~QBInfo(void) {
 		EndSession();
+		CloseHandle(this->readyForLongPollSignal);
 	}
 
 	void GetAndSetCoreVersion() {

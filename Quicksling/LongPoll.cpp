@@ -8,6 +8,7 @@
 #include <strsafe.h>
 #include <exception>
 #include "BugSplat.h"
+#include <sstream>
 
 extern LongPoll* defaultPoll;
 extern Conductor defaultConductor;
@@ -32,6 +33,10 @@ LongPoll::LongPoll(void) : firstTime(true), firstError(true) {
 }
 
 LongPoll::~LongPoll(void) {
+	CloseHandle(signal);
+	CloseHandle(connectedSignal);
+	CloseHandle(goOfflineSignal);
+	CloseHandle(tryAgainSignal);
 }
 
 struct _LongPollRunData {
@@ -68,13 +73,15 @@ DWORD WINAPI LongPoll::RunThread(LPVOID lpData) {
 	return 0;
 }
 
-int LongPoll::GoOffline() {
+int LongPoll::GoOffline(bool change_auth_key) {
 	ResetEvent(this->orchestrator->qbInfo.readyForLongPollSignal);
 	SetEvent(this->goOfflineSignal);
 
 	CString oldAuthToken = this->orchestrator->qbInfo.authToken;
 	this->state = "OFFLINE";
-	this->orchestrator->qbInfo.authToken = this->orchestrator->qbInfo.GUIDgen();
+
+	if (change_auth_key)
+		this->orchestrator->qbInfo.authToken = this->orchestrator->qbInfo.GUIDgen();
 
 	timeToQuit = 1;
 
@@ -83,8 +90,15 @@ int LongPoll::GoOffline() {
 		return 1;
 	} */
 
-	CString sURL = URLS::GOLIATH_SERVER + "client/offline?auth_key=" + this->orchestrator->qbInfo.authToken +
-		"&old_auth_key=" + oldAuthToken;
+	CString sURL;
+
+	if (change_auth_key) {
+		sURL = URLS::GOLIATH_SERVER + "client/offline?auth_key=" + this->orchestrator->qbInfo.authToken;
+		sURL += "&old_auth_key=" + oldAuthToken;
+	}
+	else {
+		sURL = URLS::GOLIATH_SERVER + "client/offline?old_auth_key=" + this->orchestrator->qbInfo.authToken;
+	}
 
 	CInternetSession session(APP_NAME);
 	session.SetOption(INTERNET_OPTION_RECEIVE_TIMEOUT, 1);
@@ -115,7 +129,8 @@ int LongPoll::GoOffline() {
 		}
 
 		pageSource.Format(_T("%s"), pageSource);
-		this->orchestrator->qbInfo.LoadConfigYaml();
+		if (change_auth_key)
+			this->orchestrator->qbInfo.LoadConfigYaml();
 
 	}
 
@@ -269,6 +284,7 @@ int LongPoll::GetClientSettings() {
 
 		}
 	}
+	return 1;
 }
 
 int LongPoll::DoLongPoll() {
@@ -331,6 +347,8 @@ int LongPoll::DoLongPoll() {
 
 	catch (CInternetException& e) {
 		fail = 1;
+		delete cHttpFile;
+		cHttpFile = NULL;
 	}
 
 	if (!fail) {
@@ -479,7 +497,8 @@ int LongPoll::DoLongPoll() {
 		}
 
 	}
-	delete cHttpFile;
+	if (cHttpFile)
+		delete cHttpFile;
 	ResetEvent(this->connectedSignal);
 
 	ClearExpiredQBSession();
