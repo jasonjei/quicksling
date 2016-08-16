@@ -127,7 +127,7 @@ int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPTSTR lp
 	{
 		auto l = spdlog::get("quicksling_shell");
 		if (l.get())
-			l->info("Welcome to QuickslingShell (Version {}, Process ID {}, Main Thread {})", CW2A(productVersion, CP_UTF8), GetCurrentProcessId(), GetCurrentThreadId());
+			l->info("Welcome to QuickslingShell (Version {}, Process ID {}, Main Thread {})", (char*) CW2A(productVersion, CP_UTF8), GetCurrentProcessId(), GetCurrentThreadId());
 	}
 
 	HRESULT hRes = ::CoInitialize(NULL);
@@ -286,7 +286,7 @@ int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPTSTR lp
 		{
 			auto l = spdlog::get("quicksling_shell");
 			if (l.get())
-				l->alert("Exiting... Not started by QuickBooks");
+				l->warn("Exiting... Not started by QuickBooks");
 		}
 		spdlog::drop_all();
 		MessageBox(NULL, _T("Please start QuickBooks, open a company, and authorize QuickSling to start QuickSling"), _T("QuickBooks Must Start QuickSling"), MB_OK | MB_SYSTEMMODAL);

@@ -10,13 +10,13 @@ class ShellUtilities {
 
 			qb.ProcessSubscription(std::wstring(UI_EVENT_SUBSCRIPTION));
 			if (qb.GetHasError()) {
-				l->error("Register UI Event Subscription error: {}", CW2A(qb.GetErrorMsg().c_str(), CP_UTF8));
+				l->error("Register UI Event Subscription error: {}", (char*) CW2A(qb.GetErrorMsg().c_str(), CP_UTF8));
 				return -2;
 			}
 
 			qb.ProcessSubscription(std::wstring(DATA_EVENT_SUBSCRIPTION));
 			if (qb.GetHasError()) {
-				l->error("Register Data Event Subscription error: {}", CW2A(qb.GetErrorMsg().c_str(), CP_UTF8));
+				l->error("Register Data Event Subscription error: {}", (char*) CW2A(qb.GetErrorMsg().c_str(), CP_UTF8));
 				return -3;
 			}
 
@@ -29,13 +29,13 @@ class ShellUtilities {
 
 			qb.ProcessSubscription(std::wstring(UI_EVENT_UNSUBSCRIPTION));
 			if (qb.GetHasError()) {
-				l->error("Unregister UI Event Subscription error: {}", CW2A(qb.GetErrorMsg().c_str(), CP_UTF8));
+				l->error("Unregister UI Event Subscription error: {}", (char*) CW2A(qb.GetErrorMsg().c_str(), CP_UTF8));
 				return -2;
 			}
 
 			qb.ProcessSubscription(std::wstring(DATA_EVENT_UNSUBSCRIPTION));
 			if (qb.GetHasError()) {
-				l->error("Unregister Data Event Subscription error: {}", CW2A(qb.GetErrorMsg().c_str(), CP_UTF8));
+				l->error("Unregister Data Event Subscription error: {}", (char*) CW2A(qb.GetErrorMsg().c_str(), CP_UTF8));
 				return -3;
 			}
 

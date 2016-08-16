@@ -127,3 +127,6 @@ cef_binary*/Release/*
 *.wixpdb
 
 tools/quicklet.pfx
+
+cef_binary*/build/*
+archives*/*

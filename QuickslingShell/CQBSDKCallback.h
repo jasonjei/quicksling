@@ -41,7 +41,7 @@ DECLARE_REGISTRY_RESOURCEID(IDR_QUICKSLINGSHELL)
 #endif
 		CString logMsg = toSendMsg;
 		logMsg.Replace(_T("\n"), _T(""));
-		l->info("QB Event Message: {}", CW2A(logMsg, CP_UTF8));
+		l->info("QB Event Message: {}", (char*) CW2A(logMsg, CP_UTF8));
 
 		return 1;
 	};

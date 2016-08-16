@@ -158,7 +158,7 @@ BOOL SpawnCanary::StartBrainProcess() {
 #endif
 
 	auto l = spdlog::get("quicksling_shell");
-	l->info("Starting core at {}", CW2A(app_path, CP_UTF8));
+	l->info("Starting core at {}", (char*) CW2A(app_path, CP_UTF8));
 
 	STARTUPINFO si;
 	ZeroMemory( &si, sizeof(si) );

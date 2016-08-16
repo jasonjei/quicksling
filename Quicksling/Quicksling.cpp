@@ -56,7 +56,7 @@ int Run(LPTSTR /*lpstrCmdLine*/ = NULL, int nCmdShow = SW_SHOWDEFAULT)
 
 	{
 		auto l = spdlog::get("quicksling");
-		l->info("Welcome to QuickslingShell (Version {}, Process ID {}, Main Thread {})", CW2A(defaultConductor.orchestrator.qbInfo.version, CP_UTF8), GetCurrentProcessId(), GetCurrentThreadId());
+		l->info("Welcome to QuickslingShell (Version {}, Process ID {}, Main Thread {})", std::string(CW2A(defaultConductor.orchestrator.qbInfo.version, CP_UTF8)), GetCurrentProcessId(), GetCurrentThreadId());
 	}
 
 	CMessageLoop theLoop;

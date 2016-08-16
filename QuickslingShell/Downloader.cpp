@@ -44,7 +44,7 @@ DWORD Downloader::GetFile(CString url) {
 		reinterpret_cast<void**>(&pBindStatusCallback));
 	
 	auto l = spdlog::get("quicksling_shell");
-	l->info("Downloader: Downloading file: {} to {}", CW2A(url, CP_UTF8), CW2A(filePath, CP_UTF8));
+	l->info("Downloader: Downloading file: {} to {}", (char*)(CW2A(url, CP_UTF8)), (char*) (CW2A(filePath, CP_UTF8)));
 
 	CString logEntry;
 	logEntry.Format(_T("Downloading file: %s to %s"), url, filePath);
@@ -70,7 +70,7 @@ DWORD Downloader::GetFile(CString url) {
 	if (hr == S_OK)
 		return 1;
 
-	l->error("Downloader: Couldn't download file to {} to {}", CW2A(url, CP_UTF8), CW2A(filePath, CP_UTF8));
+	l->error("Downloader: Couldn't download file to {} to {}", (char*) CW2A(url, CP_UTF8), (char*) CW2A(filePath, CP_UTF8));
 
 	logEntry.Format(_T("Couldn't download file %s to %s"), url, filePath);
 	AddToLogs(logEntry);
@@ -106,7 +106,7 @@ CString Downloader::GetDownloadManifest() {
 	CHttpFile* cHttpFile = NULL;
 	int fail = 0;
 
-	l->info("Downloader: Downloading file manifest from {}", CW2A(sURL, CP_UTF8));
+	l->info("Downloader: Downloading file manifest from {}", (char*) CW2A(sURL, CP_UTF8));
 
 	try {
 		cHttpFile = new CHttpFile(Session, sURL, NULL, 0, INTERNET_FLAG_DONT_CACHE);
@@ -131,7 +131,7 @@ CString Downloader::GetDownloadManifest() {
 
 		delete cHttpFile;
 
-		l->info("Downloader: Downloaded file manifest from {}", CW2A(sURL, CP_UTF8));
+		l->info("Downloader: Downloaded file manifest from {}", (char*) CW2A(sURL, CP_UTF8));
 
 		CString logEntry;
 		logEntry.Format(_T("Downloaded file manifest from %s"), sURL);
@@ -140,7 +140,7 @@ CString Downloader::GetDownloadManifest() {
 		return pageSource;
 	}
 
-	l->error("Downloader: Couldn't download manifest from {}", CW2A(sURL, CP_UTF8));
+	l->error("Downloader: Couldn't download manifest from {}", (char*) CW2A(sURL, CP_UTF8));
 
 	CString logEntry;
 	logEntry.Format(_T("Couldn't download file manifest from %s"), sURL);
@@ -155,14 +155,14 @@ DWORD Downloader::GetSectionDownload(CIniKeyW* key) {
 	CString fileToDownloadCheckHash = ini.GetSection(_T("checksums"))->GetKey(key->GetKeyName())->GetValue().c_str();
 
 	if (ValidateCrcFile(GetLevionUserAppDir(GuessFileNameFromURL(key->GetValue().c_str())), fileToDownloadCheckHash) == 1) {
-		l->info("Downloader: No need to redownload - same archive for {}", CW2A(key->GetValue().c_str(), CP_UTF8));
+		l->info("Downloader: No need to redownload - same archive for {}", (char*) CW2A(key->GetValue().c_str(), CP_UTF8));
 		return 1;
 	}
 
 	GetFile(key->GetValue().c_str());
 
 	if (ini.GetSection(_T("checksums")) == NULL) {
-		l->error("Downloader: No checksum for {}", CW2A(key->GetValue().c_str(), CP_UTF8));
+		l->error("Downloader: No checksum for {}", (char*) CW2A(key->GetValue().c_str(), CP_UTF8));
 
 		CString logEntry;
 		logEntry.Format(_T("No checksum for %s"), key->GetValue().c_str());
@@ -176,7 +176,7 @@ DWORD Downloader::GetSectionDownload(CIniKeyW* key) {
 	if (ValidateCrcFile(GetLevionUserAppDir( GuessFileNameFromURL(key->GetValue().c_str()) ), fileToDownloadCheckHash) == 1)
 		return 1;
 
-	l->error("Downloader: Checksum mismatched for {}", CW2A(key->GetValue().c_str(), CP_UTF8));
+	l->error("Downloader: Checksum mismatched for {}", (char*) CW2A(key->GetValue().c_str(), CP_UTF8));
 
 	CString logEntry;
 	logEntry.Format(_T("Checksum mismatched for %s"), key->GetValue().c_str());
@@ -204,7 +204,7 @@ DWORD Downloader::ValidateCrcFile(CString filePath, CString hexCrc) {
 
 	if (dwCrc32 == goodCrc) {
 		CString logEntry;
-		l->info("Downloader: {} validated for checksum {}", CW2A(filePath, CP_UTF8), CW2A(hexCrc, CP_UTF8));
+		l->info("Downloader: {} validated for checksum {}", (char*) CW2A(filePath, CP_UTF8), (char*) CW2A(hexCrc, CP_UTF8));
 
 		logEntry.Format(_T("%s validated for checksum %s"), filePath, hexCrc);
 		AddToLogs(logEntry);
@@ -212,7 +212,7 @@ DWORD Downloader::ValidateCrcFile(CString filePath, CString hexCrc) {
 		return 1;
 	}
 
-	l->error("Downloader: {} DID NOT VALIDATE for checksum {}", CW2A(filePath, CP_UTF8), CW2A(hexCrc, CP_UTF8));
+	l->error("Downloader: {} DID NOT VALIDATE for checksum {}", (char*) CW2A(filePath, CP_UTF8), (char*) CW2A(hexCrc, CP_UTF8));
 
 	CString logEntry;
 	logEntry.Format(_T("NO VALIDATION: %s DIDN'T VALIDATE for checksum %s"), filePath, hexCrc);
@@ -242,17 +242,17 @@ int Downloader::CreateLevionAppDir() {
 	int success = CreateDirectory(GetLevionUserAppDir(), NULL);
 	if (success) {
 		if (l.get())
-			l->info("Created directory {}", CW2A(GetLevionUserAppDir(), CP_UTF8));
+			l->info("Created directory {}", (char*) CW2A(GetLevionUserAppDir(), CP_UTF8));
 		return 1;
 	}
 	else {
 		if (PathIsDirectory(GetLevionUserAppDir())) {
 			if (l.get())
-				l->info("Directory {} already exists", CW2A(GetLevionUserAppDir(), CP_UTF8));
+				l->info("Directory {} already exists", (char*) CW2A(GetLevionUserAppDir(), CP_UTF8));
 		}
 		else {
 			if (l.get())
-				l->error("Directory {} doesn't exist", CW2A(GetLevionUserAppDir(), CP_UTF8));
+				l->error("Directory {} doesn't exist", (char*) CW2A(GetLevionUserAppDir(), CP_UTF8));
 
 		}
 		return PathIsDirectory(GetLevionUserAppDir());
@@ -338,7 +338,7 @@ int Downloader::DoDownload() {
 		CString sectionName = (*kitr)->GetKeyName().c_str();
 		CIniSectionW* section = ini.GetSection((LPCTSTR) sectionName);
 
-		l->info("Downloader: Checking download section for {}", CW2A(sectionName, CP_UTF8));
+		l->info("Downloader: Checking download section for {}", (char*) CW2A(sectionName, CP_UTF8));
 
 		CString logEntry;
 		logEntry.Format(_T("== SECTION CHECKING TO BEGIN: %s =="), sectionName);
@@ -354,7 +354,7 @@ int Downloader::DoDownload() {
 			int success = _wstat((LPCTSTR) filePath, &buffer);
 
 			if (success == -1) {
-				l->info("Downloader: Download required: {} doesn't exist in {}", CW2A((*inner_kitr)->GetKeyName().c_str(), CP_UTF8), CW2A(filePath, CP_UTF8));
+				l->info("Downloader: Download required: {} doesn't exist in {}", (char*) CW2A((*inner_kitr)->GetKeyName().c_str(), CP_UTF8), (char*) CW2A(filePath, CP_UTF8));
 				logEntry.Format(_T("DOWNLOAD REQUIRED: %s DOESN'T EXIST in %s"), (*inner_kitr)->GetKeyName().c_str(), filePath);
 				AddToLogs(logEntry);
 			}
@@ -382,7 +382,7 @@ int Downloader::DoDownload() {
 				for (int i=0; i<numitems; i++){ 
 					GetZipItem(hz,i,&ze);
 
-					l->info("Downloader: Unzipping file: {}", CW2A(ze.name, CP_UTF8));
+					l->info("Downloader: Unzipping file: {}", (char*) CW2A(ze.name, CP_UTF8));
 					logEntry.Format(_T("Unzipping file: %s"), ze.name);
 					AddToLogs(logEntry);
 
@@ -396,7 +396,7 @@ int Downloader::DoDownload() {
 				break;
 			}
 		}
-		l->info("Downloader: Section checking complete for {}", CW2A(sectionName, CP_UTF8));
+		l->info("Downloader: Section checking complete for {}", (char*) CW2A(sectionName, CP_UTF8));
 		logEntry.Format(_T("== SECTION CHECKING COMPLETED: %s =="), sectionName);
 		AddToLogs(logEntry);
 	}
