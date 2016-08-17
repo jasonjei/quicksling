@@ -5,7 +5,7 @@ if not exist "%cd%\cef_binary\CURRENT_VERSION_3.2526.1347.gcf20046" (
 	)
 
 	if not exist "archives\cef_binary_3.2526.1347.gcf20046_windows32.7z" ( 
-		..\tools\wget https://storage.googleapis.com/quicksling/build/cef_binary_3.2526.1347.gcf20046_windows32.7z
+		tools\wget https://storage.googleapis.com/quicksling/build/cef_binary_3.2526.1347.gcf20046_windows32.7z
 	)
 	"%QUICKSLINGPATH%\tools\7za.exe" x -y -o"%QUICKSLINGPATH%" "archives\cef_binary_3.2526.1347.gcf20046_windows32.7z" "cef_binary_3.2526.1347.gcf20046_windows32\Debug" "cef_binary_3.2526.1347.gcf20046_windows32\Release"
 	robocopy "cef_binary_3.2526.1347.gcf20046_windows32\Debug" "%QUICKSLINGPATH%\cef_binary\Debug" /E /IS /MOVE
