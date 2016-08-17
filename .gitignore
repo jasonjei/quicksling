@@ -133,3 +133,5 @@ archives*/*
 cef_binary*/CURRENT_VERSION*
 !BugSplat/bin*
 !BugSplat/bin64*
+cef_binary/build
+QuickslingShell/QuickslingShell.h

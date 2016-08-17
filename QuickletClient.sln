@@ -9,8 +9,6 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "QuickslingShell", "Quicksli
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Quicksling", "Quicksling\Quicksling.vcxproj", "{BBB721AB-4A0B-4450-A2D6-EA1B392A6581}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libcef_dll_wrapper", "cef_binary\build\libcef_dll\libcef_dll_wrapper.vcxproj", "{DCDCC8C3-9AF8-3587-8937-2A1C55FAB0D0}"
-EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "QuickslingTest", "QuickslingTest\QuickslingTest.vcxproj", "{97C9194F-A1B2-457B-BBC1-A3C750DD28AE}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SimpleChecksumDownloader", "SimpleChecksumDownloader\SimpleChecksumDownloader.vcxproj", "{CD314856-FD11-40C5-B5A8-32339F80176E}"
@@ -69,18 +67,6 @@ Global
 		{BBB721AB-4A0B-4450-A2D6-EA1B392A6581}.Release|Win32.Build.0 = Release|Win32
 		{BBB721AB-4A0B-4450-A2D6-EA1B392A6581}.Release|x86.ActiveCfg = Release|Win32
 		{BBB721AB-4A0B-4450-A2D6-EA1B392A6581}.Release|x86.Build.0 = Release|Win32
-		{DCDCC8C3-9AF8-3587-8937-2A1C55FAB0D0}.Debug|Mixed Platforms.ActiveCfg = Debug|Win32
-		{DCDCC8C3-9AF8-3587-8937-2A1C55FAB0D0}.Debug|Mixed Platforms.Build.0 = Debug|Win32
-		{DCDCC8C3-9AF8-3587-8937-2A1C55FAB0D0}.Debug|Win32.ActiveCfg = Debug|Win32
-		{DCDCC8C3-9AF8-3587-8937-2A1C55FAB0D0}.Debug|Win32.Build.0 = Debug|Win32
-		{DCDCC8C3-9AF8-3587-8937-2A1C55FAB0D0}.Debug|x86.ActiveCfg = Debug|Win32
-		{DCDCC8C3-9AF8-3587-8937-2A1C55FAB0D0}.Debug|x86.Build.0 = Debug|Win32
-		{DCDCC8C3-9AF8-3587-8937-2A1C55FAB0D0}.Release|Mixed Platforms.ActiveCfg = Release|Win32
-		{DCDCC8C3-9AF8-3587-8937-2A1C55FAB0D0}.Release|Mixed Platforms.Build.0 = Release|Win32
-		{DCDCC8C3-9AF8-3587-8937-2A1C55FAB0D0}.Release|Win32.ActiveCfg = Release|Win32
-		{DCDCC8C3-9AF8-3587-8937-2A1C55FAB0D0}.Release|Win32.Build.0 = Release|Win32
-		{DCDCC8C3-9AF8-3587-8937-2A1C55FAB0D0}.Release|x86.ActiveCfg = Release|Win32
-		{DCDCC8C3-9AF8-3587-8937-2A1C55FAB0D0}.Release|x86.Build.0 = Release|Win32
 		{97C9194F-A1B2-457B-BBC1-A3C750DD28AE}.Debug|Mixed Platforms.ActiveCfg = Debug|Win32
 		{97C9194F-A1B2-457B-BBC1-A3C750DD28AE}.Debug|Mixed Platforms.Build.0 = Debug|Win32
 		{97C9194F-A1B2-457B-BBC1-A3C750DD28AE}.Debug|Win32.ActiveCfg = Debug|Win32
