@@ -131,3 +131,5 @@ tools/quicklet.pfx
 cef_binary*/build/*
 archives*/*
 cef_binary*/CURRENT_VERSION*
+!BugSplat/bin*
+!BugSplat/bin64*
