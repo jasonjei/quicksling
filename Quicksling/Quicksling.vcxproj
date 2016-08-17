@@ -296,11 +296,6 @@ GOTO END
   <ItemGroup>
     <Image Include="res\Quicksling.ico" />
   </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="Z:\Projects\quicklet-dev-client\cef_binary\build\libcef_dll\libcef_dll_wrapper.vcxproj">
-      <Project>{dcdcc8c3-9af8-3587-8937-2a1c55fab0d0}</Project>
-    </ProjectReference>
-  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
