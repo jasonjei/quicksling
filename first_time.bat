@@ -1,5 +1,5 @@
 set QUICKSLINGPATH=%cd%
-if not exist %cd%\cef_binary\Debug\libcef.dll (
+if not exist %cd%\cef_binary\CURRENT_VERSION_3.2526.1347.gcf20046 (
 	if not exist %cd%\archives (
 		mkdir archives
 	)
@@ -17,5 +17,7 @@ if not exist %cd%\cef_binary\Debug\libcef.dll (
 		cd %cd%\cef_binary\build
 		cmake -G "Visual Studio 12" ..
 	)
+	cd %QUICKSLINGPATH%\cef_binary
+	type nul >>CURRENT_VERSION_3.2526.1347.gcf20046 & copy file +,,
 	cd %QUICKSLINGPATH%
 )

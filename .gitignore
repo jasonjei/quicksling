@@ -130,3 +130,4 @@ tools/quicklet.pfx
 
 cef_binary*/build/*
 archives*/*
+cef_binary*/CURRENT_VERSION*
