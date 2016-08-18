@@ -132,6 +132,8 @@ cef_binary*/build/*
 archives*/*
 cef_binary*/CURRENT_VERSION*
 !BugSplat/bin*
+!BugSplat/bin/BugSplat.pdb
 !BugSplat/bin64*
+!BugSplat/bin64/BugSplat64.pdb
 cef_binary/build
 QuickslingShell/QuickslingShell.h

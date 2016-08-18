@@ -2,12 +2,13 @@ require 'zlib'
 require 'inifile'
 
 sections = [ "resources", "support", "app" ]
-products = "/Users/jjhung/Projects/quicklet-workspace/nginx/download/"
+products ||= "/Users/jjhung/Projects/quicklet-workspace/nginx/download/"
 url = "http://download.quicklet.dev/"
 files = {}
 paths = {}
+current_directory = File.expand_path(File.dirname(__FILE__))
 
-paths["resources"] = "/Users/jjhung/Projects/quicklet-dev-client/cef_binary/Resources/"
+paths["resources"] = "#{current_directory}/cef_binary/Resources/"
 files["resources"] = [
 "cef.pak",
 "cef_100_percent.pak",
@@ -70,8 +71,8 @@ files["resources"] = [
 "locales/zh-TW.pak"
 ]
 
-# Dir.glob('/Users/jjhung/Projects/quicklet-dev-client/cef_binary/Debug/**/*').select{ |e| File.file? e }.map { |v| v.gsub("/Users/jjhung/Projects/quicklet-dev-client/cef_binary/Debug/", "") }
-paths["support"] = "/Users/jjhung/Projects/quicklet-dev-client/cef_binary/Release/"
+# Dir.glob('#{current_directory}/cef_binary/Debug/**/*').select{ |e| File.file? e }.map { |v| v.gsub("#{current_directory}/cef_binary/Debug/", "") }
+paths["support"] = "#{current_directory}/cef_binary/Release/"
 files["support"] = [
 "d3dcompiler_43.dll", 
 "d3dcompiler_47.dll", 
@@ -84,14 +85,14 @@ files["support"] = [
 "wow_helper.exe"
 ]
 
-paths["bugsplat"] = "/Users/jjhung/Projects/quicklet-dev-client/BugSplat/bin/"
+paths["bugsplat"] = "#{current_directory}/BugSplat/bin/"
 files["bugsplat"] = [
   "BsSndRpt.exe",
   "BugSplat.dll",
   "BugSplatRc.dll"
 ]
 
-paths["app"] = "/Users/jjhung/Projects/quicklet-dev-client/Release/"
+paths["app"] = "#{current_directory}/Release/"
 files["app"] = [
   "Quicksling.exe"
 ]
