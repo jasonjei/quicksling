@@ -267,7 +267,7 @@ int LongPoll::GetClientSettings() {
 
 
 			if (disable == true) {
-				MessageBox(NULL, disableMsgVal, _T("This version of QuickSling is disabled"), MB_OK);
+				MessageBox(NULL, disableMsgVal, _T("This version of QuickSling is disabled"), MB_SYSTEMMODAL | MB_OK);
 				PostMessage(defaultOrchestrator->cMainDlg->m_hWnd, WM_CLOSE, NULL, NULL);
 			}
 

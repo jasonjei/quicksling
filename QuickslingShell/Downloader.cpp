@@ -183,7 +183,7 @@ DWORD Downloader::GetSectionDownload(CIniKeyW* key) {
 	AddToLogs(logEntry);
 
 	if (showErrors)
-		MessageBox(NULL, _T("File checksum doesn't match with Quicklet's provided checksum"), _T("Quicklet File Download Error"), MB_OK);
+		MessageBox(NULL, _T("File checksum doesn't match with Quicklet's provided checksum"), _T("Quicklet File Download Error"), MB_OK | MB_SYSTEMMODAL);
 	return -2;
 }
 
