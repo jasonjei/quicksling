@@ -101,7 +101,7 @@ crcs = {}
 files.keys.each do |key|
   crcs[key] = {}
   files[key].each do |file|
-    crcs[key][file] = Zlib::crc32(File.read("#{paths[key]}#{file}")).to_s(16)
+    crcs[key][file] = Zlib::crc32(File.read("#{paths[key]}#{file}")).to_s(16).rjust(8, '0')
   end
 
   puts "cd #{paths[key]}; rm #{products}#{key}.zip; zip -r #{products}#{key}.zip #{files[key].join(" ")}"
@@ -114,13 +114,13 @@ i = IniFile.new
 
 files.keys.each do |key|
   files[key].each do |file|
-    i[key][file] = Zlib::crc32(File.read("#{paths[key]}#{file}")).to_s(16)
+    i[key][file] = Zlib::crc32(File.read("#{paths[key]}#{file}")).to_s(16).rjust(8, '0')
   end
 end
 
 files.keys.each do |key|
   i['downloads'][key] = "#{url}#{key}.zip"
-  i['checksums'][key] = Zlib::crc32(File.read("#{products}#{key}.zip")).to_s(16) 
+  i['checksums'][key] = Zlib::crc32(File.read("#{products}#{key}.zip")).to_s(16).rjust(8, '0')
 end
 
 File.write("#{products}download.ini", i.to_s)
